@@ -50,18 +50,9 @@ export default function AddComment({ route, navigation }) {
             <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
             <PostProductHeader />
             
-            <Text style={{ color: '#777', fontSize: 12, padding: 15 }}>Your comment on</Text>
-            <View style={styles.postContainer}>  
-                <Image source={{ uri: item.author.profile_pic }} style={styles.authorProfileContainer} />
-                <View style={{ flexDirection: 'column', marginRight: 18 }}>
-                    <Text style={{ fontSize: 15, paddingLeft: 8, color: '#777' }}>{item.title}</Text>
-                    <View style={{ margin: 12, paddingVertical: 8, borderWidth: 0.5, borderColor: '#777', borderRadius: 8 }}>
-                        <Text style={{fontSize: 15, padding: 10, color: '#777' }}>{item.description}</Text>
-                    </View>
-                </View>
-            </View>
+            <Text style={{ color: '#777', fontSize: 12, padding: 15 }}>Your comment:</Text>
             
-            <View style={{ flex: 2, padding: 12}}>
+            <View style={{ flex: 1, padding: 12}}>
                     <Image source={{ uri: userInfo.profile_pic }} style={styles.profileContainer} />
                 <View style={{ flexDirection: 'row' }}>
                     <Textarea rowSpan={4}  style={styles.inputContainer} 
@@ -112,7 +103,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginVertical: 10,
         padding: 8,
-        borderRadius: 12,
+        borderRadius: 5,
         borderWidth: 0.5,
         borderColor: '#7B8788',
         margin: 18,
@@ -120,8 +111,9 @@ const styles = StyleSheet.create({
       },
       buttonContainer: {
         padding: 5,
+        paddingHorizontal: 8,
         backgroundColor: '#B83227',
-        borderRadius: 8,
+        borderRadius: 5,
         marginVertical: 18,
         height: '30%'
       },

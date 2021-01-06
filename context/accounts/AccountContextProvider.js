@@ -42,7 +42,7 @@ const { authState } = useContext(AuthContext);
 
   const fetchData = async(token_) => {
       try{
-        const response = await axios.get(`${APIROOTURL}/api/profiles/`,{
+        const response = await axios.get(`${APIROOTURL}/api/promoted_profiles/`,{
             headers: {
                 'Authorization': `Token ${token_}`
             }
@@ -58,11 +58,12 @@ const { authState } = useContext(AuthContext);
 
   const fetchRefreshedData = async() => {
     try{
-      const response = await axios.get(`${APIROOTURL}/api/profiles/`,{
+      const response = await axios.get(`${APIROOTURL}/api/promoted_profiles/`,{
           headers: {
               'Authorization': `Token ${token}`
           }
       })
+      
       dispatch({type: 'FETCH_SUCCESS', payload: response.data.results})
     }catch(error){
       dispatch({type: 'FETCH_FAILED'})
@@ -78,7 +79,7 @@ useEffect(() => {
     useeffectFetch();
 },[token])
 
-// console.log(state.accounts[0].sponsored_profile);
+// console.log("*****************", state.accounts);
 
  return(
     <AccountContext.Provider value={{ ...state, fetchRefreshedData }}>

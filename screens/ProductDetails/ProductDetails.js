@@ -2,14 +2,14 @@ import React, {useState, useEffect, useContext, useReducer } from 'react'
 import axios from 'axios'
 import { MaterialIcons, AntDesign, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
-import { View, Text, StyleSheet, Image, TouchableOpacity, RefreshControl, ScrollView, ActivityIndicator, FlatList } from 'react-native'
+import { View,  StyleSheet, Image, TouchableOpacity, RefreshControl, ScrollView, ActivityIndicator, FlatList } from 'react-native'
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import FullImageModal from '../../components/Modals/FullImageModal';
 import OtherHeaderComponent from '../../components/OtherHeaderComponent';
 import { AuthContext } from '../../context/authentication/Context'
 import CommentComponent from '../../components/CommentComponent';
-import { Headline, Paragraph, Subheading, Button, Dialog, Portal, Chip, Caption } from 'react-native-paper';
+import { Headline, Paragraph, Subheading, Button, Dialog, Portal, Chip, Caption, Text } from 'react-native-paper';
 import LikedBy from '../../components/LikedBy';
 import * as Animatable from 'react-native-animatable';
 
@@ -51,6 +51,8 @@ const ProductDetails = ({ route, navigation}) => {
     const [ userInfo, setUserInfo ] = useState({});
  
     const [ fullImageModalOpen, setFullImageModalOpen ] = useState(false)
+
+    const [ isLiked, setIsLiked ] = useState(false);
 
     const { fetchFirstPostsData } = useContext(CompanyContext)
 
@@ -138,6 +140,20 @@ const ProductDetails = ({ route, navigation}) => {
       }
     }
 
+      
+  const fetchCheckIsLikedPost = async() => {
+    try {
+      const responseData = await axios.get(`${APIROOTURL}/api/check_likes/${ID}`,  {
+        headers: {
+          'Authorization': `Token ${token}`, 
+        },
+      })
+      setIsLiked(responseData.data.Response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
     useEffect(() => {
       const effectFetch = async() => {
         const token_ = await authState.token
@@ -145,6 +161,10 @@ const ProductDetails = ({ route, navigation}) => {
         fetchUserMe(token_)
       }
       effectFetch();
+    },[])
+
+    useEffect(() => {
+      fetchCheckIsLikedPost()
     },[])
 
     const fastRefresh = () => {
@@ -207,7 +227,9 @@ const { container } = styles
           <FullImageModal   
             showModal={fullImageModalOpen} 
             closeModal={setFullImageModalOpen}
-            image={state.post.image} />
+            comments={state.post.comments.length}
+            image={state.post.image}
+            likes={ state.post.likes.length} />
 
           { state.post.image ?
 
@@ -235,14 +257,20 @@ const { container } = styles
           <View style={styles.descriptionContainer}>
                 
               <View style={{ flexDirection: "row", paddingTop: 12, paddingHorizontal: 15 }}>
-                      
+              
                       {/* Descriptions here */}
                   <View>
 
                       <View  style={styles.accountContainer}>
                           <Image source={{ uri: state.post.author.profile_pic }} style={GlobalStyles.roundedPictContainer} />
                           <View style={{  paddingLeft: 10 }}>
-                            <Text style={{...styles.accountName, fontSize: 15,}}>{state.post.author.user.username}</Text>
+                            <View style={{ flexDirection: 'row' }}> 
+                              <Text style={{...styles.accountName, fontSize: 15,}}>{state.post.author.user.username}</Text>
+                              {
+                                state.post.author.verified ?  <AntDesign name="star" size={10} color="black" /> : null
+                              }
+                             
+                            </View>
                             <Caption style={{ fontSize: 14 }}>{state.post.author.profile_type.name}</Caption>
                             {/* <Text ></Text> */}
                           </View>
@@ -254,7 +282,10 @@ const { container } = styles
                         <Text style={{ color: 'red', fontWeight: '700', letterSpacing: 0.5 }}>${state.post.price}</Text>
                         {state.post.offer && <Text style={{letterSpacing: 0.5, fontSize: 13, color: 'gold', fontWeight: '700' }}>{state.post.offer}% Offer</Text>}
                       </View>
-
+                      {
+                        isLiked ? <Text>You Liked This post</Text> : null
+                      }
+                      
                   </View>
                       <TouchableOpacity onPress={() => navigation.navigate('Chat', {ID: state.post.author.id })}
                         style={styles.bookmarkStyles}

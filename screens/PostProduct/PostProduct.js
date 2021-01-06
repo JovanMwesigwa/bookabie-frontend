@@ -33,7 +33,7 @@ const PostProduct = ({pickImage, navigation }) => {
 
 
   let openImagePickerAsync = async () => {
-    let permissionResult = await ImagePicker.requestCameraRollPermissionsAsync();
+    let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
       alert("Permission to access camera roll is required!");
@@ -47,7 +47,7 @@ const PostProduct = ({pickImage, navigation }) => {
       console.log("Image response", response);
     });
 
-    console.log(pickerResult);
+    
 
     if (pickerResult.cancelled === true) {
       return;
@@ -58,6 +58,8 @@ const PostProduct = ({pickImage, navigation }) => {
 
 
   }
+
+  // console.log("*******Image is ********************",selectedImage.localUri);
 
   const goToFeed = () => {
     navigation.navigate('Find')

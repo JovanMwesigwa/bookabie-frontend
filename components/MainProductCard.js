@@ -29,8 +29,8 @@ const { container } = styles
                 </TouchableOpacity>
                 <Text numberOfLines={1} style={{...GlobalStyles.mutedText, flex: 1}}>{item.author.user.username}</Text>
                 {
-                  item.price ? <Text style={{ flex: 1, color: '#218F76', fontWeight: "700",  }}>$ {item.price}</Text> :
-                  <Text style={{ flex: 1, color: '#218F76', fontWeight: "700",  }}>OFFER</Text>
+                  item.price ? <Text style={{  flex: 1, color: '#218F76', fontWeight: "700",  }}>$ {item.price}</Text> :
+                  <Text style={{  flex: 1, color: '#218F76', fontWeight: "700",  }}>OFFER</Text>
                 } 
                 {
                   item.offer ? <Text style={styles.offerStyles}>{item.offer} Off</Text> :

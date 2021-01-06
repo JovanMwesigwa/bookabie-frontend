@@ -13,6 +13,7 @@ import { Caption, Paragraph, Headline } from 'react-native-paper';
 import { Container, Header, Content, Tab, Tabs} from 'native-base';
 import { Surface, Text } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 
 
 const initialState = {
@@ -58,7 +59,9 @@ const CompanyProfile = ({ route, navigation }) => {
 
   const [ userPosts, setUserPosts ] = useState([])
 
-  const [ currentUserProfile, setCurrentUserProfile ] = useState([])
+  const [ currentUserProfile, setCurrentUserProfile ] = useState([]);
+
+  const [ isFollowing, setIsFollowing ] = useState(null);
 
 
   const token = authState.token;
@@ -130,7 +133,19 @@ const CompanyProfile = ({ route, navigation }) => {
     }
   }
 
-  
+  const fetchIsFollowerCheck = async() => {
+    try {
+      const result = await axios.get(`${APIROOTURL}/api/isfollowing/?search=${state.profile.user}`,{
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      })
+      setIsFollowing(result.data.count);
+      console.log(result.data);
+    } catch (error) {
+      console.log(error);     
+    }
+  }  
 
 
   useEffect(() => {
@@ -140,6 +155,7 @@ const CompanyProfile = ({ route, navigation }) => {
         fetchUser(token_)
      } 
      useeffectFetch();
+     fetchIsFollowerCheck();
   },[])
 
   const data = {
@@ -187,6 +203,8 @@ const CompanyProfile = ({ route, navigation }) => {
     fetchUser()
   }
 
+
+  // console.log(isFollowing);
   if (state.error) {
     return (
       <>
@@ -213,7 +231,7 @@ const CompanyProfile = ({ route, navigation }) => {
 
   const renderFooter = () => {
     return(
-      <Animatable.View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15 }}
+      <Animatable.View style={{ flex: 1, justifyContent: 'center', elevation: 5, paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15 }}
         animation='fadeInUp'
         delay={900}
         duration = {200}  
@@ -281,7 +299,10 @@ const refreshControl = <RefreshControl
                         <View >
                           <View style={{ flexDirection: 'row'}}>
                             <Text style={{...styles.mainText, fontSize: 15}}>{state.profile.user}</Text>
-                            <AntDesign name="star" size={10} color="black" />
+                            {
+                              state.profile.verified ? <AntDesign name="star" size={10} color="black" /> : null
+                            }
+                            
                           </View>
                           <Text style={styles.secondaryText}>{state.profile.profile_type.name}</Text>
                         </View>
@@ -295,7 +316,7 @@ const refreshControl = <RefreshControl
                             </TouchableOpacity> */}
                             {
                               followedBtn ? 
-
+                              
                             <TouchableOpacity style={styles.followingBtnContainer}
                               onPress={unFollowUser}
                              >
@@ -500,7 +521,7 @@ followingBtnContainer:{
   backgroundColor: '#B83227', 
   paddingHorizontal: 12,
   paddingVertical: 5,
-  borderRadius: 5
+  borderRadius: 8
 },
 arrowDownContainer: {
   borderWidth: 1,

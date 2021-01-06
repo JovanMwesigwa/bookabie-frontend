@@ -51,10 +51,11 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    fontSize: 22,
-    letterSpacing: 1,
-    paddingTop: 5,
-    color: '#B83227'
+    fontSize: 25,
+    letterSpacing: 2,
+    paddingTop: 10,
+    color: '#B83227',
+    fontWeight: "600",
   },
   profileContainer: { 
     // backgroundColor: '#ddd', 

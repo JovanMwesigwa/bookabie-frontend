@@ -38,7 +38,15 @@ const ProductCard = ({ item   }) => {
 
   const [ createdLikeID, setCreatedLikeID ] = useState(null);
 
+  const [ IDsMap, setIDsMap ] = useState({});
+
+  const [ likedID, setLikedID ] = useState(null)
+
+  const [ isLiked, setIsLiked ] = useState(false);
+
   const { userInfo } = useContext(UserInfoContext);
+
+
 
   const { authState } = useContext(AuthContext);
 
@@ -65,32 +73,37 @@ const ProductCard = ({ item   }) => {
   }
 
   const fastRefresh = () => {
-    fetchFirstPostsData()
+    fetchCheckIsLikedPost();
+    fetchFirstPostsData();
   }
 
-  const bgColor = pressLike ? 'pink' : '#ddd';
+  const bgColor = isLiked ? 'pink' : '#ddd';
   const heartIcon = pressLike ?  <Entypo name="heart" size={20} color="#B83227" style={{ textAlign: 'center' }} /> 
                   :  <Entypo name="heart-outlined" size={20} color="#616C6F" style={{ textAlign: 'center' }} /> 
  
+   
+                  
   
 
-  const likePost = () => {
-    axios.post(`${APIROOTURL}/api/like_post/`, data, {
-      headers: {
-        'Authorization': `Token ${token}`, 
-        data: data
-      }
-    })
-    .then(res => {
-        setCreatedLikeID(res.data.id);
-    })
-    .catch(err => {
-        console.log(err);
-    })
-    fastRefresh()
-    setPressedLike(!pressLike)
+  const likePost = async() => {
+    try {
+      const responseID = await axios.post(`${APIROOTURL}/api/like_post/`, data, {
+        headers: {
+          'Authorization': `Token ${token}`, 
+          data: data
+        }
+      })
+      // console.log("*******************", responseID.data);
+      setCreatedLikeID(responseID.data.id);
+      setPressedLike(!pressLike)
+      fetchCheckIsLikedPost()
+    } catch (error) {
+      console.log(error)
+    }
     
   }
+
+  
 
   const UnLikePost = () => {
     axios.delete(`${APIROOTURL}/api/unlike_post/${createdLikeID}/delete/`,{
@@ -105,12 +118,43 @@ const ProductCard = ({ item   }) => {
         console.log(err);
     })
     setPressedLike(!pressLike)
-    fastRefresh()
+    fetchCheckIsLikedPost()
   }
-  
+
+  const fetchCheckIsLikedPost = async() => {
+    try {
+      const responseData = await axios.get(`${APIROOTURL}/api/check_likes/${item.id}`,  {
+        headers: {
+          'Authorization': `Token ${token}`, 
+        },
+      })
+      setIsLiked(responseData.data.Response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getLikedPostID  = async() => {
+    try {
+      const responseBack = await axios.get(`${APIROOTURL}/api/get_post_id/${item.id}/?search=Drake`,  {
+        headers: {
+          'Authorization': `Token ${token}`, 
+        },
+      })
+      setIDsMap(responseBack.data.results)
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchCheckIsLikedPost();
+  },[])
+
 
   const name = userInfo.user;
-  // console.log(item.id);
+
+  
 const { container } = styles
 
 
@@ -120,25 +164,32 @@ const { container } = styles
     <ShareDialogBox  hideShareDialog={hideShareDialog} shareBoxvisible={shareBoxvisible} setShowShowShareDialog={setShowShowShareDialog}/>
     <View style={styles.description}>
       <View style={styles.actionContainer}>
-        <View style={styles.bookmarkIcon}>
+          <View style={styles.bookmarkIcon}>
             <Feather name="plus" size={18} color="white" />
           </View>
           <TouchableOpacity style={styles.threeDots} onPress={() => setShowShowShareDialog()}>
-            <Entypo name="dots-three-vertical" size={18} color="black"  />
+            <Entypo name="dots-three-vertical" size={15} color="black"  />
           </TouchableOpacity>
       </View>
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center',  paddingHorizontal: 20 }}>
         <Image source={{ uri: item.author.profile_pic }} style={{...GlobalStyles.roundedPictContainer, width: 37,height: 37}} />
           <View style={{ paddingHorizontal: 12 }}>
             { name != item.author.user.username ? 
-              <TouchableOpacity onPress = {() => navigation.navigate("CompanyProfile", {ID: item.author.id})}>
+              <TouchableOpacity style={{ flexDirection: 'row' }} onPress = {() => navigation.navigate("CompanyProfile", {ID: item.author.id})}>
                 <Text style={styles.accountName}>{item.author.user.username}</Text>
+                {
+                  item.author.verified ? <AntDesign name="star" size={10} color="black" /> : null
+                }
               </TouchableOpacity> :
-              <TouchableOpacity onPress = {() => navigation.navigate("Profile" )}>
+              <TouchableOpacity style={{ flexDirection: 'row' }} onPress = {() => navigation.navigate("Profile" )}>
                 <Text style={styles.accountName}>{item.author.user.username}</Text>
+                {
+                  item.author.verified ? <AntDesign name="star" size={10} color="black" /> : null
+                }
               </TouchableOpacity>
-
+                
               }
+              
               <View style={styles.ratingsContainer}>
               
                   <Text style={styles.time}>/ Posted about { moment(item.created).startOf('hour').fromNow()}</Text>
@@ -170,7 +221,9 @@ const { container } = styles
 
         <FullImageModal showModal={fullImageModal} 
       closeModal={setFullImageModal}
-      image={item.image} />
+      image={item.image}
+      comments={item.comments.length}
+      likes={item.likes.length} />
 
         {item.image ? 
         <TouchableWithoutFeedback onPress={() => setFullImageModal(true)}>
@@ -181,27 +234,23 @@ const { container } = styles
         }
           <View style={styles.commentsContainer}>
           <Text style={{...styles.time, fontWeight: 'bold'}}>ON SALE  • </Text>
-          { item.likes.length == 1 ?
-            <Text style={styles.likesContainer}>{item.likes.length} like  •</Text> :
-            <Text style={styles.likesContainer}>{item.likes.length} likes  • </Text> 
+          { item.likes == 1 ?
+            <Text style={styles.likesContainer}>{item.likes} like  •</Text> :
+            <Text style={styles.likesContainer}>{item.likes} likes  • </Text> 
             
           }
 
           {
-            item.comments.length == 1 ? 
-            <Text style={styles.time}>{item.comments.length} comment</Text> :
-            <Text style={styles.time}>{item.comments.length} comments</Text>
+            item.comments == 1 ? 
+            <Text style={styles.time}>{item.comments} comment</Text> :
+            <Text style={styles.time}>{item.comments} comments</Text>
           }
-            {/* <Entypo name="500px-with-circle" size={2.5} color="black" /> */}
-            {/* <Entypo name="500px-with-circle" size={2.5} color="black" /> */}
-            {/* <Text style={{...styles.time, paddingHorizontal: 5}}>0 Likes</Text> */}
-            {/* <Text style={styles.dotContainer}>-</Text> */}
 
           </View>
       </View>
       <View style={styles.reactionContainer}>
         {
-          pressLike ? 
+          isLiked ? 
            
           <TouchableRipple 
             style={{ flex: 1, paddingHorizontal: 8, 
@@ -209,7 +258,7 @@ const { container } = styles
             borderRadius: 9 }} 
             rippleColor="rgba(0, 0, 0, .32)"
             onPress={UnLikePost}>
-            <FontAwesome5 name="heart" size={18} color="#616C6F" style={{ textAlign: 'center' }} />
+            <FontAwesome name='heart' size={18} color="#B83227" style={{ textAlign: 'center' }} />
           </TouchableRipple>
             :
           <TouchableOpacity style={{ flex: 1, paddingHorizontal: 8, 
@@ -217,8 +266,7 @@ const { container } = styles
             borderRadius: 9 }}
             onPress={likePost}>
               {/* {heartIcon} */}
-              <FontAwesome name={pressLike ? 'heart' : 'heart-o'} size={18} color={pressLike ? "#616C6F" : '#616C6F'} style={{ textAlign: 'center' }} />
-          {/* <AntDesign name="heart" size={18} color="#616C6F" style={{ textAlign: 'center' }}  /> */}
+              <FontAwesome name="heart-o" size={18} color={pressLike ? "#616C6F" : '#616C6F'} style={{ textAlign: 'center' }} />
           </TouchableOpacity>
 
         }
@@ -273,7 +321,8 @@ actionContainer: {
   position: 'absolute',
   right: 10,
   flexDirection: 'row',
-  alignItems: 'center'
+  alignItems: 'center',
+  justifyContent: 'center'
 },
 threeDots: {
   paddingHorizontal: 3
@@ -281,7 +330,7 @@ threeDots: {
   bookmarkIcon: {
     backgroundColor: '#1287A5',
     padding: 3,
-    borderRadius: 5
+    borderRadius: 5,
   },
   commentsContainer: {
     flex: 1,

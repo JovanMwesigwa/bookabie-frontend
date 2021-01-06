@@ -37,7 +37,7 @@ const Find = ({ navigation }) => {
   const  { loading, products, errors, fetchFirstPostsData, userInfo, fetchPostsData, handleLoadMore, newProducts }  = useContext(CompanyContext);
 
   const { accounts }  = useContext(AccountContext);
-  
+  // console.log(accounts);
 
   const products_ = products.results
 
@@ -96,7 +96,7 @@ const Find = ({ navigation }) => {
         <View style={{ flex: 1, margin: 25 }}>
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-          {/* <Image source={noConnectionImage} style={{ width: 30, height: 30}} /> */}
+          <Image source={noConnectionImage} style={{ width: 30, height: 30}} />
           <Text style={GlobalStyles.primaryText}>{errors}</Text> 
         </View> 
               
@@ -117,7 +117,7 @@ const Find = ({ navigation }) => {
     return(
       <>
       {errors ? null : 
-        <Animatable.View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15 }}
+        <Animatable.View style={{ flex: 1, justifyContent: 'center', elevation: 5, paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15 }}
           animation='fadeInUp'
           delay={900}
           duration = {200}  
@@ -383,7 +383,6 @@ bookmark: {
       flexDirection: "row",
       paddingHorizontal: 15,
       backgroundColor: "white",
-      
   },
     courselContainer: {
       flexDirection: 'row',
