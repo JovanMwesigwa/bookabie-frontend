@@ -75,7 +75,7 @@ const { container } = styles
 <>
   <SecondaryHeader />
     <View style={{backgroundColor: '#ddd', padding: 10, }}>
-      <Text  style={{ fontSize: 15, fontWeight: 'bold', color: '#777', letterSpacing: 0.5 }}>{title}</Text>
+      <Text  style={GlobalStyles.greyTextLarge}>{title}</Text>
       </View>
     <FlatList
         ListHeaderComponent={

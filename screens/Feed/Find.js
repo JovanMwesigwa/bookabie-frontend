@@ -21,7 +21,6 @@ const Find = ({ navigation }) => {
 
   const [refreshing, setRefreshing] = useState(false);
 
-
   const noConnectionImage = require('../../assets/images/noint.png');
 
   const logo  = require('../../assets/Logos/bbieL.png')
@@ -34,12 +33,15 @@ const Find = ({ navigation }) => {
 
   const [ isLoading, setIsLoading ] = useState(true);
 
+  const [ morePostsLoading, setMorePostsLoading ] = useState(false);
+
   const  { loading, products, errors, fetchFirstPostsData, userInfo, fetchPostsData, handleLoadMore, newProducts }  = useContext(CompanyContext);
+
+  const [ morePosts, setMorePosts ] = useState([]);
 
   const { accounts }  = useContext(AccountContext);
   // console.log(accounts);
 
-  const products_ = products.results
 
   const getSearch = async(enteredText) => {
     await axios.get(`${APIROOTURL}/api/posts/?search=${enteredText}`, {
@@ -57,17 +59,35 @@ const Find = ({ navigation }) => {
     
   }
 
-  
-  const closeModalHandler = () => {
-    setOpenModal(false)
-  }
-
-  const navigateBack = () => {
-    navigation.goBack()
-  }
-
   const signOut = authContext.signOut
 
+  const loadMorePostsData  = () => {
+    setMorePostsLoading(true);
+    axios.get(`${products.next}`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    })
+      .then(res => {
+        setMorePosts(res.data.results);
+      })
+      .catch(err => {
+      console.log(err);
+      })
+  }
+
+
+  const getProducts = () => {
+    // This function is called by the flatlist {data} and it appends loadmore post on the current post lists in the feed.  
+    const allProducts = [...products.results, ...morePosts]
+    return allProducts;
+  }
+
+  const getMorePosts = () => {
+    // This fuction is called by the loadmore button and makes an API call to the backend using the next page results.
+    loadMorePostsData();
+    setMorePostsLoading(false);
+  }
 
   useEffect(() => {
     setTimeout(() => {
@@ -75,15 +95,14 @@ const Find = ({ navigation }) => {
     },3000)
   },[])
 
-  
+
   if (isLoading ) {
     return (
       <View style={styles.isLoadingStyles}
       >
         <StatusBar barStyle="light-content" backgroundColor="#fff" />
-        {/* <Image source={logo} style={styles.logoStyles} /> */}
-        <Text style={{ color: '#B83227' }}>Bookabie</Text>
-        {/* <ActivityIndicator size='small' collapsable color='#B83227' /> */}
+        <Image source={logo} style={styles.logoStyles} />
+        <Text style={{color: GlobalStyles.themeColor.color}}>Bookabie</Text>
       </View>
     )
   }
@@ -104,7 +123,6 @@ const Find = ({ navigation }) => {
               onPress={fetchFirstPostsData}
               >
                 <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15}}>Refresh</Text>
-                {/* <ActivityIndicator size={10} color='white' style={{ paddingHorizontal: 8 }} /> */}
           </TouchableOpacity>
           
         </View>
@@ -123,17 +141,19 @@ const Find = ({ navigation }) => {
           duration = {200}  
         >
           <TouchableOpacity style={styles.loadMoreBtn}
-            onPress={handleLoadMore}
+            onPress={getMorePosts}
           >
-            <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15}}>Load more posts</Text>
-            {/* <ActivityIndicator size={10} color='white' style={{ paddingHorizontal: 8 }} /> */}
+              <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15}}>
+                {
+                  morePostsLoading ? <ActivityIndicator size='small' collapsable color='#fff' /> : "Load more posts"
+                }
+              </Text>
           </TouchableOpacity>
         </Animatable.View>
       }
       </>
     )
   }
-  // console.log('NEW products', newProducts);
 
   const { container } = styles
   const refreshControl = <RefreshControl
@@ -144,37 +164,36 @@ const Find = ({ navigation }) => {
  return(
    <>
       <StatusBar backgroundColor='#ddd' barStyle='dark-content' />
-      <MainHeaderComponent getSearch={getSearch} />
+      <MainHeaderComponent getSearch={getSearch}  />
 
       {loading || isLoading ? 
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-        <ActivityIndicator size='small' collapsable color='#B83227' />
+        <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
       </View>  :
         <FlatList 
             ListHeaderComponent ={
               <>
                 
                 <View style={container}>
-                  {/* <CartComponent /> */}
                                    
                   <View style={styles.inputContainer}>
 
                   <View style={styles.feedContainer}>
-                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                    <View style={GlobalStyles.rowSpaceBtn}>
                       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center',justifyContent: 'space-between' }}>
                         <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center'}}
                             onPress={() => fetchPostsData(token)}
                         >
                           <MaterialIcons name="insert-chart" size={18} color="#777" />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: '#777',paddingLeft: 4, }}>Recent</Text>
+                          <Text style={GlobalStyles.customGreyText}>Recent</Text>
                         </TouchableOpacity>
                         <View style={{ flexDirection: 'row', alignItems: 'center'}}>
                           <MaterialIcons name="location-on" size={18} color="#777" />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: '#777', paddingLeft: 4 }}>Global</Text>
+                          <Text style={GlobalStyles.customGreyText}>Global</Text>
                         </View>
                       <TouchableOpacity onPress={signOut} style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Ionicons name="md-exit" size={20} color="#777" />
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#777', paddingLeft: 5 }}>Logout</Text>
+                        <Text style={GlobalStyles.customGreyText}>Logout</Text>
                       </TouchableOpacity>
                       </View>
                     </View>
@@ -210,8 +229,8 @@ const Find = ({ navigation }) => {
                
               </>
             }
-            data={products_}
-            // onEndReached={() => handleLoadMore()}
+            data={getProducts()}
+            // onEndReached={loadMorePostsData}
             refreshControl={refreshControl}
             ListFooterComponent={renderFooter}
             // onEndReachedThreshold={200}
@@ -231,12 +250,11 @@ const Find = ({ navigation }) => {
       </View>
   </>
   )
-}
 
+}
 const styles = StyleSheet.create({
   container: {
    flex: 1,
-  //  backgroundColor: 'black'
   },
   greetText: {
     
@@ -274,14 +292,14 @@ const styles = StyleSheet.create({
   loadMoreBtn: {
   flexDirection: 'row', 
   padding: 8, 
-  backgroundColor: '#B83227', 
+  backgroundColor: GlobalStyles.themeColor.color, 
   borderRadius: 15, 
   justifyContent: 'center',
-  alignItems: 'center' 
+  alignItems: 'center' ,
 },
 refreshBtn: {
   padding: 8, 
-  backgroundColor: '#B83227', 
+  backgroundColor: GlobalStyles.themeColor.color, 
   borderRadius: 15, 
   justifyContent: 'center',
   alignItems: 'center',
@@ -299,7 +317,7 @@ refreshBtn: {
   },
   UploadBtn: {
     padding: 15,
-    backgroundColor: '#B83227', 
+    backgroundColor: GlobalStyles.themeColor.color, 
     borderRadius: 24, 
     // paddingHorizontal: 18,
     position: 'absolute',
@@ -333,7 +351,7 @@ bookmark: {
   top: 5,
   right: 5,
   padding: 13,
-  backgroundColor: "#B83227",
+  backgroundColor: GlobalStyles.themeColor.color,
   borderRadius: 56 / 2,
 },
   inputContainer: {
@@ -390,5 +408,11 @@ bookmark: {
       backgroundColor: 'white',
       paddingTop: 25, 
   },
+  logoStyles: { 
+    width: 55, 
+    height: 55, 
+    resizeMode: 'contain',
+    borderRadius: 10 
+},
 })
 export default Find

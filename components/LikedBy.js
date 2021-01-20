@@ -7,7 +7,7 @@ const LikedBy = ({item}) => {
 const { container } = styles
  return(
   <View style={container}>
-    <Image source={{ uri: item.liker.profile_pic }} style={{ width: 22, height: 22, borderRadius: 22, borderWidth: 0.1, borderColor: '#777'}} />
+    <Image source={{ uri: item.liker.profile_pic }} style={{ width: 25, height: 25, borderRadius: 25, borderWidth: 0.1, borderColor: '#777'}} />
   </View>
   )
 }

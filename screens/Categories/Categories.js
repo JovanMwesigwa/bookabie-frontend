@@ -4,18 +4,17 @@ import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native'
 import { AntDesign } from '@expo/vector-icons';
 import SecondaryHeader from '../../components/SecondaryHeader';
+import { GlobalStyles } from '../../styles/GlobalStyles';
 
 
 const Categories = ({ navigation }) => {
 
-  // const [ colors, setColors ] = useState({color1: '#30336B', color2: '#B83227', color3: '#6ab04c', color4: '#B83227'})
 
   const { categories } = useContext(CategoryContext);
 
   const { products } = useContext(CompanyContext);
 
   const categories_ = categories
-  // console.log(categories);
 
 const { container } = styles
  return(
@@ -24,7 +23,7 @@ const { container } = styles
     <SecondaryHeader />
     <ScrollView> 
       <View style={{ flex: 1, backgroundColor: '#ddd', padding: 10, elevation: 1 }}>
-        <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#777' }}>CATEGORIES</Text>
+        <Text style={GlobalStyles.greyTextLarge}>CATEGORIES</Text>
       </View>
         {
           categories_.map(( category ) => (
@@ -37,7 +36,7 @@ const { container } = styles
                 </View>
                 <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
                   <View style={{ paddingHorizontal: 18}}>
-                    <Text style={styles.categoryText}>{category.name}</Text>
+                    <Text style={{...GlobalStyles.darkHeaderText, fontSize: 16}}>{category.name}</Text>
                   </View>
                   <View>
                   <AntDesign name="star" size={20} color="#ddd" />

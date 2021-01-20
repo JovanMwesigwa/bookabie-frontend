@@ -5,6 +5,7 @@ import {  Entypo, AntDesign} from '@expo/vector-icons';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
 import { AuthContext } from '../../context/authentication/Context'
 import ProfileHeader from '../../components/ProfileHeader';
+import { GlobalStyles } from '../../styles/GlobalStyles'
 import ProductCard from '../../components/productCard';
 import * as Animatable from 'react-native-animatable';
 import { Caption, Paragraph, Headline } from 'react-native-paper';
@@ -191,7 +192,6 @@ const Profile = ({  navigation }) => {
           onPress={fetchProducts}
         >
           <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15 }}>View all my posts</Text>
-          {/* <ActivityIndicator size={10} color='white' style={{ paddingHorizontal: 8 }} /> */}
         </TouchableOpacity>
       </Animatable.View>
     )
@@ -214,7 +214,7 @@ const refreshControl = <RefreshControl
     <ProfileHeader profileName={profile.user} />
       {state.loading ? 
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-              <ActivityIndicator size='small' collapsable color='#B83227' />
+              <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
         </View>
     :
     <FlatList
@@ -241,7 +241,7 @@ const refreshControl = <RefreshControl
                 <View >
                   <View style={{ flexDirection: 'row'}}>
                     <Text style={{...styles.mainText, fontSize: 15}}>{profile.user}</Text>
-                    <AntDesign name="star" size={10} color="black" />
+                    <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} />
                   </View>
                   <Text style={styles.secondaryText}>{profile.profile_type.name}</Text>
                 </View>
@@ -305,14 +305,14 @@ const refreshControl = <RefreshControl
           
             {/* <Container> */}
               <Tabs 
-                tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: '#B83227'}}
+                tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: GlobalStyles.themeColor.color}}
               >
 
                 <Tab heading="Top Products"
                  tabStyle={{backgroundColor: 'white'}} 
                  textStyle={{color: '#777'}} 
                  activeTabStyle={{backgroundColor: 'white'}} 
-                 activeTextStyle={{color: '#B83227', fontWeight: '700'}}
+                 activeTextStyle={{color: GlobalStyles.themeColor.color, fontWeight: '700'}}
                 >
                     <Surface style={ styles.descriptionContainer }>
                       <Image source={image1} style={{ flex: 1, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
@@ -338,7 +338,7 @@ const refreshControl = <RefreshControl
                     tabStyle={{backgroundColor: 'white'}} 
                     textStyle={{color: '#777'}} 
                     activeTabStyle={{backgroundColor: 'white'}} 
-                    activeTextStyle={{color: '#B83227', fontWeight: '700'}}
+                    activeTextStyle={{color: GlobalStyles.themeColor.color, fontWeight: '700'}}
                   >
                     
                       <View style={{ flex: 1, marginVertical: 8, paddingHorizontal: 20 }}>
@@ -352,7 +352,7 @@ const refreshControl = <RefreshControl
                     tabStyle={{backgroundColor: 'white'}} 
                     textStyle={{color: '#777'}} 
                     activeTabStyle={{backgroundColor: 'white'}} 
-                    activeTextStyle={{color: '#B83227', fontWeight: '700'}}
+                    activeTextStyle={{color: GlobalStyles.themeColor.color, fontWeight: '700'}}
                   >
                   <ImageBackground source={mapImage} style={styles.imageBg}>
                     <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15, }}>
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   },
   refreshBtn: {
     padding: 8, 
-    backgroundColor: '#B83227', 
+    backgroundColor: GlobalStyles.themeColor.color, 
     borderRadius: 15, 
     justifyContent: 'center',
     alignItems: 'center',
@@ -417,16 +417,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 95
   },
   errorStyles: { 
-    // flex: 1,
     padding: 10,
     marginHorizontal: 15,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'black', 
     borderRadius: 5,
-    elevation: 2,
-    // borderLeftWidth: 5,
-    // borderLeftColor: '#B83227' 
+    elevation: 2, 
 },
 mapStyle: {
   width: Dimensions.get('window').width,
@@ -434,7 +431,6 @@ mapStyle: {
 },
   footer: { 
     flex: 1, 
-    // width: '100%', 
     backgroundColor: 'white', 
     elevation: 1, 
     paddingBottom: 10, 
@@ -461,7 +457,7 @@ caption: {
 loadMoreBtn: {
   flexDirection: 'row', 
   padding: 8, 
-  backgroundColor: '#B83227', 
+  backgroundColor: GlobalStyles.themeColor.color, 
   borderRadius: 15, 
   justifyContent: 'center',
   alignItems: 'center' 
@@ -484,7 +480,7 @@ loadMoreBtn: {
   bookmark: {
     color: "#fff",
     padding: 8,
-    backgroundColor: "#B83227",
+    backgroundColor: GlobalStyles.themeColor.color,
     borderRadius: 56 / 2,
   },
   mainText: {
@@ -521,8 +517,6 @@ loadMoreBtn: {
   },
   profilephoto: {
     position: 'absolute',
-    // top: 79,
-    // marginBottom: 12,
     bottom: 45,
     left: 20,
     width: 65,
@@ -532,28 +526,18 @@ loadMoreBtn: {
     borderRadius: 35
   },
   headerTextContainer: {
-    // flexDirection: "row",
-    // alignItems: "center",
-    // justifyContent: 'center',
     position: "absolute",
     bottom: 1,
-    // paddingTop:24
-    // left: 12
   },
   headerText: {
     paddingHorizontal: 15,
     flexDirection: "row",
-    // paddingBottom: 18
   },
   descriptionContainer: {
     backgroundColor: 'white',
     flexDirection: 'row',
     width: '100%',
     height: 100,
-    // flex: 1,
-    // margin: 4,
-    // marginLeft: 0,
-    // marginTop: 8,
     borderRadius: 10,
     padding: 10,
     shadowColor: "#000",
@@ -580,9 +564,6 @@ loadMoreBtn: {
     flex: 1,
     padding: 8,
     backgroundColor: 'white',
-    // borderRadius: 14,
-    // marginTop: 8,
-    // marginBottom: 10,
     marginVertical: 8,
     elevation: 1,
     width: '100%'

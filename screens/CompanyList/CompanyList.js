@@ -1,12 +1,47 @@
-import React,{ useContext } from 'react'
+import React,{ useContext, useReducer, useEffect } from 'react'
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, StatusBar, RefreshControl } from 'react-native'
+import axios from 'axios';
 import { AccountContext } from '../../context/accounts/AccountContextProvider'
 import CompanyCard from '../../components/CompanyCard';
 import SecondaryHeader from '../../components/SecondaryHeader';
 import * as Animatable from 'react-native-animatable';
 import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider'
+import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
+import { AuthContext } from '../../context/authentication/Context';
+
+const initialState = {
+  loading: true,
+  profiles: [],
+  errors: "",
+}
+
+const reducer = (state, action) => {
+  switch(action.type){
+    case "FETCH_SUCCESS":
+      return {
+        loading: false,
+        profiles: action.payload,
+        errors: "",
+      }
+    case "FETCH_FAILED":
+      return{
+        loading: false,
+        profiles: [],
+        errors: "OOPs!, looks like something went wrong."
+      }
+
+    default:
+      return state;
+
+
+  }
+}
 
 const CompanyList = ({ navigation }) => {
+
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    const { authState } = useContext(AuthContext);
 
     const { accounts, accLoading, accErrors, fetchRefreshedData }  = useContext(AccountContext);
 
@@ -16,16 +51,32 @@ const CompanyList = ({ navigation }) => {
       navigation.goBack()
     }
 
-// const accList = state.accounts.results
+    const token = authState.token;
+
+    const fetchProfiles = () => {
+      axios.get(`${APIROOTURL}/api/profiles/`, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        })
+        .then(res => {
+          dispatch({type: "FETCH_SUCCESS", payload: res.data.results})
+        })
+        .catch(err => {
+          dispatch({type: "FETCH_FAILURE"})
+        })
+    }
+
+useEffect(() => {
+  fetchProfiles();
+},[token])
+
 
 const name = userInfo.user;
 
-// console.log(accList);
-const { container } = styles
-
 const refreshControl = <RefreshControl
-    refreshing={accLoading}
-    onRefresh={fetchRefreshedData}
+    refreshing={state.loading}
+    onRefresh={fetchProfiles}
 />
  return(
     <View style={{ flex: 1 }}>
@@ -34,13 +85,13 @@ const refreshControl = <RefreshControl
         <View style={{ backgroundColor: '#ddd', padding: 5, paddingBottom: 10, paddingHorizontal: 20, elevation: 1}}>
           <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#777' }}>ALL COMPANIES</Text>
         </View>
-        {accLoading ? 
+        {state.loading ? 
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
             <ActivityIndicator size='small' collapsable color='#B83227' />
         </View>
         :
         <FlatList
-            data={accounts}
+            data={state.profiles}
             refreshControl={refreshControl}
             renderItem={({ item }) => (
                 <CompanyCard item={item} companyName={name} />
@@ -48,15 +99,16 @@ const refreshControl = <RefreshControl
             keyExtractor={(item) => item.id.toString()}
         />
         }
-        {accErrors ? 
-        <Animatable.View style={styles.errorStyles}
-          animation='fadeInUp'
-          delay={10000}
-          duration = {2000}> 
-          <Text style={{ textAlign: 'center', color: 'white', letterSpacing:1 }}>{accErrors}</Text> 
-        </Animatable.View>
-        
-        : null }
+        {state.errors ? 
+          <Animatable.View style={styles.errorStyles}
+            animation='fadeInUp'
+            delay={10000}
+            duration = {2000}> 
+            <Text style={{ textAlign: 'center', color: 'white', letterSpacing:1 }}>{state.errors}</Text> 
+          </Animatable.View>
+          
+          : null
+         }
     </View>
   )
 }

@@ -141,7 +141,6 @@ const CompanyProfile = ({ route, navigation }) => {
         }
       })
       setIsFollowing(result.data.count);
-      console.log(result.data);
     } catch (error) {
       console.log(error);     
     }
@@ -188,7 +187,7 @@ const CompanyProfile = ({ route, navigation }) => {
       }
     })
     .then(res => {
-      console.log(res.data);
+
     })
     .catch(err => {
       console.log(err);
@@ -259,7 +258,7 @@ const refreshControl = <RefreshControl
     <OtherHeaderComponent name={state.profile.user} />
       {state.loading ? 
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-              <ActivityIndicator size='small' collapsable color='#B83227' />
+              <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
         </View>
     :
 
@@ -327,13 +326,13 @@ const refreshControl = <RefreshControl
                             <TouchableOpacity style={styles.followBtnContainer}
                               onPress={followUser}
                               >
-                              <SimpleLineIcons name="user-follow" size={18} color="#B83227" style={{ fontWeight: 'bold' }} />
-                                <Text style={{ fontWeight: '600', fontSize: 14, color: '#B83227',paddingHorizontal: 8 }}>Follow</Text>
+                              <SimpleLineIcons name="user-follow" size={18} color={GlobalStyles.themeColor.color} style={{ fontWeight: 'bold' }} />
+                                <Text style={{ fontWeight: '600', fontSize: 14, color: GlobalStyles.themeColor.color,paddingHorizontal: 8 }}>Follow</Text>
                             </TouchableOpacity>
                             }
                             
                             <TouchableOpacity style={styles.arrowDownContainer}>
-                              <AntDesign name="caretdown" size={10} color="#B83227"style={{ fontWeight: 'bold', textAlign: 'center' }} />
+                              <AntDesign name="caretdown" size={10} color={GlobalStyles.themeColor.color}style={{ fontWeight: 'bold', textAlign: 'center' }} />
                             </TouchableOpacity>
                         </View>
 
@@ -379,14 +378,14 @@ const refreshControl = <RefreshControl
  
 
                 <Tabs 
-                    tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: '#B83227'}}
+                    tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: GlobalStyles.themeColor.color}}
                   >
 
                 <Tab heading="Top Products"
                  tabStyle={{backgroundColor: 'white'}} 
                  textStyle={{color: '#777',}} 
                  activeTabStyle={{backgroundColor: 'white'}} 
-                 activeTextStyle={{color: '#B83227',  fontWeight: '700'}}
+                 activeTextStyle={{color: GlobalStyles.themeColor.color,  fontWeight: '700'}}
                 >
                     <Surface style={ styles.descriptionContainer }>
                         
@@ -401,7 +400,7 @@ const refreshControl = <RefreshControl
                                 <Text style={{ backgroundColor:'#75DA8B', paddingHorizontal: 10, fontSize: 9, fontWeight: 'bold', color: 'white', padding: 5, borderRadius: 12, textAlign: 'center' }}>Contact</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.cartBtnContainer} >
-                                <Text style={{  backgroundColor: '#B83227', paddingHorizontal: 10,fontSize: 9, color: 'white', padding: 5, borderRadius: 12, textAlign: 'center', marginHorizontal: 12 }}>Message</Text>
+                                <Text style={{  backgroundColor: GlobalStyles.themeColor.color, paddingHorizontal: 10,fontSize: 9, color: 'white', padding: 5, borderRadius: 12, textAlign: 'center', marginHorizontal: 12 }}>Message</Text>
                               </TouchableOpacity>
                           </View>
                           
@@ -423,7 +422,7 @@ const refreshControl = <RefreshControl
                                 <Text style={{ backgroundColor:'#75DA8B', paddingHorizontal: 10, fontSize: 9, fontWeight: 'bold', color: 'white', padding: 5, borderRadius: 12, textAlign: 'center' }}>Contact</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.cartBtnContainer} >
-                                <Text style={{  backgroundColor: '#B83227', paddingHorizontal: 10,fontSize: 9, color: 'white', padding: 5, borderRadius: 12, textAlign: 'center', marginHorizontal: 12 }}>Message</Text>
+                                <Text style={{  backgroundColor: GlobalStyles.themeColor.color, paddingHorizontal: 10,fontSize: 9, color: 'white', padding: 5, borderRadius: 12, textAlign: 'center', marginHorizontal: 12 }}>Message</Text>
                               </TouchableOpacity>
                           </View>
 
@@ -439,7 +438,7 @@ const refreshControl = <RefreshControl
                     textStyle={{color: '#777'}} 
 
                     activeTabStyle={{backgroundColor: 'white'}} 
-                    activeTextStyle={{color: '#B83227',  fontWeight: '700'}}
+                    activeTextStyle={{color: GlobalStyles.themeColor.color,  fontWeight: '700'}}
                   >
                       <View style={{ marginVertical: 8, paddingHorizontal: 20 }}>
                         <View >
@@ -452,7 +451,7 @@ const refreshControl = <RefreshControl
                     tabStyle={{backgroundColor: 'white'}} 
                     textStyle={{color: '#777'}} 
                     activeTabStyle={{backgroundColor: 'white'}} 
-                    activeTextStyle={{color: '#B83227', fontWeight: '700'}}
+                    activeTextStyle={{color: GlobalStyles.themeColor.color, fontWeight: '700'}}
                   >
                     <View>
                        
@@ -478,8 +477,6 @@ const refreshControl = <RefreshControl
   
 
 }
-
-{/* { ? <Text>{state.error}</Text> : null } */}
 </>
  )
 }
@@ -496,7 +493,6 @@ const styles = StyleSheet.create({
   },
   footer: { 
     flex: 1, 
-    // width: '100%', 
     backgroundColor: 'white', 
     elevation: 1, 
     paddingBottom: 10, 
@@ -510,7 +506,7 @@ followBtnContainer: {
   flex: 1,
   flexDirection: 'row', 
   borderWidth: 1,
-  borderColor: '#B83227',
+  borderColor: GlobalStyles.themeColor.color,
   paddingHorizontal: 12,
   paddingVertical: 5, 
   borderRadius: 5
@@ -518,14 +514,14 @@ followBtnContainer: {
 followingBtnContainer:{
   flex: 1,
   flexDirection: 'row',
-  backgroundColor: '#B83227', 
+  backgroundColor: GlobalStyles.themeColor.color, 
   paddingHorizontal: 12,
   paddingVertical: 5,
   borderRadius: 8
 },
 arrowDownContainer: {
   borderWidth: 1,
-  borderColor: '#B83227',
+  borderColor: GlobalStyles.themeColor.color,
   marginLeft: 5,
   paddingHorizontal: 8,
   paddingVertical: 8,
@@ -543,7 +539,6 @@ section: {
   paddingVertical: 8
 },
 errorStyles: { 
-  // flex: 1,
   padding: 10,
   marginHorizontal: 15,
   justifyContent: 'center',
@@ -551,13 +546,11 @@ errorStyles: {
   backgroundColor: 'black', 
   borderRadius: 5,
   elevation: 2,
-  // borderLeftWidth: 5,
-  // borderLeftColor: '#B83227' 
 },
 loadMoreBtn: {
   flexDirection: 'row', 
   padding: 8, 
-  backgroundColor: '#B83227', 
+  backgroundColor: GlobalStyles.themeColor.color, 
   borderRadius: 15, 
   justifyContent: 'center',
   alignItems: 'center' 
@@ -582,7 +575,7 @@ loadMoreBtn: {
   bookmark: {
     color: "#fff",
     padding: 8,
-    backgroundColor: "#B83227",
+    backgroundColor: GlobalStyles.themeColor.color,
     borderRadius: 56 / 2,
   },
   mainText: {
@@ -624,8 +617,6 @@ loadMoreBtn: {
   },
   profilephoto: {
     position: 'absolute',
-    // top: 79,
-    // marginBottom: 12,
     bottom: 45,
     left: 20,
     width: 65,
@@ -635,28 +626,18 @@ loadMoreBtn: {
     borderRadius: 35
   },
   headerTextContainer: {
-    // flexDirection: "row",
-    // alignItems: "center",
-    // justifyContent: 'center',
     position: "absolute",
     bottom: 1,
-    // paddingTop:24
-    // left: 12
   },
   headerText: {
     paddingHorizontal: 15,
     flexDirection: "row",
-    // paddingBottom: 18
   },
   descriptionContainer: {
     backgroundColor: 'white',
     flexDirection: 'row',
     width: '100%',
     height: 100,
-    // flex: 1,
-    // margin: 4,
-    // marginLeft: 0,
-    // marginTop: 8,
     borderRadius: 10,
     padding: 10,
     shadowColor: "#000",
@@ -682,9 +663,6 @@ loadMoreBtn: {
     flex: 1,
     padding: 8,
     backgroundColor: 'white',
-    // borderRadius: 14,
-    // marginTop: 8,
-    // marginBottom: 5,
     marginVertical: 8,
     elevation: 1,
     width: '100%'

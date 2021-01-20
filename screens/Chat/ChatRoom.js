@@ -154,15 +154,14 @@ const { container } = styles
     </DismissKeyboard>
     
     <View style={styles.inputContainer}>
-        <Item regular style={{ flex: 1, borderRadius: 5, marginLeft: 0 }}>
-            <Input placeholder='Enter Message...'
+          <Input 
+            placeholder='Enter Message...'
             value={text} 
             onChangeText={text => setText(text)}
-            style={styles.textInput} />
-        </Item>
+            style={styles.textInput} 
+          />
         <TouchableOpacity style={styles.sendBtn} onPress={submitHandler}>
-            {/* <Text style={styles.textStyle}>GO</Text> */}
-            <FontAwesome name="paper-plane-o" size={20} color="#fff" style={styles.textStyle} />
+            <FontAwesome name="paper-plane-o" size={18}  style={styles.textStyle} />
         </TouchableOpacity>
     </View>
   </View>
@@ -177,8 +176,13 @@ const styles = StyleSheet.create({
    justifyContent: 'space-between',
   },
   textInput: {
-      backgroundColor: '#fff',
-      
+    borderWidth: 0,
+    backgroundColor: "#fff",
+    borderRadius: 5,  
+    padding: 15,
+    borderColor: "#fff",
+    margin: 5,
+    paddingHorizontal: 8
   },
   userProfileStyles: {
     width: 30,
@@ -212,8 +216,7 @@ const styles = StyleSheet.create({
   },
   textStyle: {
     textAlign: 'center',
-    paddingTop: 15,
-    color: '#fff',
+    color: "#B83227",
     fontWeight: "700"
   },
   recievedMsgItem: {
@@ -221,7 +224,7 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: '#fff',
     maxWidth: 180,
-    borderRadius: 2,
+    borderRadius: 5,
     alignSelf: 'flex-end',
     elevation: 5
   },
@@ -237,19 +240,26 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: '#fff',
     maxWidth: 180,
-    borderRadius: 2,
+    borderRadius: 5,
     alignSelf: 'flex-start',
-    elevation: 5
   },
   sendBtn: {
-    backgroundColor: '#B83227',
-    marginHorizontal: 5,
-    borderRadius: 8,
-    width: 60,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderLeftWidth: 0.4,
+    borderLeftColor: "#ddd",
+    margin: 5,
+    width: 50,
+    height: 50
   },
   inputContainer: {
       flexDirection: 'row',
-      
+      alignItems: 'center',
+      borderTopWidth: 0.5,
+      borderTopColor: "#ddd",
+      backgroundColor: "#fff",
+      margin: 0,
   }
 })
 export default ChatRoom

@@ -5,6 +5,7 @@ import { Caption, Paragraph } from 'react-native-paper';
 import { AuthContext } from '../context/authentication/Context'
 import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import axios from 'axios';
+import { GlobalStyles } from '../styles/GlobalStyles';
 
 
 const CommentComponent = ({ item }) => {
@@ -23,7 +24,6 @@ const CommentComponent = ({ item }) => {
                 }
             })
             setUserData(resData.data);
-            // console.log(userData)
         }catch(err){
             console.log(err);
         }
@@ -33,19 +33,15 @@ const CommentComponent = ({ item }) => {
         fetchUser();
     },[])
 
-    // console.log('User is', item.author.id);
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.profileContainer}>
-                <Image source={{ uri: item.author.profile_pic }} style={{ width: 35, height: 35, marginRight: 8, borderRadius: 45, }} />
+                <Image source={{ uri: item.author.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
             </TouchableOpacity>
             <View style={styles.textBody}>
-                <Text style={{ fontWeight: '700' }}>{userData.user}</Text>
-                <View style={{ borderBottomWidth: 0.8, borderBottomColor: '#ddd' }}>
-                </View>
-                <Paragraph style={{ paddingVertical: 6, }}>{item.body}</Paragraph>
+                <Text style={GlobalStyles.darkHeaderText}>{userData.user}</Text>
+                <Paragraph style={{ paddingVertical: 6, color: GlobalStyles.darkFontColor.color}}>{item.body}</Paragraph>
                 <Caption style={{ fontSize: 10, color: '#777', }}>/ Posted about { moment(item.date_commented).startOf('hour').fromNow()}</Caption>
-                {/* <Text style={{ fontSize: 10, color: '#777', }}>/Posted {item.date_commented} ago</Text> */}
             </View>
         </View>
     )
@@ -64,11 +60,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         padding: 8,
         borderRadius: 12,
-        // elevation: 1
     },
     profileContainer: {
-        
-        // marginRight: 8,
-        // elevation: 3
+        marginRight: 15
     }
 })

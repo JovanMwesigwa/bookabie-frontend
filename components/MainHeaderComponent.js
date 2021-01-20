@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import axios from 'axios';
 import { AntDesign } from '@expo/vector-icons';
@@ -6,6 +6,8 @@ import { GlobalStyles } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
 import SearchComponent from '../components/searchComponent';
 import { UserInfoContext } from '../context/userInfoContext/UserInfoContextProvider';
+import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
+import { AuthContext } from '../context/authentication/Context'
 import { Title } from 'react-native-paper';
 
 const logo = require('../assets/Logos/bbieL.png');
@@ -14,27 +16,49 @@ const MainHeaderComponent = ({ getSearch }) => {
 
     const navigation = useNavigation();
 
+    const { authState } = useContext(AuthContext);
+
+    const [ cartCount, setCartCount ] = useState(0);
+
+    const token = authState.token;
+
     const { userInfo } = useContext(UserInfoContext);
 
-    // console.log(userInfo);
+
+    const fetchCartNumber = () => {
+      axios.get(`${APIROOTURL}/api/my_cart/`, {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      })
+      .then(res => {
+        setCartCount(res.data.count)
+      })
+      .catch(err => {
+        console.log(err);
+      })
+    }
+
+    useEffect(() => {
+      fetchCartNumber()
+    },[])
+
 
 
 const { container } = styles
  return(
     <View style={styles.container}>
       <View style={styles.topLogoContainer}>
-        {/* <Image source={logo} style={styles.logoStyles} /> */}
         <Title style={styles.headerText}>Bookabie</Title>
       </View>
-       {/* <Text ></Text>  */}
        <View style={{...styles.headerContainer }}>
           <TouchableOpacity onPress={() => navigation.openDrawer()}>
-            <Image source={{ uri: userInfo.profile_pic }} style={styles.imageStyle} />
+            <Image source={{ uri: userInfo.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
           </TouchableOpacity>
           <SearchComponent getSearch={getSearch} />
-          <AntDesign name='shoppingcart' size={30} style={styles.cart} onPress={() => navigation.navigate("Cart")} />
+          <AntDesign name='shoppingcart' size={30} color={GlobalStyles.darkFontColor.color} onPress={() => navigation.navigate("Cart")} />
           <View style={styles.cartNumberContainer}>
-              <Text style={styles.cartNumber}>4</Text>
+              <Text style={styles.cartNumber}>{cartCount}</Text>
           </View>
        </View>
     </View>
@@ -54,18 +78,15 @@ const styles = StyleSheet.create({
     fontSize: 25,
     letterSpacing: 2,
     paddingTop: 10,
-    color: '#B83227',
+    color: GlobalStyles.themeColor.color,
     fontWeight: "600",
   },
   profileContainer: { 
-    // backgroundColor: '#ddd', 
-    // padding: 18, 
     width: 25, 
     height: 25, 
     borderRadius: 65 
 },
-logoStyles: { 
-  // flex: 1, 
+logoStyles: {  
   height:34, 
   resizeMode: 'contain',
 },
@@ -78,17 +99,6 @@ topLogoContainer: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  cart: {
-    color: 'black',
-
-  },
-  imageStyle: { 
-    width: 35, 
-    height: 35, 
-    borderRadius: 35,
-    borderWidth: 0.5,
-    borderColor: '#ddd'
   },
   cartNumber: {
     fontSize: 12,

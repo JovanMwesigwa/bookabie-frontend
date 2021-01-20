@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native'
 import axios from 'axios'
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
+import { GlobalStyles  } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
 import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import { AuthContext } from '../context/authentication/Context'
@@ -29,7 +30,7 @@ const { container } = styles
       <TouchableOpacity style={styles.icon}
         onPress={() => getSearch(enteredText)}
       >
-        <MaterialIcons name="search" size={15} color="#B83227" />
+        <MaterialIcons name="search" size={18} color={GlobalStyles.themeColor.color} />
       </TouchableOpacity>
   </View>
   )
@@ -39,16 +40,7 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
    flex: 1,
-//    justifyContent: 'center',
-//    alignItems: 'center',
-//    height: 80,
-//    flexDirection: 'row'
-    // borderRadius: 14
-   
   },
-//   menuIcon: {
-//       paddingHorizontal: 10
-//   },
   headerText: {
       padding: 20
   },
@@ -58,13 +50,14 @@ const styles = StyleSheet.create({
     left: 22
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
-    // backgroundColor: '#ddd',
+    borderWidth: 0.3,
+    borderColor: GlobalStyles.darkFontColor.color,
+    borderRadius: 2,
+    padding: 2,
     marginHorizontal: 15,
     width: "90%",
-    paddingHorizontal: 28
+    paddingHorizontal: 28,
+    alignItems: 'center',
 },
 })
 export default SearchComponent;

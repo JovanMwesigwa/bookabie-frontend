@@ -9,7 +9,8 @@ import Login from './screens/Registration/Login'
 import AuthNavigation from './navigation/authNavigation'
 import Signup from './screens/Registration/Signup'
 import AsyncStorage from '@react-native-community/async-storage';
-import { AuthContext } from './context/authentication/Context'
+import { AuthContext } from './context/authentication/Context';
+import { GlobalStyles } from './styles/GlobalStyles'
 
 const logo = require('./assets/Logos/White.png');
 
@@ -28,11 +29,10 @@ useEffect(() => {
 
  if (loading ) {
    return (
-     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#B83227' }}>
-       <StatusBar barStyle="light-content" backgroundColor="#B83227" />
+     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: GlobalStyles.themeColor.color }}>
+       <StatusBar barStyle="light-content" backgroundColor={GlobalStyles.themeColor.color} />
        <Image source={logo} style={styles.logoStyles} />
        <Text style={{ color: '#fff' }}>Bookabie</Text>
-       {/* <ActivityIndicator size='small' collapsable color='#B83227' /> */}
      </View>
    )
  }
@@ -60,8 +60,6 @@ const styles = StyleSheet.create({
   container: {
   flex: 1,
   backgroundColor: "#E6EDED",
-  //  justifyContent: 'center',
- //  alignItems: 'center',
   },
   logoStyles: { 
     width: 55, 

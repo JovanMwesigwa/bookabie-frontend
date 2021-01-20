@@ -9,25 +9,20 @@ const MainProductCard = ({ item }) => {
   const navigation = useNavigation()
 
 
- const image2 = require('../assets/images/pizzaHut.jpg');
-
- const color = item.category.color;
-//  console.log();
 const { container } = styles
  return(
   <View style={container}>
       <View style={styles.cardContainer}>
             { item.image == null ? null :
-            // <Image source={image2} style={{ flex: 2, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} /> :
             <Image source={{uri:item.image}} style={{ flex: 2, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
             }
             <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
                 <TouchableOpacity style={{ flex: 1 }} 
                   onPress={() => navigation.navigate("Product Details", { post: item, ID: item.id,})}
                 >
-                  <Text numberOfLines={1} style={{...GlobalStyles.text, fontWeight: '700' }}>{item.title}</Text>
+                  <Text numberOfLines={1} style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{item.title}</Text>
                 </TouchableOpacity>
-                <Text numberOfLines={1} style={{...GlobalStyles.mutedText, flex: 1}}>{item.author.user.username}</Text>
+                <Text numberOfLines={1} style={{...GlobalStyles.greyTextSmall, flex: 1, fontSize: 13}}>From - {item.author.user.username}</Text>
                 {
                   item.price ? <Text style={{  flex: 1, color: '#218F76', fontWeight: "700",  }}>$ {item.price}</Text> :
                   <Text style={{  flex: 1, color: '#218F76', fontWeight: "700",  }}>OFFER</Text>

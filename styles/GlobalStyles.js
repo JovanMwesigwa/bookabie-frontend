@@ -1,6 +1,42 @@
 import { StyleSheet } from 'react-native'
 
 export const GlobalStyles = StyleSheet.create({
+  themeColor: {
+    color: "#B83227",
+  },
+  darkFontColor: {
+    color: "#333945",
+  },
+  darkHeaderText: {
+    fontSize: 14,
+    color: "#333945",
+    fontWeight: "700",
+  },
+  greyTextSmall: {
+    fontSize: 12,
+    color: "#777",
+    paddingHorizontal: 3,
+    letterSpacing: 0.5
+  },
+  greyTextLarge: {
+    fontSize: 16,
+    color: "#777",
+    paddingHorizontal: 3,
+    letterSpacing: 0.5,
+    fontWeight: '700'
+  },
+  darkTitleText: {
+    fontSize: 18,
+    color: "#333945",
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  customGreyText: { 
+    fontSize: 15, 
+    fontWeight: '700', 
+    color: '#777', 
+    paddingLeft: 4 
+  },
   text: {
     color: '#2C3335', 
     fontWeight: '500',
@@ -8,29 +44,41 @@ export const GlobalStyles = StyleSheet.create({
     lineHeight: 18, 
     letterSpacing: 0.3,
   },
+  rowCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowSpaceBtn: { 
+    flex: 1, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between'
+  },
   primaryText: { 
-      textAlign: 'center', 
+    textAlign: 'center', 
     color: '#292E2E', 
     letterSpacing:1, 
     paddingHorizontal: 5 
   },
-  roundedPictContainer: { 
-    width: 55, 
-    height: 55, 
-    borderRadius: 25 
+  smallRoundedPictContainer: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 35,
+    borderWidth: 0.5,
+    borderColor: '#ddd'
+  },
+  largeRoundedPictContainer: { 
+    width: 50, 
+    height: 50, 
+    borderRadius: 45,
+    borderWidth: 0.5,
+    borderColor: '#ddd'
   },
   feedContainer: {
-    // paddingTop: 15,
-    // paddingHorizontal: 15,
-    // paddingBottom: 15,
-    // backgroundColor: "white",
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center', 
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#7777',
-    // borderBottomLeftRadius: 5,
-    // borderBottomLeftRadius: 5
   },
   headerContainer: { 
     flex: 1, 

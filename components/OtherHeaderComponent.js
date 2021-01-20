@@ -14,9 +14,9 @@ const { container } = styles
     <View>
       <View style={{...styles.headerContainer }}>
         <TouchableOpacity onPress={() => navigation.goBack()} >
-          <AntDesign name="arrowleft" size={24} color="black" />
+          <AntDesign name="arrowleft" size={24} color={GlobalStyles.darkFontColor.color} />
         </TouchableOpacity>
-        <Text style={{...GlobalStyles.headerText, color: 'black', fontWeight: '500', fontSize: 18, paddingHorizontal: 18}}>{name}</Text>
+        <Text style={{...GlobalStyles.headerText, color: GlobalStyles.darkFontColor.color, fontWeight: '500', fontSize: 18, paddingHorizontal: 18}}>{name}</Text>
       </View>
     </View>
   )

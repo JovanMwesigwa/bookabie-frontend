@@ -12,6 +12,7 @@ import CommentComponent from '../../components/CommentComponent';
 import { Headline, Paragraph, Subheading, Button, Dialog, Portal, Chip, Caption, Text } from 'react-native-paper';
 import LikedBy from '../../components/LikedBy';
 import * as Animatable from 'react-native-animatable';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 
 
@@ -94,7 +95,6 @@ const ProductDetails = ({ route, navigation}) => {
 
     const editBtnHandler = () => {
       navigation.navigate('Edit Post', {ID: ID, item: post })
-      // console.log('the log id id', ID);
     }
 
     const deleteBtnHandler = async() => {
@@ -109,7 +109,6 @@ const ProductDetails = ({ route, navigation}) => {
       .catch(err => {
         console.log(err);
       })
-      // alert('The Post has been deleted');
       navigation.navigate('Find')
       fetchFirstPostsData();
     }
@@ -172,14 +171,6 @@ const ProductDetails = ({ route, navigation}) => {
       refreshFetchUserMe()
     }
 
-     // console.log('From post', state.post.author.user.username);
-    // console.log(state.post.title);
-
-    // console.log('real comments is ', state.post.comments);
-
-    // const comments = state.post.comments
-    // console.log("Comments",comments.length);
-    // const commentNumber = comments.length
 
   if (state.error) {
     return (
@@ -233,12 +224,12 @@ const { container } = styles
 
           { state.post.image ?
 
-          <TouchableOpacity style={styles.imageContainer}
+          <TouchableWithoutFeedback style={styles.imageContainer}
             onPress={() => setFullImageModalOpen(true)} >
 
               <Image source={{ uri: state.post.image }} style={{ flex: 1, width: null, height: null, resizeMode: 'contain' }} />
               
-          </TouchableOpacity> :
+          </TouchableWithoutFeedback> :
           null
           }
           {state.post.author.user.username == userInfo.username ? 
@@ -262,40 +253,56 @@ const { container } = styles
                   <View>
 
                       <View  style={styles.accountContainer}>
-                          <Image source={{ uri: state.post.author.profile_pic }} style={GlobalStyles.roundedPictContainer} />
+                          <Image source={{ uri: state.post.author.profile_pic }} style={GlobalStyles.largeRoundedPictContainer} />
                           <View style={{  paddingLeft: 10 }}>
                             <View style={{ flexDirection: 'row' }}> 
-                              <Text style={{...styles.accountName, fontSize: 15,}}>{state.post.author.user.username}</Text>
+                              <Text style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{state.post.author.user.username}</Text>
                               {
-                                state.post.author.verified ?  <AntDesign name="star" size={10} color="black" /> : null
+                                state.post.author.verified ?  <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor} /> : null
                               }
                              
                             </View>
-                            <Caption style={{ fontSize: 14 }}>{state.post.author.profile_type.name}</Caption>
-                            {/* <Text ></Text> */}
+                            <Text style={{...GlobalStyles.greyTextSmall, fontSize: 13}}>{state.post.author.profile_type.name}</Text>
                           </View>
                       </View>
 
                       <View>
-                        <Headline style={styles.modalText}>{state.post.title}</Headline>
-                        {/* <Text ></Text> */}
-                        <Text style={{ color: 'red', fontWeight: '700', letterSpacing: 0.5 }}>${state.post.price}</Text>
-                        {state.post.offer && <Text style={{letterSpacing: 0.5, fontSize: 13, color: 'gold', fontWeight: '700' }}>{state.post.offer}% Offer</Text>}
+                        <Text style={{...GlobalStyles.darkTitleText, fontSize: 20}}>{state.post.title}</Text>
+                        {
+                        state.post.price ? 
+                        <Text style={{ fontSize: 15, paddingTop: 8, color: 'red', fontWeight: '700', letterSpacing: 0.5 }}>${state.post.price}</Text>
+                          : null
+                        }
+                        {state.post.offer && <Text style={{fontSize: 15,letterSpacing: 0.5,  color: 'gold', fontWeight: '700' }}>{state.post.offer} Offer</Text>}
                       </View>
-                      {
-                        isLiked ? <Text>You Liked This post</Text> : null
-                      }
-                      
+                      <View  style={{ paddingHorizontal: 15,  flexDirection: 'row', alignItems: 'center', paddingTop: 5 }}>
+              
+                  {state.post.likes.map(like => (
+                    <View key={like.id}>
+                      <LikedBy item={like} />
+                    </View>
+                    ))}
+                    { state.post.likes.length == 0 ? null :
+                      <Text style={{ alignItems: 'center', paddingRight: 5,...GlobalStyles.greyTextSmall, color: GlobalStyles.darkFontColor.color }}> and {state.post.likes.length} others liked this product</Text> 
+                    }
                   </View>
-                      <TouchableOpacity onPress={() => navigation.navigate('Chat', {ID: state.post.author.id })}
-                        style={styles.bookmarkStyles}
-                      >
-                          <Feather name="mail" size={18} style={{...styles.msgBookmark, elevation: 5,}} />
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.phoneStyles}>
-                        <Feather name="phone" size={18} style={{...styles.bookmark, elevation: 5}} />
-                      </TouchableOpacity>
-                      
+                  </View>
+                  {
+                    state.post.author.user.username !== userInfo.username ? 
+                      <View style={styles.interactionContainer}> 
+                        <TouchableOpacity onPress={() => navigation.navigate('Chat', {ID: state.post.author.id })}
+                          style={styles.bookmarkStyles}
+                        >
+                            <Feather name="mail" size={18} style={{...styles.msgBookmark, elevation: 5,}} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.bookmarkStyles}>
+                          <Feather name="phone" size={18} style={{...styles.bookmark, elevation: 5}} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.bookmarkStyles}>
+                          <Feather name="plus" size={18} style={{...styles.bookmark, elevation: 5, backgroundColor: '#1287A5',}} />
+                        </TouchableOpacity> 
+                      </View> : null 
+                  }
               </View>
 
                 <Portal>
@@ -311,40 +318,27 @@ const { container } = styles
                   </Dialog>
                 </Portal>
 
-            <View  style={{ flex: 1, paddingHorizontal: 15, paddingTop: 5, flexDirection: 'row', alignItems: 'center' }}>
-              { state.post.likes.length == 0 ? null :
-                <Text style={{ paddingRight: 5 }}>Liked By</Text> 
-              }
-              {state.post.likes.map(like => (
-              <View key={like.id}>
-                <LikedBy item={like} />
-              </View>
-              ))}
-            </View>
-
-              <View style={styles.separator}>
-              
-              </View>
-              <View style={{ paddingHorizontal: 15, }}>
+              <View style={{ paddingHorizontal: 15, paddingTop: 5}}>
                     <Subheading style={styles.headerFont}>Description</Subheading>
-                    {/* <Text ></Text> */}
               </View>
 
               <View style={{ flex: 1, marginBottom: 8, paddingHorizontal: 15 }}>
                   
                   <View style={{ flex: 1, }}>
-                    <Paragraph style={{ letterSpacing: 0.5 }}>{state.post.description}</Paragraph>
-                    {/* <Text muted style={{...styles.mainText, fontSize: 14 }}></Text> */}
+                    <Paragraph style={{ fontSize: 16,}}>{state.post.description}</Paragraph>
                 </View>
               </View>
           </View>
+
+          
             
           </View>
+
+          
     
           <View style={{ flexDirection: 'row', alignItems: 'center',paddingVertical: 8, paddingHorizontal: 15 }}>
             {!state.post.comments.length ? <Text style={styles.text}>(0) COMMENTS</Text> : <Text style={styles.text}>({state.post.comments.length}) COMMENTS</Text>}
             <FontAwesome5 name="rocket" size={14} color="#777" style={{ textAlign: 'center', paddingHorizontal: 4 }} />
-            {/* <Text style={styles.text}>({state.post.comments.length})BEST COMMENTS</Text>  */}
           </View>
         </>
       }
@@ -390,7 +384,6 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#B83227', 
     borderRadius: 24, 
-    // paddingHorizontal: 18,
     position: 'absolute',
     bottom: 20,
     right: 20,
@@ -416,7 +409,6 @@ const styles = StyleSheet.create({
 
 },
 editBtn: {
-  // marginLeft: 320, 
   marginVertical: 8, 
   borderRadius: 8, 
   width: 30,  
@@ -428,7 +420,7 @@ deleteBtn: {
   paddingHorizontal: 10
 },
 separator: {
-  marginVertical: 10,
+  marginVertical: 5,
   borderBottomWidth: 0.5,
   borderBottomColor: "#ddd"
 },
@@ -446,7 +438,6 @@ accountContainer: {
     right: 8
   },
   errorStyles: { 
-    // flex: 1,
     padding: 10,
     marginHorizontal: 15,
     justifyContent: 'center',
@@ -454,8 +445,6 @@ accountContainer: {
     backgroundColor: 'black', 
     borderRadius: 5,
     elevation: 2,
-    // borderLeftWidth: 5,
-    // borderLeftColor: '#B83227' 
   },
   topBtnContainer: {
     padding: 5, 
@@ -464,43 +453,43 @@ accountContainer: {
     elevation: 5
   },
   modalText: {
-    fontSize: 18,
+    fontSize: 21,
     fontWeight: '700',
-    letterSpacing: 0.3
-    // paddingBottom: 8
+    letterSpacing: 0.8
   },
   text: {
     fontSize: 13,
     fontWeight: '700',
     color: '#777',
-    // paddingBottom: 8,
-    // paddingHorizontal: 4
-    
 },
 bookmarkStyles: {
+  flex: 1,
+  alignItems: 'center',
+},
+interactionContainer: {
+  flexDirection: 'row',
+  width: 150,
+  height: 65,
   position: "absolute",
-  top: 5,
-  right: 75,
+  top: 12,
+  right: 0,
 },
 phoneStyles: {
-  position: "absolute",
-  top: 0,
-  right: 8,
+  flex: 1,
+},
+cartStyles: {
+  flex: 1,
 },
   msgBookmark:{
-    
     color: "#fff",
-    
-    padding: 13,
+    padding: 10,
     backgroundColor: "#75DA8B",
     borderRadius: 56 / 2,
   },
   bookmark: {
     position: "absolute",
     color: "#fff",
-    top: 5,
-    right: 8,
-    padding: 13,
+    padding: 10,
     backgroundColor: "#B83227",
     borderRadius: 56 / 2,
   },

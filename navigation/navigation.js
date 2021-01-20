@@ -73,9 +73,15 @@ function MyTabs({ navigation }) {
   return (
     <Tab.Navigator
       initialRouteName="Find"
-      activeColor="#B83227"
-      inactiveColor="#333945"
-      barStyle={{ backgroundColor: '#fff', elevation: 2, borderTopWidth: 0.8, borderTopColor: "#ddd" }}
+      activeColor={GlobalStyles.themeColor.color}
+      inactiveColor={GlobalStyles.darkFontColor.color}
+      barStyle={{ 
+        backgroundColor: '#fff', 
+        elevation: 2, 
+        borderTopWidth: 0.8, 
+        borderTopColor: "#ddd",
+        paddingBottom: 5
+       }}
       >
 
       <Tab.Screen name="Find" 
