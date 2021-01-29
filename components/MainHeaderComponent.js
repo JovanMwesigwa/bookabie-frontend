@@ -1,46 +1,44 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import axios from 'axios';
+import { connect } from 'react-redux';
 import { AntDesign } from '@expo/vector-icons';
 import { GlobalStyles } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
 import SearchComponent from '../components/searchComponent';
-import { UserInfoContext } from '../context/userInfoContext/UserInfoContextProvider';
 import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
-import { AuthContext } from '../context/authentication/Context'
 import { Title } from 'react-native-paper';
+import { fetchCartData } from '../redux/cart/CartRedux';
 
-const logo = require('../assets/Logos/bbieL.png');
 
-const MainHeaderComponent = ({ getSearch }) => {
+
+
+
+const MainHeaderComponent = ({  cartData, authToken, cartDataFetch }) => {
 
     const navigation = useNavigation();
 
-    const { authState } = useContext(AuthContext);
+    const token = authToken
 
-    const [ cartCount, setCartCount ] = useState(0);
+    const [ userInfo, setUserInfo ] = useState([]);
 
-    const token = authState.token;
-
-    const { userInfo } = useContext(UserInfoContext);
-
-
-    const fetchCartNumber = () => {
-      axios.get(`${APIROOTURL}/api/my_cart/`, {
+    const fetchUserInfo = () => {
+      axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
         headers: {
-          'Authorization': `Token ${token}`
-        }
-      })
-      .then(res => {
-        setCartCount(res.data.count)
-      })
-      .catch(err => {
-        console.log(err);
-      })
+            'Authorization': `Token ${token}`
+          }
+    })
+        .then(res => {
+            setUserInfo(res.data);
+        })
+        .catch(err => {
+            console.log(err);
+        })
     }
 
     useEffect(() => {
-      fetchCartNumber()
+      fetchUserInfo()
+      cartDataFetch(token)
     },[])
 
 
@@ -55,10 +53,14 @@ const { container } = styles
           <TouchableOpacity onPress={() => navigation.openDrawer()}>
             <Image source={{ uri: userInfo.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
           </TouchableOpacity>
-          <SearchComponent getSearch={getSearch} />
-          <AntDesign name='shoppingcart' size={30} color={GlobalStyles.darkFontColor.color} onPress={() => navigation.navigate("Cart")} />
+          <SearchComponent />
+          <TouchableOpacity onPress={() => navigation.navigate("Cart")} >
+            <AntDesign name='shoppingcart' size={30} 
+            style={{paddingHorizontal: 5}}
+            color={GlobalStyles.darkFontColor.color}  />
+          </TouchableOpacity>
           <View style={styles.cartNumberContainer}>
-              <Text style={styles.cartNumber}>{cartCount}</Text>
+              <Text style={styles.cartNumber}>{cartData.length}</Text>
           </View>
        </View>
     </View>
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',   
     paddingHorizontal: 15, 
     height: 94,
-    elevation: 5,
+    elevation: 2
   },
   headerText: {
     flex: 1,
@@ -114,9 +116,24 @@ topLogoContainer: {
   },
   cartNumberContainer: {
     position: "absolute",
-    left: 320,
-    bottom: 30,
+    right: 0,
+    bottom: 35,
     zIndex: 1,
   }
 })
-export default MainHeaderComponent
+
+const mapStateToProps = state => {
+  return{
+    cartData: state.cart.cartItems,
+    authToken: state.auth.token
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return{
+    cartDataFetch: token => dispatch(fetchCartData(token))
+  }
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(MainHeaderComponent)

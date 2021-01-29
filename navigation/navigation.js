@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import { GlobalStyles } from '../styles/GlobalStyles'
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { FontAwesome, Icon } from '@expo/vector-icons';
+import { FontAwesome, Icon, Entypo } from '@expo/vector-icons';
 import { NavBar } from 'galio-framework';
 
 // These are screen imports
@@ -33,7 +33,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import ProductDetails from '../screens/ProductDetails/ProductDetails';
 import CompanyList from '../screens/CompanyList/CompanyList';
 import CompanyDetails from '../screens/CompanyDetails/CompanyDetails';
-import { DrawerContent } from '../screens/DrawerContent/DrawerContent'
+import DrawerContent  from '../screens/DrawerContent/DrawerContent'
 import ProductEdit from '../screens/ProductEdit/ProductEdit';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import PopularProducts from '../components/PopularProducts';
@@ -44,8 +44,7 @@ import SearchResults from '../screens/SearchResults/SearchResults';
 import Messages from '../screens/Messages/Messages';
 import ChatRoom from '../screens/Chat/ChatRoom';
 import { TouchableHighlight } from 'react-native-gesture-handler';
-
-
+import { connect } from 'react-redux'
 
 
 // These are navigation initiallization variables
@@ -69,12 +68,13 @@ function TopTabs() {
 
 // TAB NAVIGTAION
 // This is where the Feed TAB navigation is created
-function MyTabs({ navigation }) {
+function MyTabs({ navigation, authToken }) {
   return (
     <Tab.Navigator
       initialRouteName="Find"
       activeColor={GlobalStyles.themeColor.color}
-      inactiveColor={GlobalStyles.darkFontColor.color}
+      inactiveColor={GlobalStyles.greyColor.color}
+      labeled={false}
       barStyle={{ 
         backgroundColor: '#fff', 
         elevation: 2, 
@@ -90,7 +90,7 @@ function MyTabs({ navigation }) {
           tabBarLabel: "Home",
           tabBarIcon: ({ color }) => (
             // <MaterialCommunityIcons name="newspaper" color={color} size={size} />
-              <FontAwesome name="newspaper-o" size={20}  color={color} />
+            <Entypo name="shop" size={25} color={color} />
           )
         }} />
 
@@ -98,7 +98,7 @@ function MyTabs({ navigation }) {
       options={{
         tabBarLabel: "Category",
         tabBarIcon: ({ color }) => (
-          <MaterialCommunityIcons name="gamepad-circle" color={color} size={22} />
+          <MaterialCommunityIcons name="gamepad-circle" color={color} size={25} />
           )
       }} />
 
@@ -106,7 +106,7 @@ function MyTabs({ navigation }) {
       options={{
         tabBarLabel: "Notifications",
         tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="bell" color={color} size={22} /> 
+          <MaterialCommunityIcons name="bell" color={color} size={25} /> 
         )
       }} />
       
@@ -122,7 +122,7 @@ function MyTabs({ navigation }) {
         options={{
           tabBarLabel: "Profile",
           tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons name="account-circle" color={color} size={22} />
+              <MaterialCommunityIcons name="account" color={color} size={28} />
           )
         }} />
     </Tab.Navigator>
@@ -276,7 +276,7 @@ const SettingsStackNavigator = ({navigation}) => {
 
 // Notifications stack navigator
 
-const NoficationsStackNavigator = ({navigation}) => {
+const NoficationsStackNavigator = ({navigation,}) => {
   return (
     <Stack.Navigator>
       <Stack.Screen 
@@ -291,8 +291,7 @@ const NoficationsStackNavigator = ({navigation}) => {
 }
 
 // Root Drawer navigator
-const NavigationComponent = ({ navigation }) => {
-
+const NavigationComponent = ({ navigation,  }) => {
 
   return(
    <NavigationContainer >
@@ -314,5 +313,10 @@ const NavigationComponent = ({ navigation }) => {
    )
  }
 
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
 
-export default NavigationComponent
+export default connect(mapStateToProps, null)(NavigationComponent);

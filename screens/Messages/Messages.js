@@ -10,19 +10,17 @@ import MessagesItem from '../../components/MessageItem';
 import SentMessagesItem from '../../components/SentMessage'
 import {  Tab, Tabs } from 'native-base';
 import { AntDesign } from '@expo/vector-icons';
+import { connect } from 'react-redux'
 
 
 
 
-
-const Messages = ({ navigation }) => {
+const Messages = ({ authToken, navigation }) => {
 
     const [ inboxMessages, setInboxMessages ] = useState([]);
     const [ outboxMessages, setOutboxMessages ] = useState([]);
 
-
-    const { authState } = useContext(AuthContext);
-    const token = authState.token;
+    const token = authToken;
 
     const getInboxMessageList = async() => {
         try{
@@ -136,4 +134,10 @@ const styles = StyleSheet.create({
     elevation: 5
 }
 })
-export default Messages
+
+const mapStateToProps = state => {
+    return{
+        authToken: state.auth.token
+    }
+}
+export default connect(mapStateToProps, null)(Messages)

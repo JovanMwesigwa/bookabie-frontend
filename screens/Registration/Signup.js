@@ -7,8 +7,12 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import * as Animatable from 'react-native-animatable';
 import { AuthContext } from '../../context/authentication/Context'
 import { ScrollView } from 'react-native-gesture-handler'
+import { GlobalStyles } from '../../styles/GlobalStyles';
+import { connect } from 'react-redux'
+import { signUp } from '../../redux/auth/authRedux'
 
-const Signup = ({ navigation, }) => {
+
+const Signup = ({  navigation, authSignUp }) => {
 
 
   const { authContext } = useContext(AuthContext);
@@ -108,7 +112,7 @@ const handleSignUpSubmit = () => {
     const password = passwordData.passText;
     // const confirmPassword = confirmPasswordData.passText;
     // console.log( username, email, password, );
-    signUp(username, email, password, goToLogin)
+    authSignUp(username, email, password, goToLogin)
     setLoading(true)
   }
   
@@ -123,7 +127,7 @@ const { container } = styles
 >
    <ScrollView>
 
-    <StatusBar backgroundColor='#B83227' barStyle='light-content' />
+    <StatusBar backgroundColor={GlobalStyles.themeColor.color} barStyle='light-content' />
     <View style={styles.header}>
       <Text style={styles.text_header}>Welcome!</Text>
     </View>
@@ -272,7 +276,7 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#B83227'
+    backgroundColor: GlobalStyles.themeColor.color
    },
   header: {
     flex: 1,
@@ -286,7 +290,7 @@ const styles = StyleSheet.create({
     color: 'red'
   },
   getStartedText: {
-    backgroundColor: '#B83227',
+    backgroundColor: GlobalStyles.themeColor.color,
     textAlign: 'center',
     color: 'white',
     padding: 12,
@@ -299,10 +303,10 @@ const styles = StyleSheet.create({
   getStartedTextTwo: {
     backgroundColor: 'white',
     textAlign: 'center',
-    color: '#B83227',
+    color: GlobalStyles.themeColor.color,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#B83227',
+    borderColor: GlobalStyles.themeColor.color,
     paddingHorizontal: 20,
     paddingRight: 32,
     borderRadius: 12,
@@ -359,6 +363,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   }
 })
-export default Signup
+
+const mapStateToProps = state => {
+  return{
+    authState: state.auth.token
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return{
+    authSignUp: (username, email, password, goToLogin) => dispatch(signUp(username, email, password, goToLogin))
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(Signup)
 
 

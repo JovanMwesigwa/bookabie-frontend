@@ -14,6 +14,7 @@ import { Container, Header, Content, Tab, Tabs} from 'native-base';
 import { Surface, Text } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { connect } from 'react-redux'
 
 
 const initialState = {
@@ -41,7 +42,7 @@ const reducer = (state, action) => {
   }
 }
 
-const CompanyProfile = ({ route, navigation }) => {
+const CompanyProfile = ({ route, navigation, authToken }) => {
 
 
   const image1 = require('../../assets/images/nikisPizza.jpg');
@@ -64,13 +65,13 @@ const CompanyProfile = ({ route, navigation }) => {
   const [ isFollowing, setIsFollowing ] = useState(null);
 
 
-  const token = authState.token;
+  const token = authToken;
 
-  const fetchCompanyProfile = async(token_) => {
+  const fetchCompanyProfile = async() => {
     try{
       const response = await axios.get(`${APIROOTURL}/api/profile/${ID}/detail/`,{
         headers : {
-          'Authorization': `Token ${token_}`
+          'Authorization': `Token ${token}`
         }
       })  
       dispatch({type: 'FETCH_SUCCESS', payload: response.data})
@@ -148,12 +149,8 @@ const CompanyProfile = ({ route, navigation }) => {
 
 
   useEffect(() => {
-     const useeffectFetch = async() => {
-        const token_ = authState.token
-        fetchCompanyProfile(token_)
-        fetchUser(token_)
-     } 
-     useeffectFetch();
+      fetchCompanyProfile()
+      fetchUser()
      fetchIsFollowerCheck();
   },[])
 
@@ -207,23 +204,22 @@ const CompanyProfile = ({ route, navigation }) => {
   if (state.error) {
     return (
       <>
-        <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-        <OtherHeaderComponent name={state.profile.user} />
-        <View style={{ flex: 1 }}>
-          <View style={{ flex: 2 }}>
-
-          </View>
-              <Animatable.View style={styles.errorStyles}
-                animation='fadeInUp'
-                delay={1000}
-                duration = {500}> 
-                  <Text style={{ textAlign: 'center', color: 'white', letterSpacing:1 }}>{state.error}</Text> 
-              </Animatable.View>
-
-          <View style={{ flex: 2 }}>
-          
+        <>
+        <SecondaryHeader />
+        {/* <ProfileHeader profileName={profile.user} /> */}
+        <View style={{ flex: 1, margin: 25 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+            <Image source={noConnectionImage} style={{ width: 30, height: 30}} />
+            <Text style={{ textAlign: 'center', color: '#292E2E', letterSpacing:1, paddingHorizontal: 5 }}>{state.error}</Text> 
           </View> 
+                
+            <TouchableOpacity style={styles.refreshBtn}
+                onPress={fastRefresh}
+                >
+                  <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15}}>Refresh</Text>
+            </TouchableOpacity>
         </View>
+      </>
       </>
     )
   }
@@ -600,6 +596,7 @@ loadMoreBtn: {
     width: '100%',
     resizeMode: 'contain',
     height: 150,
+    backgroundColor: 'grey'
     
   },
   cartBtnContainer: {
@@ -621,6 +618,7 @@ loadMoreBtn: {
     left: 20,
     width: 65,
     height: 65,
+    backgroundColor: 'brown',
     borderWidth: 1,
     borderColor: 'white',
     borderRadius: 35
@@ -669,4 +667,10 @@ loadMoreBtn: {
   },
 
 })
-export default CompanyProfile;
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+export default connect(mapStateToProps, null)(CompanyProfile);

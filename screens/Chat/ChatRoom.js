@@ -9,16 +9,16 @@ import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider';
 import moment from 'moment';
 import axios from 'axios';
+import { connect } from 'react-redux'
 
 
-
-const ChatRoom = ({ navigation, route }) => {
+const ChatRoom = ({ navigation, route, authToken }) => {
 
     const { authState } = useContext(AuthContext);
 
     const { userInfo } = useContext(UserInfoContext);
 
-    const token = authState.token;
+    const token = authToken;
 
     const { ID } = route.params
 
@@ -262,4 +262,10 @@ const styles = StyleSheet.create({
       margin: 0,
   }
 })
-export default ChatRoom
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+export default connect(mapStateToProps, null)(ChatRoom)

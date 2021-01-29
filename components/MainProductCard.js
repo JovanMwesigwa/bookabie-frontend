@@ -55,7 +55,7 @@ cardContainer: {
     padding: 10,
     paddingVertical: 12,
   },
-  cartBtn: { backgroundColor: "#B83227", color: 'white', fontSize: 12, padding: 5, borderRadius: 5, textAlign: 'center' },
+  cartBtn: { backgroundColor: GlobalStyles.themeColor.color, color: 'white', fontSize: 12, padding: 5, borderRadius: 5, textAlign: 'center' },
   mainText: {
       fontSize: 15,
       fontWeight: '600'

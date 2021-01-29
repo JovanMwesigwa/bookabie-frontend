@@ -1,24 +1,46 @@
-import React, { useContext } from 'react'
+import React, {  useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
+import axios from 'axios'
 import { AntDesign } from '@expo/vector-icons';
 import { GlobalStyles } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
 import SearchComponent from '../components/searchComponent';
-import { UserInfoContext } from '../context/userInfoContext/UserInfoContextProvider';
+import { connect } from 'react-redux';
 
-const SecondaryHeader = () => {
+
+
+
+
+const SecondaryHeader = ({authToken}) => {
 
     const navigation = useNavigation();
 
-    const { userInfo } = useContext(UserInfoContext);
+    const token = authToken
 
-    // console.log(userInfo);
+    const [ userInfo, setUserInfo ] = useState([]);
 
+    const fetchUserInfo = () => {
+      axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
+        headers: {
+            'Authorization': `Token ${token}`
+          }
+    })
+        .then(res => {
+            setUserInfo(res.data);
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+
+    useEffect(() => {
+      fetchUserInfo()
+    },[])
 
 const { container } = styles
  return(
     <View style={styles.container}>
-       {/* <Text style={styles.headerText}>BookABuy</Text>  */}
        <View style={{...styles.headerContainer }}>
           <TouchableOpacity onPress={() => navigation.openDrawer()}>
             <Image source={{ uri: userInfo.profile_pic }} style={styles.imageStyle} />
@@ -85,4 +107,10 @@ const styles = StyleSheet.create({
     zIndex: 1,
   }
 })
-export default SecondaryHeader;
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+export default connect(mapStateToProps)(SecondaryHeader);

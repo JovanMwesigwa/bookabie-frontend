@@ -1,20 +1,64 @@
-import React, { useState, useContext }  from 'react'
-import { CategoryContext } from '../../context/profiles/CategoryContextProvider'
-import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
+import React, {  useReducer, useEffect }  from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native'
+import axios from 'axios'
+import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import { AntDesign } from '@expo/vector-icons';
 import SecondaryHeader from '../../components/SecondaryHeader';
 import { GlobalStyles } from '../../styles/GlobalStyles';
+import { connect } from 'react-redux'
 
 
-const Categories = ({ navigation }) => {
 
 
-  const { categories } = useContext(CategoryContext);
+const initialState = {
+  loading: true,
+  categories: [],
+  error: ""
+}
 
-  const { products } = useContext(CompanyContext);
+const reducer = (state, action) => {
+  switch(action.type){
+    case 'FETCH_CAT_SUCCESS':
+      return{
+        ...state,
+        loading: false,
+        categories: action.payload,
+        error: ""
+      }
+    case 'FETCH_CAT_FAILURE':
+      return{
+        ...state,
+        loading: false,
+        error: "OOPs, looks like we couldn't load your data."
+      }
+    default:
+      return state
+  }
+}
 
-  const categories_ = categories
+const Categories = ({ navigation, authToken }) => {
+
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const token = authToken;
+
+  const fetchCategories = () => {
+    axios.get(`${APIROOTURL}/api/categories/`,{
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    })
+    .then(response => {
+      dispatch({type: "FETCH_CAT_SUCCESS", payload: response.data.results})
+    })
+    .catch(error => {
+      dispatch({type: "FETCH_CAT_FAILURE"})
+    }) 
+  }
+
+  useEffect(() => {
+    fetchCategories()
+  },[])
 
 const { container } = styles
  return(
@@ -26,7 +70,7 @@ const { container } = styles
         <Text style={GlobalStyles.greyTextLarge}>CATEGORIES</Text>
       </View>
         {
-          categories_.map(( category ) => (
+          state.categories.map(( category ) => (
             <TouchableOpacity key={category.id} onPress={() => (
               navigation.navigate("Category", {title:category.name, color: category.color , slug: category.slug})
             )}>
@@ -72,4 +116,10 @@ const styles = StyleSheet.create({
     // textAlign: 'center'
   }
 })
-export default Categories
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+export default connect(mapStateToProps, null)(Categories)

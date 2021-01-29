@@ -3,18 +3,21 @@ import axios from 'axios';
 import { View,   Dimensions, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList, RefreshControl } from 'react-native'
 import {  Entypo, AntDesign} from '@expo/vector-icons';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
-import { AuthContext } from '../../context/authentication/Context'
 import ProfileHeader from '../../components/ProfileHeader';
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import ProductCard from '../../components/productCard';
 import * as Animatable from 'react-native-animatable';
-import { Caption, Paragraph, Headline } from 'react-native-paper';
-import { Container, Header, Content, Tab, Tabs } from 'native-base';
+import { Caption, Paragraph,  } from 'react-native-paper';
+import {  Tab, Tabs } from 'native-base';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MapModalComponent from '../../components/MapComponent';
 import SecondaryHeader from '../../components/SecondaryHeader';
 import { Surface, Text } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
+import { connect } from 'react-redux';
+
+
+
 // loading
 // profile
 // errors
@@ -48,7 +51,7 @@ const noConnectionImage = require('../../assets/images/noint.png');
 
 const mapImage = require('../../assets/images/m.jpg');
 
-const Profile = ({  navigation }) => {
+const Profile = ({  navigation, authToken }) => {
 
   const [ state, dispatch ] = useReducer(reducer, initialState); 
 
@@ -61,9 +64,7 @@ const Profile = ({  navigation }) => {
   const image1 = require('../../assets/images/nikisPizza.jpg');
   const image2 = require('../../assets/images/pizzaHut.jpg');
 
-  const { authState } = useContext(AuthContext);
-
-  const token = authState.token
+  const token = authToken
 
   const showMap = () => {
     setModalShown(true);
@@ -74,11 +75,11 @@ const Profile = ({  navigation }) => {
   }
 
   
-  const fetchUser = async(token_) => {
+  const fetchUser = async() => {
     try{
       const userResponse = await axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
         headers: {
-            'Authorization': `Token ${token_}`
+            'Authorization': `Token ${token}`
           }
       })
       dispatch({type: 'FETCH_SUCCESS', payload: userResponse.data})
@@ -136,7 +137,6 @@ const Profile = ({  navigation }) => {
         }
       })
       setFollowers(followersData.data.results);
-      // console.log(followersData.data.results);
     }catch(error){
       console.log(error);
     }
@@ -149,11 +149,7 @@ const Profile = ({  navigation }) => {
 
 
   useEffect(() => {
-    const useffectFetch = async() => {
-      const token_ = await authState.token
-      fetchUser(token_);
-    }
-    useffectFetch();
+    fetchUser();
     getFollowers();
   },[])
 
@@ -173,7 +169,6 @@ const Profile = ({  navigation }) => {
                 onPress={fastRefresh}
                 >
                   <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15}}>Refresh</Text>
-                  {/* <ActivityIndicator size={10} color='white' style={{ paddingHorizontal: 8 }} /> */}
             </TouchableOpacity>
         </View>
       </>
@@ -282,13 +277,6 @@ const refreshControl = <RefreshControl
                 </View >
                   <Caption style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{profile.contact}</Caption> 
               </View>
-
-              {/* <View style={{ flexDirection: 'row', alignItems: 'center', }}>
-                <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
-                <MaterialCommunityIcons name="account-circle" size={18} color="#FF5A09" />
-                </View >
-                  <Caption style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{profile.following.length} following</Caption> 
-              </View> */}
               <View style={styles.section}>
                   <MaterialCommunityIcons name="account-group" size={18} color="#FF5A09" />
                   <Paragraph style={[styles.paragraph,styles.caption]}>{followers.length}</Paragraph>
@@ -303,7 +291,6 @@ const refreshControl = <RefreshControl
             </View>
             
           
-            {/* <Container> */}
               <Tabs 
                 tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: GlobalStyles.themeColor.color}}
               >
@@ -375,7 +362,6 @@ const refreshControl = <RefreshControl
    </>
     }
       data={userPosts.results}
-      // onEndReached={fetchProducts}
       refreshControl={refreshControl}
       ListFooterComponent={renderFooter}
       renderItem={({ item }) => (
@@ -569,5 +555,11 @@ loadMoreBtn: {
     width: '100%'
   },
 
-})
-export default Profile;
+});
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+export default connect(mapStateToProps, null)(Profile);

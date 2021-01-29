@@ -6,18 +6,24 @@ import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
 import axios from 'axios'
 import { Container, Header, Content, Item, Input, ListItem,  Textarea, Radio, Right, Left } from 'native-base';
 import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider';
+import { connect } from 'react-redux'
+import { ActivityIndicator } from 'react-native';
+import { GlobalStyles } from '../../styles/GlobalStyles';
 
 
-export default function AddComment({ route, navigation }) {
+
+
+const AddComment = ({authToken, route, navigation })  => {
+
     const [ content, setContent ] = useState(null);
-
+    const [ loading, setLoading ] = useState(false);
     const { authState } = useContext(AuthContext);
     const { userInfo } = useContext(UserInfoContext);
 
-    const token = authState.token
+    const token = authToken
 
     //  CAHNGE THIS WARNING USING NAVIGATION.SETOPTIONS
-    const { item, refreshPost } = route.params;
+    const { item,  reloadPosts } = route.params;
 
     const data = {
         post: item.id,
@@ -25,6 +31,14 @@ export default function AddComment({ route, navigation }) {
         author: `Profile for ${userInfo.user}`
     }
 
+    const postCommentHandler = () => {
+        setLoading(true)
+        setTimeout(() => {
+            submitComment()
+        },1000)
+        
+    }
+ 
     const submitComment = () => {
         axios.post(`${APIROOTURL}/api/comment/create/`, data, {
             headers: {
@@ -38,15 +52,15 @@ export default function AddComment({ route, navigation }) {
             .catch(err => {
                 console.log(err);
             })
-        refreshPost()
-        navigation.goBack()
+            setLoading(false)
+            // reloadPosts()
+            navigation.goBack()
     }
 
     // console.log("Profile for ",userInfo.user);
     return (
 
-        
-        <View style={styles.container}>
+        <View style={styles.container} onPress={() => Keyboard.dismiss()}>
             <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
             <PostProductHeader />
             
@@ -61,8 +75,11 @@ export default function AddComment({ route, navigation }) {
                         value={content}
                         onChangeText={text => setContent(text)}
                     />
-                    <TouchableOpacity style={styles.buttonContainer} onPress={submitComment}> 
+                    <TouchableOpacity style={styles.buttonContainer} onPress={postCommentHandler}> 
+                    {
+                        loading ? <ActivityIndicator color="#fff" size={15} style={styles.indicatorStyles} /> :
                         <Text style={{ fontSize: 15, color: 'white', }}>Send</Text>
+                    }
                     </TouchableOpacity>
                 </View>
             </View>
@@ -86,6 +103,10 @@ const styles = StyleSheet.create({
         height: 35,
         // backgroundColor: 'white',
         borderRadius: 35
+    },
+    indicatorStyles: {
+        paddingHorizontal: 15,
+        paddingTop: 4
     },
     postContainer: {
         // flex: 1,
@@ -118,3 +139,11 @@ const styles = StyleSheet.create({
         height: '30%'
       },
 })
+
+const mapStateToProps = state => {
+    return{
+        authToken: state.auth.token
+    }
+}
+
+export default connect(mapStateToProps, null)(AddComment)

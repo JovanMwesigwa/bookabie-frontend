@@ -1,46 +1,102 @@
-import React, { useState, useContext, useEffect } from 'react'
+import React, { useState, useContext, useEffect, useReducer } from 'react'
+import { View, Text, StyleSheet, ScrollView,Image,  FlatList, ActivityIndicator, StatusBar, RefreshControl } from 'react-native'
 import axios from 'axios';
+import { connect } from 'react-redux'
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { CompanyContext } from '../../context/profiles/CompanyContextProvider';
-import { MaterialCommunityIcons,MaterialIcons, Feather, Ionicons} from '@expo/vector-icons';
-import { View, Text, StyleSheet, ScrollView,Image,  FlatList, ActivityIndicator, StatusBar, RefreshControl } from 'react-native'
+import { MaterialCommunityIcons,MaterialIcons, Ionicons} from '@expo/vector-icons';
 import TopProductCat from '../../components/topProductCat'
 import ProductCard from '../../components/productCard'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import MainHeaderComponent from '../../components/MainHeaderComponent'
 import * as Animatable from 'react-native-animatable';
-import { AccountContext } from '../../context/accounts/AccountContextProvider';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import { AuthContext } from '../../context/authentication/Context'
+import { signOut } from '../../redux/auth/authRedux'
+import { fetchLoadMorePosts, fetchPosts, hotReloadPosts } from '../../redux/posts/postsRedux';
 
 
+const initialState = {
+  postsLoading: true,
+  postsData: [],
+  error: null
+}
 
+const reducer = (state, action) => {
+  switch(action.type){
+    case "FETCH_POSTS_REQUEST":
+      return{
+        ...state,
+        postsLoading: true,
+        postsData: [],
+        error: null
+      }
+    case "FETCH_POSTS_SUCCESS":
+      return{
+        ...state,
+        postsLoading: false,
+        postsData: action.payload,
+        error: null
+      }
+    case "FETCH_POSTS_FAILURE":
+      return{
+        ...state,
+        postsLoading: [],
+        error: "OOPs, Something went wrong"
+      }
+    default:
+      return state
 
-const Find = ({ navigation }) => {
+  }
+}
 
+const Find = ({ navigation, signOut, authToken, posts,fetchHotReload, postsLoading,postsErrors, fetchPostsFunc, fetchMorePostsFunc }) => {
 
-  const [refreshing, setRefreshing] = useState(false);
+  const [ state, dispatch] = useReducer(reducer, initialState);
+
+  const [ topProfiles, setTopProfiles ] = useState([]);
+
+  const [ nextUrl, setNextUrl ] = useState(null);
 
   const noConnectionImage = require('../../assets/images/noint.png');
 
   const logo  = require('../../assets/Logos/bbieL.png')
 
-  const [ openModal, setOpenModal ] = useState(false);
-
-  const { authContext, authState } = useContext(AuthContext);
-
-  const token = authState.token;
-
-  const [ isLoading, setIsLoading ] = useState(true);
+  const token = authToken;
 
   const [ morePostsLoading, setMorePostsLoading ] = useState(false);
 
-  const  { loading, products, errors, fetchFirstPostsData, userInfo, fetchPostsData, handleLoadMore, newProducts }  = useContext(CompanyContext);
+  const  { loading,  errors, fetchFirstPostsData,  fetchPostsData }  = useContext(CompanyContext);
 
   const [ morePosts, setMorePosts ] = useState([]);
 
-  const { accounts }  = useContext(AccountContext);
-  // console.log(accounts);
+  const fetchTopProducts = () => {
+    axios.get(`${APIROOTURL}/api/promoted_profiles/`,{
+      headers: {
+          'Authorization': `Token ${token}`
+      }
+  })
+  .then(response => {
+    setTopProfiles(response.data.results)
+  })
+  .catch(err => {
+    console.log(err);
+  })
+  }
+
+  const fetchProducts = () => {
+    axios.get(`${APIROOTURL}/api/posts/?page=1`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    })
+    .then(resData => {
+      const url = resData.data.next
+      setNextUrl(url)
+    })
+    .catch(error => {
+      dispatch({type: "FETCH_POSTS_FAILURE" })
+    })
+  }
 
 
   const getSearch = async(enteredText) => {
@@ -51,7 +107,6 @@ const Find = ({ navigation }) => {
     })
       .then(res => {
         
-        // console.log(products_);
       })
       .catch(err => {
         console.log(err);
@@ -59,11 +114,10 @@ const Find = ({ navigation }) => {
     
   }
 
-  const signOut = authContext.signOut
 
   const loadMorePostsData  = () => {
     setMorePostsLoading(true);
-    axios.get(`${products.next}`, {
+    axios.get(`${nextUrl}`, {
       headers: {
         'Authorization': `Token ${token}`
       }
@@ -77,26 +131,45 @@ const Find = ({ navigation }) => {
   }
 
 
-  const getProducts = () => {
-    // This function is called by the flatlist {data} and it appends loadmore post on the current post lists in the feed.  
-    const allProducts = [...products.results, ...morePosts]
-    return allProducts;
-  }
-
+ 
   const getMorePosts = () => {
     // This fuction is called by the loadmore button and makes an API call to the backend using the next page results.
-    loadMorePostsData();
+    // fetchMorePostsFunc(token, page);
+    loadMorePostsData()
     setMorePostsLoading(false);
   }
 
+  const refreshPosts = () => {
+    fetchHotReload(token);
+  }
+
+  const getProducts = () => {
+    // This function is called by the flatlist {data} and it appends loadmore post on the current post lists in the feed.  
+    const allProducts = [...posts, ...morePosts]
+    return allProducts;
+  }
+
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     fetchHotReload(token)
+  //   }, 5000);
+  // },[posts])
+  
+  // setTimeout(() => {
+  //   fetchHotReload(token)
+  // },60000)
+
+  const reloadPosts = () => {
+    fetchHotReload(token)
+  }
+ 
   useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    },3000)
+      fetchTopProducts()
+      fetchPostsFunc(token);
+      fetchProducts()
   },[])
 
-
-  if (isLoading ) {
+  if (postsLoading ) {
     return (
       <View style={styles.isLoadingStyles}
       >
@@ -107,7 +180,7 @@ const Find = ({ navigation }) => {
     )
   }
 
-  if (errors) {
+  if (postsErrors) {
     return (
       <>
         <StatusBar backgroundColor='#ddd' barStyle='light-content' />
@@ -134,7 +207,7 @@ const Find = ({ navigation }) => {
   const renderFooter = () => {
     return(
       <>
-      {errors ? null : 
+      {postsErrors ? null : 
         <Animatable.View style={{ flex: 1, justifyContent: 'center', elevation: 5, paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15 }}
           animation='fadeInUp'
           delay={900}
@@ -156,17 +229,17 @@ const Find = ({ navigation }) => {
   }
 
   const { container } = styles
-  const refreshControl = <RefreshControl
+  const refreshControl = <RefreshControl 
         refreshing={loading}
-        onRefresh={fetchFirstPostsData}
+        onRefresh={refreshPosts}
       />
 
  return(
    <>
       <StatusBar backgroundColor='#ddd' barStyle='dark-content' />
-      <MainHeaderComponent getSearch={getSearch}  />
+      <MainHeaderComponent   />
 
-      {loading || isLoading ? 
+      { postsLoading ? 
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
         <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
       </View>  :
@@ -218,7 +291,7 @@ const Find = ({ navigation }) => {
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}>
                     
-                    {accounts.map(acc => (
+                    {topProfiles.map(acc => (
                       <View key={acc.id}>
                         <TopProductCat topBrand={acc} />
                       </View>
@@ -230,12 +303,12 @@ const Find = ({ navigation }) => {
               </>
             }
             data={getProducts()}
-            // onEndReached={loadMorePostsData}
+            onEndReached={getMorePosts}
             refreshControl={refreshControl}
             ListFooterComponent={renderFooter}
-            // onEndReachedThreshold={200}
+            onEndReachedThreshold={5.0}
             renderItem={({ item }) => (
-              <ProductCard item={item} />
+              <ProductCard item={item} reloadPosts={reloadPosts} />
             )}
               keyExtractor={(item) => item.id.toString()}
           />
@@ -309,7 +382,6 @@ refreshBtn: {
   feedContainerTwo: {
     paddingTop: 5,
     paddingHorizontal: 15,
-    // backgroundColor: "#EDEBEB",
     backgroundColor: "#fff",
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -319,7 +391,6 @@ refreshBtn: {
     padding: 15,
     backgroundColor: GlobalStyles.themeColor.color, 
     borderRadius: 24, 
-    // paddingHorizontal: 18,
     position: 'absolute',
     bottom: 20,
     right: 20,
@@ -334,7 +405,6 @@ refreshBtn: {
     marginVertical: 12 
   },
   errorStyles: { 
-    // flex: 1,
     padding: 10,
     marginHorizontal: 15,
     justifyContent: 'center',
@@ -342,8 +412,6 @@ refreshBtn: {
     backgroundColor: 'black', 
     borderRadius: 5,
     elevation: 2,
-    // borderLeftWidth: 5,
-    // borderLeftColor: '#B83227' 
 },
 bookmark: {
   position: "absolute",
@@ -415,4 +483,22 @@ bookmark: {
     borderRadius: 10 
 },
 })
-export default Find
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token,
+    posts: state.posts.postsItems,
+    postsLoading: state.posts.loading,
+    postsErrors: state.posts.errors
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return{
+    signOut: () => dispatch(signOut()),
+    fetchPostsFunc: (token) => dispatch(fetchPosts(token)),
+    fetchMorePostsFunc: (token, nextUrl) => dispatch(fetchLoadMorePosts(token, nextUrl)),
+    fetchHotReload: (token) => dispatch(hotReloadPosts(token))
+    }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(Find)

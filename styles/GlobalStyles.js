@@ -2,10 +2,14 @@ import { StyleSheet } from 'react-native'
 
 export const GlobalStyles = StyleSheet.create({
   themeColor: {
-    color: "#B83227",
+    // color: "#B83227",
+    color: "#B4161B",
   },
   darkFontColor: {
     color: "#333945",
+  },
+  greyColor: {
+    color: "#777"
   },
   darkHeaderText: {
     fontSize: 14,
@@ -62,18 +66,19 @@ export const GlobalStyles = StyleSheet.create({
     paddingHorizontal: 5 
   },
   smallRoundedPictContainer: { 
-    width: 40, 
-    height: 40, 
+    width: 45, 
+    height: 45, 
     borderRadius: 35,
     borderWidth: 0.5,
-    borderColor: '#ddd'
+    borderColor: '#ddd',
+    backgroundColor: 'brown'
   },
   largeRoundedPictContainer: { 
-    width: 50, 
-    height: 50, 
-    borderRadius: 45,
-    borderWidth: 0.5,
-    borderColor: '#ddd'
+    width: 60,
+    height: 60 , 
+    borderRadius: 50, 
+    resizeMode: "cover", 
+    backgroundColor: 'brown'
   },
   feedContainer: {
     flexDirection: 'row',

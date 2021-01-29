@@ -1,4 +1,5 @@
 import React, { useContext, useState } from 'react'
+import { connect } from 'react-redux'
 import { UserAuthentication } from '../../context/authentication/UserAuthenticationContextProvider'
 import { View, Text, StyleSheet, Button, TouchableOpacity, TextInput, StatusBar, ActivityIndicator } from 'react-native'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
@@ -7,10 +8,10 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import * as Animatable from 'react-native-animatable';
 import { AuthContext } from '../../context/authentication/Context'
 import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider';
+import { GlobalStyles  } from '../../styles/GlobalStyles'
+import { signIn } from '../../redux/auth/authRedux'
 
-
-
-const Login = ({ navigation }) => {
+const Login = ({ navigation, authData, authLogin }) => {
 
 const { authContext, authState } = useContext(AuthContext);
 
@@ -25,7 +26,7 @@ const [ isValidPassword, setIsValidPassword ] = useState(true);
 const [ isValidUsername, setIsValidUsername ] = useState(true);
 
 // console.log(signIn);
-const signIn = authContext.signIn
+// const signIn = authContext.signIn
 
 const [ email , setEmail ] = useState('')
 
@@ -70,7 +71,6 @@ const handlePasswordValidation = (val) => {
   }
 }
 
-// console.log(token);
 
 const handleSubmit = () => {
   if ( email.length == 0 || passwordData.passText.length == 0 ) {
@@ -78,7 +78,7 @@ const handleSubmit = () => {
   }else{
     const passwordText = passwordData.passText;
     // console.log(email, passwordText);
-    signIn(email, passwordText)
+    authLogin(email, passwordText)
     setLoading(true);
   }
    
@@ -87,7 +87,7 @@ const handleSubmit = () => {
 const { container } = styles
  return(
   <View style={container}>
-    <StatusBar backgroundColor='#B83227' barStyle='light-content' />
+    <StatusBar backgroundColor={GlobalStyles.themeColor.color} barStyle='light-content' />
     <View style={styles.header}>
       <Text style={styles.text_header}>Welcome!</Text>
     </View>
@@ -175,7 +175,7 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#B83227'
+    backgroundColor: GlobalStyles.themeColor.color
    },
   header: {
     flex: 1,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     color: 'red'
   },
   getStartedText: {
-    backgroundColor: '#B83227',
+    backgroundColor: GlobalStyles.themeColor.color,
     textAlign: 'center',
     color: 'white',
     padding: 12,
@@ -201,10 +201,10 @@ const styles = StyleSheet.create({
   getStartedTextTwo: {
     backgroundColor: 'white',
     textAlign: 'center',
-    color: '#B83227',
+    color: GlobalStyles.themeColor.color,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#B83227',
+    borderColor: GlobalStyles.themeColor.color,
     paddingHorizontal: 20,
     paddingRight: 32,
     borderRadius: 12,
@@ -261,6 +261,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   }
 })
-export default Login
+
+const mapStateToProps = state => {
+  return{
+    authData: state.auth.token
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return{
+    authLogin: (email, passwordText) => dispatch(signIn(email, passwordText))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login)
 
 

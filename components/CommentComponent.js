@@ -6,13 +6,15 @@ import { AuthContext } from '../context/authentication/Context'
 import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import axios from 'axios';
 import { GlobalStyles } from '../styles/GlobalStyles';
+import { connect } from 'react-redux'
 
 
-const CommentComponent = ({ item }) => {
+
+const CommentComponent = ({ authToken, item }) => {
 
     const { authState } = useContext(AuthContext);
 
-    const token = authState.token;
+    const token = authToken;
 
     const [ userData, setUserData ] = useState({});
 
@@ -40,14 +42,12 @@ const CommentComponent = ({ item }) => {
             </TouchableOpacity>
             <View style={styles.textBody}>
                 <Text style={GlobalStyles.darkHeaderText}>{userData.user}</Text>
+                <Text style={{ fontSize: 11, color: '#777',letterSpacing: 0.2 }}>/ Posted about { moment(item.date_commented).startOf('hour').fromNow()}</Text>
                 <Paragraph style={{ paddingVertical: 6, color: GlobalStyles.darkFontColor.color}}>{item.body}</Paragraph>
-                <Caption style={{ fontSize: 10, color: '#777', }}>/ Posted about { moment(item.date_commented).startOf('hour').fromNow()}</Caption>
             </View>
         </View>
     )
 }
-
-export default CommentComponent
 
 const styles = StyleSheet.create({
     container: {
@@ -65,3 +65,11 @@ const styles = StyleSheet.create({
         marginRight: 15
     }
 })
+
+const mapStateToProps = state => {
+    return{
+        authToken: state.auth.token
+    }
+}
+
+export default connect(mapStateToProps, null)(CommentComponent)

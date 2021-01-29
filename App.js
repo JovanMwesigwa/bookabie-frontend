@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import store from './redux/store'
+import { Provider } from 'react-redux'
 import { View, Text, StyleSheet, StatusBar, ScrollView } from 'react-native'
 import NavigationComponent from './navigation/navigation'
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -15,23 +17,25 @@ import UserInfoContextProvider from './context/userInfoContext/UserInfoContextPr
 const App = (props) => {
 
  return(
-   <PaperProvider>
-    <AuthContextProvider>
-      <UserInfoContextProvider>
-        <UserAuthenticationProvider>
-            <CompanyContextProvider>
-              <AccountContextProvider>
-                <CategoryContextProvider>
-                    <PostContextProvider>
-                      <MainApp />
-                    </PostContextProvider>
-                </CategoryContextProvider>
-              </AccountContextProvider>
-            </CompanyContextProvider>
-        </UserAuthenticationProvider>
-      </UserInfoContextProvider>
-    </AuthContextProvider>
-   </PaperProvider>
+   <Provider store={store}>
+    <PaperProvider>
+      <AuthContextProvider>
+        <UserInfoContextProvider>
+          <UserAuthenticationProvider>
+              <CompanyContextProvider>
+                <AccountContextProvider>
+                  <CategoryContextProvider>
+                      <PostContextProvider>
+                        <MainApp />
+                      </PostContextProvider>
+                  </CategoryContextProvider>
+                </AccountContextProvider>
+              </CompanyContextProvider>
+          </UserAuthenticationProvider>
+        </UserInfoContextProvider>
+      </AuthContextProvider>
+    </PaperProvider>
+   </Provider>
   )
 }
 

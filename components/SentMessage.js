@@ -7,15 +7,15 @@ import { StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import moment from 'moment';
+import { connect } from 'react-redux'
+ 
 
 
-
-
-const SentMessagesItem = ({item}) => {
+const SentMessagesItem = ({authToken, item}) => {
 
     
     const { authState } = useContext(AuthContext);
-    const token = authState.token;
+    const token = authToken;
 
     const [ userData, setUserData ] = useState({});
 
@@ -77,14 +77,15 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 2,
-    paddingHorizontal: 12,
-    height: 80,
-    width: "100%",
-    marginVertical: 12,
-    // marginHorizontal: 12,
+    paddingTop: 24,
+    paddingBottom: 24,
+    marginLeft: 24,
+    marginRight: 24,
+    height: 95,
+    width: "85%",
     borderRadius: 5,
-    elevation: 2,
+    borderTopWidth: 0.8,
+    borderTopColor: "#ddd",
   },
   SentMsgTime: {
     fontSize: 10,
@@ -112,4 +113,10 @@ const styles = StyleSheet.create({
       borderRadius: 65
   }
 })
-export default SentMessagesItem
+
+const mapStateToProps = state => {
+    return{
+        authToken: state.auth.token
+    }
+}
+export default connect(mapStateToProps, null)(SentMessagesItem)

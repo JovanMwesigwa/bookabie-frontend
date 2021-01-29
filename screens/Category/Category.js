@@ -1,74 +1,50 @@
-import React,{ useState, useContext, useEffect } from 'react'
-import { StyleSheet, TouchableOpacity, ScrollView, FlatList, RefreshControl } from 'react-native'
+import React,{ useState,  useEffect } from 'react'
+import { StyleSheet,  FlatList, RefreshControl } from 'react-native'
 import axios from 'axios';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import { AntDesign } from '@expo/vector-icons';
 import { GlobalStyles } from '../../styles/GlobalStyles'
-import ProductCategoryCard from '../../components/productCategoryCard';
-import { CompanyContext } from '../../context/profiles/CompanyContextProvider';
 import MainProductCard from '../../components/MainProductCard';
 import SecondaryHeader from '../../components/SecondaryHeader';
-import { AuthContext } from '../../context/authentication/Context'
-import { Container, Header, Content, SwipeRow,  View, Text, Icon, Button } from 'native-base';
+import { View, Text,} from 'native-base';
+import { connect } from 'react-redux'
 
-const Category = ({ route, navigation }) => {
+
+
+const Category = ({ route, navigation, authToken }) => {
 
   const [ cat, setCat ] = useState([])
 
-  const { products } = useContext(CompanyContext);
-
-  const { authState } = useContext(AuthContext);
-
   const [ loading, setLoading ] = useState(true);
 
-  const { title, color, slug, } = route.params;
+  const { title, } = route.params;
 
-  const token = authState.token;
+  const token = authToken;
 
-  const fetchPosts = async(token_) => {
-    try{
-      const response = await axios.get(`${APIROOTURL}/api/posts/?search=${title}`,{
+  const fetchPosts = () => {
+    axios.get(`${APIROOTURL}/api/posts/?search=${title}`,{
         headers : {
           'Authorization': `Token ${token}`
         }
       })
-      setCat(response.data)
-      setLoading(false)
-    }catch(error){
-      console.log(error)
-    }
-  }
-
-
-  const refreshFetchPosts = async() => {
-    try{
-      const response = await axios.get(`${APIROOTURL}/api/posts/?search=${title}`,{
-        headers : {
-          'Authorization': `Token ${token}`
-        }
+      .then(response => {
+        setCat(response.data)
+        setLoading(false)
       })
-      setCat(response.data)
-      setLoading(false)
-    }catch(error){
-      console.log(error)
-    }
+      .catch(error => {
+        console.log(error)
+      })
   }
 
   useEffect(() => {
-    const useeffectFetch = async() => {
-      const token_ = authState.token
-      fetchPosts(token_);
-    }
-    useeffectFetch();
+    fetchPosts();
   },[])
 
-  // console.log(title)
 
 const { container } = styles
 
   const refreshControl = <RefreshControl
     refreshing={loading}
-    onRefresh={refreshFetchPosts}
+    onRefresh={fetchPosts}
   />
 
  return(
@@ -100,8 +76,6 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingBottom: 32
-    // backgroundColor: 'white'
   },
   headerContainer: {
     flexDirection: 'row',
@@ -120,4 +94,11 @@ const styles = StyleSheet.create({
     paddingLeft: 32
   }
 })
-export default Category
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+
+export default connect(mapStateToProps, null)(Category)

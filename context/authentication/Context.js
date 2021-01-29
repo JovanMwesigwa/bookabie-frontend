@@ -6,9 +6,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 
 
-
-
-
 export  const AuthContext  = createContext();
 // this is how i made the authentication 
 // i created a useReducer to handle changes mainly focusing on the 

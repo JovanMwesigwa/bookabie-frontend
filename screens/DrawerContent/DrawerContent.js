@@ -6,24 +6,41 @@ import { Ionicons, MaterialCommunityIcons,Feather, FontAwesome, AntDesign } from
 import { Avator, Title, Caption, Paragraph, Drawer, Text, TouchableRipple, Switch } from 'react-native-paper'
 import {  DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer'
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider';
-import { AuthContext } from '../../context/authentication/Context'
+import { connect } from 'react-redux';
+import { signOut } from '../../redux/auth/authRedux'
+import { useNavigation } from '@react-navigation/native';
+
 
 
 const logo = require('../../assets/Logos/bbieL.png')
 const logo2 = require('../../assets/Logos/myLogo.png')
 
 
- export function DrawerContent(props) {
 
-    const { authContext, authState } = useContext(AuthContext);
+
+const DrawerContent = ({navigation, authToken, authLogout}) => {
+
     const [ inboxMessagesLength, setInboxMessagesLength ] = useState([]);
 
-    const { userInfo } = useContext(UserInfoContext);
+    const token = authToken;
 
-    const token = authState.token;
+    // const logOut = authLogout
 
-    const signOut = authContext.signOut
+    const [ userInfo, setUserInfo ] = useState([]);
+
+    const fetchUserInfo = () => {
+      axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
+        headers: {
+            'Authorization': `Token ${token}`
+          }
+    })
+        .then(res => {
+            setUserInfo(res.data);
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
 
     const getInboxMessageList = async() => {
         try{
@@ -38,13 +55,19 @@ const logo2 = require('../../assets/Logos/myLogo.png')
         } 
     }
 
+    const signOutHandler = () => {
+        authLogout(token)
+        // navigation.navigate("Splash")
+    }
+
     useEffect(() => {
+        fetchUserInfo();
         getInboxMessageList();
     },[])
 
      return(
          <View style={{ flex: 1 }}>
-             <DrawerContentScrollView {...props}>
+             <DrawerContentScrollView >
                 <View style={styles.drawerContent}>
                     <View style={styles.userInfoSection}>
                         <View style={{ flexDirection: 'row', marginTop: 15, alignItems: 'center' }}>
@@ -71,18 +94,18 @@ const logo2 = require('../../assets/Logos/myLogo.png')
                     <TouchableOpacity style={{ flexDirection: 'row', 
                         alignItems: 'center', paddingHorizontal: 12, 
                         paddingVertical: 12 }}
-                        onPress={() => props.navigation.navigate('Find')}
+                        onPress={() => navigation.navigate('Find')}
                         >
                         {/* <Ionicons name="md-exit"  /> */}
                         <FontAwesome name="home" size={28} color="#777" />
 
-                        <Text style={{ paddingLeft: 15, fontSize: 15, color: '#777' }}>Home</Text>
+                        <Text style={{ paddingLeft: 15, fontSize: 16, color: '#777' }}>Home</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={{ flexDirection: 'row', 
                         alignItems: 'center', paddingHorizontal: 12,   
                         paddingVertical: 12 }}
-                        onPress={() => props.navigation.navigate('Profile')}
+                        onPress={() => navigation.navigate('Profile')}
                         >
                         {/* <Ionicons name="md-exit"  /> */}
                         <MaterialCommunityIcons name="account-circle" size={28} color="#777" />
@@ -92,14 +115,14 @@ const logo2 = require('../../assets/Logos/myLogo.png')
                     <TouchableOpacity style={{ flexDirection: 'row', 
                         alignItems: 'center', paddingHorizontal: 12, 
                         paddingVertical: 12 }}
-                        onPress={() => props.navigation.navigate('Cart')}
+                        onPress={() => navigation.navigate('Cart')}
                         >
                     {/* <FontAwesome name="cart"  /> */}
                         <AntDesign name='shoppingcart' size={28} color="#777" />
                         <Text style={{ paddingLeft: 15, fontSize: 15, color: '#777' }}>Cart</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => props.navigation.navigate('Messages')} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12 }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Messages')} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12 }}>
                         <AntDesign name='mail' size={25} color="#777" />
                         <Text style={{ paddingLeft: 15, fontSize: 15, color: '#777' }}>Messages</Text>
                         {
@@ -112,7 +135,7 @@ const logo2 = require('../../assets/Logos/myLogo.png')
 
                     <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', 
                         paddingHorizontal: 12, paddingVertical: 12 }}
-                        onPress={() => props.navigation.navigate('Settings')}
+                        onPress={() => navigation.navigate('Settings')}
                         >
                         <Feather name="settings" size={24} color="#777" />
                         <Text style={{ paddingLeft: 15, fontSize: 15, color: '#777' }}>Settings </Text>
@@ -139,13 +162,13 @@ const logo2 = require('../../assets/Logos/myLogo.png')
                         <Text style={styles.textStyle}>Bookabie</Text>
                         <Text style={styles.capTextStyle}>Sell & Buy Beyond</Text>
                     </View>
-                </View>
+                </View> 
              </DrawerContentScrollView>
              <Drawer.Section style={styles.bottomDrawerSection}>
                  <TouchableOpacity style={{ flexDirection: 'row', 
                     alignItems: 'center', paddingHorizontal: 12, 
                     paddingVertical: 12 }}
-                    onPress={signOut}
+                    onPress={signOutHandler}
                     >
                     <Ionicons name="md-exit" size={28} color="#777" />
                     <Text style={{ paddingLeft: 15, fontSize: 15, color: '#777' }}>Sign Out</Text>
@@ -224,3 +247,17 @@ const logo2 = require('../../assets/Logos/myLogo.png')
         paddingHorizontal: 16
      }
  })
+
+ const mapStateToProps = state => {
+     return{
+         authToken: state.auth.token
+     }
+ }
+
+ const mapDispatchToProps = dispatch => {
+     return{
+         authLogout: (token) => dispatch(signOut(token))
+     }
+ }
+
+ export default connect(mapStateToProps, mapDispatchToProps)(DrawerContent);

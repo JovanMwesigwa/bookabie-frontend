@@ -1,13 +1,16 @@
 import React,{ useContext, useReducer, useEffect } from 'react'
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, StatusBar, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, StatusBar, RefreshControl } from 'react-native'
 import axios from 'axios';
-import { AccountContext } from '../../context/accounts/AccountContextProvider'
 import CompanyCard from '../../components/CompanyCard';
 import SecondaryHeader from '../../components/SecondaryHeader';
 import * as Animatable from 'react-native-animatable';
 import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import { AuthContext } from '../../context/authentication/Context';
+import { connect } from 'react-redux'
+
+
+
+
 
 const initialState = {
   loading: true,
@@ -37,21 +40,13 @@ const reducer = (state, action) => {
   }
 }
 
-const CompanyList = ({ navigation }) => {
+const CompanyList = ({ authToken }) => {
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
-    const { authState } = useContext(AuthContext);
-
-    const { accounts, accLoading, accErrors, fetchRefreshedData }  = useContext(AccountContext);
-
     const { userInfo } = useContext(UserInfoContext);
 
-    const navigateBack = () => {
-      navigation.goBack()
-    }
-
-    const token = authState.token;
+    const token = authToken;
 
     const fetchProfiles = () => {
       axios.get(`${APIROOTURL}/api/profiles/`, {
@@ -69,7 +64,7 @@ const CompanyList = ({ navigation }) => {
 
 useEffect(() => {
   fetchProfiles();
-},[token])
+},[])
 
 
 const name = userInfo.user;
@@ -133,4 +128,10 @@ const styles = StyleSheet.create({
 },
   
 })
-export default CompanyList
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+export default connect(mapStateToProps)(CompanyList)

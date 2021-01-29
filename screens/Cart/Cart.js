@@ -1,88 +1,35 @@
-import React, { useEffect, useReducer, useContext, useState } from 'react'
+import React, { useEffect } from 'react'
 import { View, StyleSheet, RefreshControl, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native'
-import axios from 'axios';
 import OtherHeaderComponent from '../../components/OtherHeaderComponent'
+import { GlobalStyles } from '../../styles/GlobalStyles'
 import { AntDesign } from '@expo/vector-icons';
-import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import { AuthContext } from '../../context/authentication/Context'
 import { Text } from 'react-native-paper'
 import CartItemCard from '../../components/CartItemCard';
-import MainProductCard from '../../components/MainProductCard';
+import { connect } from 'react-redux'
+import { fetchCartData, removeCartItem } from '../../redux/cart/CartRedux';
 
 
+const Cart = ({authToken,cartDataLoading, cartData,cartDataErrors,  navigation}) => {
 
-
-const initialState = {
-  loading: true,
-  products: [],
-  errors: ""
-}
-
-const reducer = (state, action) => {
-  switch(action.type){
-    case "FETCH_SUCCESS":
-      return {
-        loading: false,
-        products: action.payload,
-        errors: ""
-      }
-    case "FETCH_FAILED":
-      return{
-        loading: false,
-        products: [],
-        errors: "Something occured while fetching your cart information."
-      }
-
-    default:
-      return state;
-  }
-}
-
-
-const Cart = ({navigation}) => {
-
-  const [state, dispatch] = useReducer(reducer, initialState);
-
-  const [ totalProducts, setTotalProducts ] = useState(0);
-
-  const { authState } = useContext(AuthContext);
-
-  const token = authState.token;
-
-  const navigateBack = () => {
-    navigation.goBack()
-  }
-
-  const fetchCartData = () => {
-      axios.get(`${APIROOTURL}/api/my_cart/`, {
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      })
-      .then(res => {
-        dispatch({type: "FETCH_SUCCESS", payload: res.data.results})
-        setTotalProducts(res.data.count);
-      })
-      .catch(err => {
-        dispatch({type: "FETCH_FAILED"})
-      })
-  }
+  const token = authToken;
 
   const fastRefresh = () => {
-    fetchCartData()
+    fetchCartData(token)
   }
 
+  const navigateBack = () => navigation.goBack()
+
   useEffect(() => {
-    fetchCartData()
+    fetchCartData(token)
   },[])
 
 const refreshControl = <RefreshControl
     color="#B83227"
-    refreshing={state.loading}
+    refreshing={cartDataLoading}
     onRefresh={fastRefresh}
   />
 
-  if (state.products.length === 0){
+  if (cartData.length === 0){
       return(
         <>
           <OtherHeaderComponent />
@@ -105,14 +52,9 @@ const refreshControl = <RefreshControl
         <View style={{backgroundColor: '#ddd', padding: 10 }}>
             <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#777', letterSpacing: 1 }}>My Cart</Text>
           </View>
-        {
-          state.loading ? 
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-              <ActivityIndicator size='small' collapsable color='#B83227' />
-            </View>
-            :
+
             <FlatList
-              data={state.products}
+              data={cartData}
               refreshControl={refreshControl}
               renderItem={({item}) => (
                 <View style={{ flex: 2 }}>
@@ -121,17 +63,17 @@ const refreshControl = <RefreshControl
               )}
               keyExtractor={(item) => item.id.toString()}
             />
-        }
+        
         {
-          state.errors ? 
+          cartDataErrors ? 
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-            <Text>{state.errors}</Text>
+            <Text>{cartDataErrors}</Text>
           </View> :
           null
         }
           <View style={styles.pricing}>
             <View style={styles.pricingInfo}>
-              <Text style={styles.infoText}>Items - {totalProducts}</Text>
+              <Text style={styles.infoText}>Items - {cartData.length}</Text>
               <Text style={styles.infoText}>Price - </Text>
             </View>
           </View>
@@ -139,7 +81,7 @@ const refreshControl = <RefreshControl
             <TouchableOpacity style={styles.checkoutBtn}>
               <Text style={styles.checkoutText}> Place Your Order</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={styles.cancelBtn} onPress={navigateBack}>
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -187,7 +129,7 @@ const styles = StyleSheet.create({
   },
   checkoutBtn: {
     padding: 12,
-    backgroundColor:"#B83227",
+    backgroundColor: GlobalStyles.themeColor.color,
     margin: 8,
     borderRadius: 8,
   },
@@ -195,7 +137,7 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor:"#fff",
     borderWidth: 1,
-    borderColor: "#B83227",
+    borderColor:  GlobalStyles.themeColor.color,
     margin: 8,
     borderRadius: 8
   },
@@ -205,9 +147,24 @@ const styles = StyleSheet.create({
     fontSize: 17
   },
   cancelText: {
-    color: "#B83227",
+    color:  GlobalStyles.themeColor.color,
     textAlign: "center",
     fontSize: 17
   }
 })
-export default Cart
+
+const mapStateToProps = state => {
+  return{
+    cartData: state.cart.cartItems,
+    cartDataLoading: state.cart.loading,
+    cartDataErrors: state.cart.errors,
+    authToken: state.auth.token
+  }
+}
+const mapDispatchToProps = dispatch => {
+  return{
+    fetchCartData: (token) => dispatch(fetchCartData(token)),
+    
+  }
+}
+export default connect(mapStateToProps,mapDispatchToProps)(Cart)

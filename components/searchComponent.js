@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import { AuthContext } from '../context/authentication/Context'
 
-const SearchComponent = ({getSearch}) => {
+const SearchComponent = () => {
 
     const navigation = useNavigation();
 
@@ -28,7 +28,7 @@ const { container } = styles
         onChangeText={text => setEnteredText(text)}
     />
       <TouchableOpacity style={styles.icon}
-        onPress={() => getSearch(enteredText)}
+        
       >
         <MaterialIcons name="search" size={18} color={GlobalStyles.themeColor.color} />
       </TouchableOpacity>
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 0.3,
     borderColor: GlobalStyles.darkFontColor.color,
-    borderRadius: 2,
+    borderRadius: 15,
     padding: 2,
     marginHorizontal: 15,
     width: "90%",

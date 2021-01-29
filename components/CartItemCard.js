@@ -2,51 +2,34 @@ import React, { useEffect, useState, useContext } from 'react'
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import { GlobalStyles } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
-import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
-import axios from 'axios'
-import { AuthContext } from '../context/authentication/Context'
 import { ActivityIndicator } from 'react-native';
+import { fetchCartItemRemove } from '../redux/cart/CartRedux';
+import { connect } from 'react-redux'
 
 
-
-const CartItemCard = ({ item, refreshItems }) => {
+const CartItemCard = ({ item, refreshItems, authToken, removeCartItemFunc }) => {
 
   const navigation = useNavigation();
 
-  const { authState } = useContext(AuthContext);
-
   const [ isLoading, setIsLoading ] = useState(false);
 
-  const token = authState.token
-
-  const removeFromCart = async() => {
-    await axios.delete(`${APIROOTURL}/api/cart_item/${item.id}/remove/`, {
-      headers: {
-        'Authorization': `Token ${token}`, 
-      }
-    })
-    
-    .then(res => {
-      refreshItems()
-    })
-    .catch(err => {
-      console.log(err);
-    })
-  }
+  const token = authToken
 
   const handleRemoveProduct = () => {
     setIsLoading(true);
     setTimeout(() => {
-    removeFromCart();
-    },1000)
+      removeCartItemFunc(token, item.id)
+    },500)
   }
 
 const { container } = styles
  return(
   <View style={container}>
       <View style={styles.cardContainer}>
-            { item.product.image == null ? null :
-            <Image source={{uri:item.product.image}} style={{ flex: 2, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
+            { 
+              item.product.image ? <Image source={{uri:item.product.image}} style={{ flex: 2, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} /> 
+              :
+              <View></View> 
             }
             <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
                 <TouchableOpacity style={{ flex: 1 }} 
@@ -114,4 +97,16 @@ cardContainer: {
       paddingLeft: 0,
   }
 })
-export default CartItemCard
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token,
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return{
+    removeCartItemFunc: (token, id) => dispatch(fetchCartItemRemove(token, id))
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(CartItemCard)

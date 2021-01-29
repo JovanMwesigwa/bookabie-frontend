@@ -3,6 +3,9 @@ import axios from 'axios';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, ImageBackground, Image } from 'react-native'
 import { AuthContext } from '../../context/authentication/Context'
+import { connect } from 'react-redux'
+
+
 
 const initialState = {
     loading: true,
@@ -29,14 +32,14 @@ const reducer = (state, action) => {
     }
 }
 
-const CompanyDetails = ({ route }) => {
+const CompanyDetails = ({ route, authToken }) => {
     const { ID, } = route.params;
 
     const [ state, dispatch ] = useReducer(reducer, initialState);
     
     const { authState } = useContext(AuthContext);
 
-    const token = authState.token;
+    const token = authToken;
 
     useEffect(() => {
         const fetchAccount = async() => {
@@ -87,4 +90,10 @@ const styles = StyleSheet.create({
       resizeMode: 'cover'
   }
 })
-export default CompanyDetails
+
+const mapStateToProps = state => {
+    return{
+        authToken: state.auth.token
+    }
+}
+export default connect(mapStateToProps, null)(CompanyDetails)

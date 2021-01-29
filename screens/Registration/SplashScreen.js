@@ -3,6 +3,7 @@ import { UserAuthentication } from '../../context/authentication/UserAuthenticat
 import { View, Text, StyleSheet, Button, Dimensions, Image, TouchableOpacity, StatusBar } from 'react-native'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import * as Animatable from 'react-native-animatable';
+import { GlobalStyles } from '../../styles/GlobalStyles'
 
 const SplashScreen = ({ navigation }) => {
 
@@ -11,7 +12,7 @@ const { LogoutHandler } = useContext(UserAuthentication);
 const { container } = styles
  return(
   <View style={container}>
-    <StatusBar backgroundColor='#B83227' barStyle='light-content' />
+    <StatusBar backgroundColor={GlobalStyles.themeColor.color} barStyle='light-content' />
       <View style={styles.header}>
         <Animatable.Image 
             source={require('../../assets/Logos/White.png')}
@@ -62,7 +63,7 @@ const height_logo = height * 0.2
 const styles = StyleSheet.create({
   container: {
    flex: 1,
-   backgroundColor: '#B83227'
+   backgroundColor: GlobalStyles.themeColor.color
   },
   header: {
       flex: 2,
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
       fontWeight: 'bold'
   },
   getStartedText: {
-    backgroundColor: '#B83227',
+    backgroundColor: GlobalStyles.themeColor.color,
     color: 'white',
     padding: 12,
     paddingHorizontal: 20,

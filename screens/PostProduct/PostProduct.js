@@ -5,14 +5,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import MainHeaderComponent from '../../components/MainHeaderComponent';
 import PostProductHeader from '../../components/PostProductHeader';
+import { GlobalStyles } from '../../styles/GlobalStyles'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
 import { CompanyContext } from '../../context/profiles/CompanyContextProvider';
 import { AuthContext } from '../../context/authentication/Context'
 import axios from 'axios';
+import { connect } from 'react-redux'
+
+
+
 
 // const pic = require('../../assets/images/blender')
 
-const PostProduct = ({pickImage, navigation }) => {
+const PostProduct = ({pickImage, navigation, authToken }) => {
 
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -29,7 +34,7 @@ const PostProduct = ({pickImage, navigation }) => {
 
   const  { fetchFirstPostsData }  = useContext(CompanyContext);
 
-  const token = authState.token
+  const token = authToken
 
 
   let openImagePickerAsync = async () => {
@@ -52,14 +57,13 @@ const PostProduct = ({pickImage, navigation }) => {
     if (pickerResult.cancelled === true) {
       return;
     }
-
     // setSelectedImage({ localUri: pickerResult.uri });
     setSelectedImage(pickerResult.uri);
 
 
   }
 
-  // console.log("*******Image is ********************",selectedImage.localUri);
+  console.log("*******Image is ********************",selectedImage);
 
   const goToFeed = () => {
     navigation.navigate('Find')
@@ -219,7 +223,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     padding: 10,
-    backgroundColor: '#B83227',
+    backgroundColor: GlobalStyles.themeColor.color,
     borderRadius: 8,
     marginVertical: 18,
   },
@@ -232,7 +236,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#B83227'
+    color: GlobalStyles.themeColor.color
   },
   imageContainer: {
     // backgroundColor: 'black',
@@ -242,4 +246,34 @@ const styles = StyleSheet.create({
     height: 85
   }
 })
-export default PostProduct;
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+export default connect(mapStateToProps, null)(PostProduct);
+
+// //create object with uri, type, image name
+// var photo = {
+//   uri: IMAGE_PATH,
+//   type: 'image/jpeg',
+//   name: 'photo.jpg',
+// };
+
+// //use formdata
+// var formData = new FormData(); 
+// //append created photo{} to formdata
+// formData.append('image', photo);
+// //use axios to POST
+// axios({
+//   method: 'POST',
+//   url: api_url +  'customer/upload-avatar',
+//   data: formData,
+//   headers: {
+//       'Authorization': "Bearer  "  +  YOUR_BEARER_TOKEN,
+//       'Accept': 'application/json',
+//       'Content-Type': 'multipart/form-data;'    
+//   }}) .then(function (response) { console.log(response)})
+//   .catch(function (error) { console.log(error.response)
+// });

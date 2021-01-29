@@ -7,14 +7,13 @@ import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import moment from 'moment';
+import { connect } from 'react-redux'
 
 
 
+const MessagesItem = ({authToken, item}) => {
 
-const MessagesItem = ({item}) => {
-
-    const { authState } = useContext(AuthContext);
-    const token = authState.token;
+    const token = authToken;
 
     const [ userData, setUserData ] = useState({});
 
@@ -26,7 +25,6 @@ const MessagesItem = ({item}) => {
                 }
             })
             setUserData(resData.data);
-            // console.log(userData.data)
         }catch(err){
             console.log(err);
         }
@@ -56,11 +54,10 @@ const { container } = styles
             </View>
         </View>
         
-        <MaterialCommunityIcons name="email-outline" size={18} color='#B83227' />
+        {/* <MaterialCommunityIcons name="email-outline" size={18} color='#B83227' /> */}
 
         
     </Surface>
-//   </View>
   ) 
 }
 
@@ -68,26 +65,24 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
    flex: 1,
-//    justifyContent: 'center',
-//    alignItems: 'center',
   },
   surface: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 2,
-    paddingHorizontal: 12,
-    height: 80,
-    width: "100%",
-    marginVertical: 12,
-    // marginHorizontal: 12,
+    paddingTop: 24,
+    paddingBottom: 24,
+    marginLeft: 24,
+    marginRight: 24,
+    height: 95,
+    width: "85%",
     borderRadius: 5,
-    elevation: 2,
+    borderTopWidth: 0.8,
+    borderTopColor: "#ddd",
   },
   SentMsgTime: {
     fontSize: 10,
     color: "#777",
-    // paddingHorizontal: 3,
     letterSpacing: 0.5,
     alignSelf: 'flex-start',
     marginRight: 12
@@ -110,4 +105,10 @@ const styles = StyleSheet.create({
       borderRadius: 65
   }
 })
-export default MessagesItem
+
+const mapStateToProps = state => {
+    return {
+        authToken: state.auth.token
+    }
+}
+export default connect(mapStateToProps, null)(MessagesItem)

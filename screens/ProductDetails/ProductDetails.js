@@ -1,18 +1,20 @@
 import React, {useState, useEffect, useContext, useReducer } from 'react'
 import axios from 'axios'
-import { MaterialIcons, AntDesign, Feather, FontAwesome5 } from '@expo/vector-icons';
+import { connect } from 'react-redux'
+import { AntDesign, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
-import { View,  StyleSheet, Image, TouchableOpacity, RefreshControl, ScrollView, ActivityIndicator, FlatList } from 'react-native'
+import { View,  StyleSheet, Image, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList } from 'react-native'
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import FullImageModal from '../../components/Modals/FullImageModal';
 import OtherHeaderComponent from '../../components/OtherHeaderComponent';
-import { AuthContext } from '../../context/authentication/Context'
 import CommentComponent from '../../components/CommentComponent';
-import { Headline, Paragraph, Subheading, Button, Dialog, Portal, Chip, Caption, Text } from 'react-native-paper';
+import {  Paragraph, Subheading, Button, Dialog, Portal, Text } from 'react-native-paper';
 import LikedBy from '../../components/LikedBy';
 import * as Animatable from 'react-native-animatable';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { fetchaddItemToCart, } from '../../redux/cart/CartRedux';
+
 
 
 
@@ -41,11 +43,11 @@ const reducer = (state, action) => {
   }
 }
 
-const ProductDetails = ({ route, navigation}) => {
+const ProductDetails = ({ route, navigation, authToken,reloadPosts }) => {
 
     const [ state, dispatch ] = useReducer(reducer, initialState);
 
-    const [ count, setCount  ] = useState(1);
+    const [ addedItemToCart, setAddedItemToCart ] = useState(false);
 
     const [visible, setVisible] = useState(false);
     
@@ -57,21 +59,20 @@ const ProductDetails = ({ route, navigation}) => {
 
     const { fetchFirstPostsData } = useContext(CompanyContext)
 
-    const { authState } = useContext(AuthContext);
 
     const hideDialog = () => setVisible(false);
 
     const showDialog = () => setVisible(true);
 
-    const token = authState.token;
+    const token = authToken;
 
-    const { ID, post } = route.params
+    const { ID, post, addToCartFunc, removeFromCartFunc } = route.params
     
-    const fetchPostDetail = async(token_) => {
+    const fetchPostDetail = async() => {
       try{
         const response = await axios.get(`${APIROOTURL}/api/post/${ID}/detail/`,{
           headers: {
-            'Authorization': `Token ${token_}`
+            'Authorization': `Token ${token}`
           }
         })
         dispatch({type: 'FETCH_SUCCESS', payload: response.data })
@@ -80,11 +81,11 @@ const ProductDetails = ({ route, navigation}) => {
       }
     }
 
-    const fetchUserMe = async(token_) => {
+    const fetchUserMe = async() => {
       try{
         const userResponse = await axios.get(`${APIROOTURL}/api/auth/users/me/`, {
           headers: {
-            'Authorization': `Token ${token_}`
+            'Authorization': `Token ${token}`
           }
         })
         setUserInfo(userResponse.data);
@@ -153,13 +154,19 @@ const ProductDetails = ({ route, navigation}) => {
     }
   };
 
+  const addToCart = () => {
+    setAddedItemToCart(true)
+    addToCartFunc()
+  }
+
+  const removeFromCart = () => {
+    setAddedItemToCart(false)
+    removeFromCartFunc()
+  }
+
     useEffect(() => {
-      const effectFetch = async() => {
-        const token_ = await authState.token
-        fetchPostDetail(token_) 
-        fetchUserMe(token_)
-      }
-      effectFetch();
+      fetchPostDetail() 
+      fetchUserMe()
     },[])
 
     useEffect(() => {
@@ -248,8 +255,6 @@ const { container } = styles
           <View style={styles.descriptionContainer}>
                 
               <View style={{ flexDirection: "row", paddingTop: 12, paddingHorizontal: 15 }}>
-              
-                      {/* Descriptions here */}
                   <View>
 
                       <View  style={styles.accountContainer}>
@@ -258,7 +263,7 @@ const { container } = styles
                             <View style={{ flexDirection: 'row' }}> 
                               <Text style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{state.post.author.user.username}</Text>
                               {
-                                state.post.author.verified ?  <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor} /> : null
+                                state.post.author.verified ?  <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} /> : null
                               }
                              
                             </View>
@@ -283,7 +288,7 @@ const { container } = styles
                     </View>
                     ))}
                     { state.post.likes.length == 0 ? null :
-                      <Text style={{ alignItems: 'center', paddingRight: 5,...GlobalStyles.greyTextSmall, color: GlobalStyles.darkFontColor.color }}> and {state.post.likes.length} others liked this product</Text> 
+                      <Text style={{ alignItems: 'center', paddingRight: 5,...GlobalStyles.greyTextSmall, color: GlobalStyles.darkFontColor.color, fontWeight: '700' }}> and {state.post.likes.length - 1} others liked this product</Text> 
                     }
                   </View>
                   </View>
@@ -298,9 +303,17 @@ const { container } = styles
                         <TouchableOpacity style={styles.bookmarkStyles}>
                           <Feather name="phone" size={18} style={{...styles.bookmark, elevation: 5}} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.bookmarkStyles}>
-                          <Feather name="plus" size={18} style={{...styles.bookmark, elevation: 5, backgroundColor: '#1287A5',}} />
-                        </TouchableOpacity> 
+                        {
+                          addedItemToCart ? 
+                          <TouchableOpacity style={styles.bookmarkStyles} onPress={removeFromCart}>
+                            <Feather name="check" size={18} style={{...styles.bookmark, elevation: 5, backgroundColor: '#1287A5',}} />
+                          </TouchableOpacity> :
+                          <TouchableOpacity style={styles.bookmarkStyles} onPress={addToCart}>
+                            <Feather name="plus" size={18} style={{...styles.bookmark, elevation: 5, backgroundColor: '#1287A5',}} />
+                          </TouchableOpacity>
+                        }
+                        
+                         
                       </View> : null 
                   }
               </View>
@@ -354,7 +367,7 @@ const { container } = styles
     
     <View style={styles.UploadBtn}>
         <TouchableOpacity onPress={() => {
-          navigation.navigate('AddComment', { item: state.post, refreshPost: fastRefresh })
+          navigation.navigate('AddComment', { item: state.post, reloadPosts: reloadPosts,  })
         }}>
           <FontAwesome5 name="comment" size={18} color="white" style={{ textAlign: 'center' }} />
         </TouchableOpacity>
@@ -382,7 +395,7 @@ const styles = StyleSheet.create({
   },
   UploadBtn: {
     padding: 15,
-    backgroundColor: '#B83227', 
+    backgroundColor: GlobalStyles.themeColor.color, 
     borderRadius: 24, 
     position: 'absolute',
     bottom: 20,
@@ -500,4 +513,11 @@ cartStyles: {
     marginVertical: 10,
   },
 })
-export default ProductDetails
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+
+export default connect(mapStateToProps, null)(ProductDetails)

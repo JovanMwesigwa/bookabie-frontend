@@ -14,7 +14,7 @@ const { container } = styles
  return(
   <View style={container}>
       <View style={styles.cardContainer}>
-            <Image source={{ uri: item.profile_pic }} style={{ width: 60, height: 60 , borderRadius: 50, resizeMode: "cover" }} />
+            <Image source={{ uri: item.profile_pic }} style={GlobalStyles.largeRoundedPictContainer} />
             <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
 
             { companyName != item.user ? 
@@ -54,9 +54,21 @@ cardContainer: {
     width: '100%',
     // flex: 1,
     alignItems: 'center',
-    borderBottomWidth: 0.8,
-    borderBottomColor: '#ddd',
+    borderRadius: 5,
+    borderTopWidth: 0.8,
+    borderTopColor: "#ddd",
     padding: 18,
+    paddingLeft: 24,
+    paddingRight: 24,
+    // paddingTop: 24,
+    // paddingBottom: 24,
+    // marginLeft: 24,
+    // marginRight: 24,
+    // height: 95,
+    // width: "85%",
+    // borderRadius: 5,
+    // borderTopWidth: 0.8,
+    // borderTopColor: "#ddd",
   },
   mainText: {
       fontSize: 15,

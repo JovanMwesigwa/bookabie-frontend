@@ -1,27 +1,21 @@
 import React, { useState, useEffect, useContext} from 'react'
 import { View, Text, StyleSheet, StatusBar,Image, ScrollView, ActivityIndicator } from 'react-native'
-import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
-import { APIROOTURL } from './ApiRootURL/ApiRootUrl'
-import { UserAuthentication } from './context/authentication/UserAuthenticationContextProvider'
 import NavigationComponent from './navigation/navigation'
-import Login from './screens/Registration/Login'
 import AuthNavigation from './navigation/authNavigation'
-import Signup from './screens/Registration/Signup'
-import AsyncStorage from '@react-native-community/async-storage';
-import { AuthContext } from './context/authentication/Context';
 import { GlobalStyles } from './styles/GlobalStyles'
+import { connect } from 'react-redux'
+import { load } from './redux/auth/authRedux';
 
 const logo = require('./assets/Logos/White.png');
 
-const MainApp = ({navigation}) => {
+const MainApp = ({ authToken,  loadToken}) => {
 
-const { authContext, authState }  = useContext(AuthContext);
 const [ loading, setLoading ] = useState(true);
 
-const token = authState.token
+const token = authToken;
 
 useEffect(() => {
+  loadToken()
   setTimeout(() => {
     setLoading(false)
   },8000)
@@ -41,8 +35,6 @@ useEffect(() => {
 const { container } = styles
 
  return(
-
-
       <View style={container}>
           <StatusBar barStyle="light-content" />
             {
@@ -68,4 +60,17 @@ const styles = StyleSheet.create({
     borderRadius: 10 
 },
 })
-export default MainApp
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token,
+    authLoading: state.auth.loading
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return{
+    loadToken: () => dispatch(load())
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(MainApp)
