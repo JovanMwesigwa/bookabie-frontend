@@ -1,8 +1,9 @@
-import React,{useContext} from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import React from 'react'
+import { View,  StyleSheet, TouchableOpacity } from 'react-native'
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { UserInfoContext } from '../context/userInfoContext/UserInfoContextProvider'
+
+
 
 const CartComponent = ({ Cart }) => {
 

@@ -1,43 +1,27 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, {  useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import axios from 'axios';
 import { connect } from 'react-redux';
 import { AntDesign } from '@expo/vector-icons';
 import { GlobalStyles } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
-import SearchComponent from '../components/searchComponent';
-import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import { Title } from 'react-native-paper';
 import { fetchCartData } from '../redux/cart/CartRedux';
 
 
+import useAuthUser from '../hooks/useAuthUser'
+import SearchComponent from '../components/searchComponent';
 
 
 
-const MainHeaderComponent = ({  cartData, authToken, cartDataFetch }) => {
+const MainHeaderComponent = ({authToken,  cartData,  cartDataFetch, main }) => {
 
     const navigation = useNavigation();
 
     const token = authToken
 
-    const [ userInfo, setUserInfo ] = useState([]);
-
-    const fetchUserInfo = () => {
-      axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-    })
-        .then(res => {
-            setUserInfo(res.data);
-        })
-        .catch(err => {
-            console.log(err);
-        })
-    }
-
+    const userInfo  = useAuthUser(token);
+    
     useEffect(() => {
-      fetchUserInfo()
       cartDataFetch(token)
     },[])
 
@@ -45,13 +29,12 @@ const MainHeaderComponent = ({  cartData, authToken, cartDataFetch }) => {
 
 const { container } = styles
  return(
-    <View style={styles.container}>
-      <View style={styles.topLogoContainer}>
-        <Title style={styles.headerText}>Bookabie</Title>
-      </View>
-       <View style={{...styles.headerContainer }}>
+    <View style={[styles.container, { height: main ? 100 : 65}]}>
+      { main && <Title style={styles.headerText}>Bookabie</Title>}
+      
+       <View style={styles.headerContainer }>
           <TouchableOpacity onPress={() => navigation.openDrawer()}>
-            <Image source={{ uri: userInfo.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
+            <Image source={{ uri: userInfo.profile_pic }} style={[GlobalStyles.smallRoundedPictContainer, { width: main ? 45 : 40, height:  main ? 45 : 40,}]} />
           </TouchableOpacity>
           <SearchComponent />
           <TouchableOpacity onPress={() => navigation.navigate("Cart")} >
@@ -70,16 +53,14 @@ const { container } = styles
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',   
+    backgroundColor: 'white', 
+    elevation: 2,  
     paddingHorizontal: 15, 
-    height: 94,
-    elevation: 2
   },
   headerText: {
-    flex: 1,
     fontSize: 25,
     letterSpacing: 2,
-    paddingTop: 10,
+    paddingTop: 5,
     color: GlobalStyles.themeColor.color,
     fontWeight: "600",
   },
@@ -92,15 +73,11 @@ logoStyles: {
   height:34, 
   resizeMode: 'contain',
 },
-topLogoContainer: {
-  flex: 1,
-  flexDirection: 'row',
-  alignItems: 'center',
-},
   headerContainer: {
-    flex: 2,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 8
   },
   cartNumber: {
     fontSize: 12,

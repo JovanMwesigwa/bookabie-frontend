@@ -1,170 +1,132 @@
-import React, { useState, useContext, useEffect } from 'react'
-import { View, Text, StyleSheet, Keyboard, Image, StatusBar, TouchableOpacity, TouchableWithoutFeedback, ScrollView } from 'react-native'
-import OtherHeaderComponent from '../../components/OtherHeaderComponent';
-import { Container, Header, Content, Input, Item, SwipeRow,  Icon, Button } from 'native-base';
-import { AntDesign, FontAwesome } from '@expo/vector-icons';
-import { GlobalStyles } from '../../styles/GlobalStyles'
-import { AuthContext } from '../../context/authentication/Context'
-import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider';
-import moment from 'moment';
+import React, { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, Keyboard, Image, StatusBar, TouchableOpacity, TouchableWithoutFeedback, FlatList } from 'react-native'
 import axios from 'axios';
 import { connect } from 'react-redux'
+import { useRoute } from '@react-navigation/native'
+import { AntDesign } from '@expo/vector-icons';
+import {  Input,} from 'native-base';
+import * as Yup from 'yup'
 
 
-const ChatRoom = ({ navigation, route, authToken }) => {
 
-    const { authState } = useContext(AuthContext);
+import { GlobalStyles } from '../../styles/GlobalStyles'
+import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
+import ChatMessageComponent from '../../components/ChatMessageComponent/ChatMessageComponent';
+import useAuthUser from '../../hooks/useAuthUser'
+import useFetchData from '../../hooks/useFetchData'
+import { ActivityIndicator } from 'react-native';
+import AppForm from '../../components/Forms/AppForm';
+import AppTextInput from '../../components/Forms/AppTextInput';
+import SubmitButton from '../../components/Forms/SubmitButton';
+import IconButton from '../../components/IconButton';
 
-    const { userInfo } = useContext(UserInfoContext);
+
+const validationSchema = Yup.object().shape({
+  description: Yup.string().required().label("Message")
+})
+
+
+const ChatRoom = ({ navigation,  authToken }) => {
+
+    const route = useRoute()
 
     const token = authToken;
 
-    const { ID } = route.params
+    const { ID, chatWithID } = route.params
 
-    const [ userData, setUserData ] = useState([]);
+    const user = useAuthUser(token)
 
-    const [ rooms, setRooms ] = useState([]);
+    const { data: roomData, loading, errors, request } = useFetchData(token, `api/room_messages/${ID}/`)
 
-    const [ roomReplies, setRoomReplies ] = useState([]);
+    const userToData = useFetchData(token, `api/profile/${chatWithID}/detail/`)
 
-    const [ text, setText ] = useState("");
-
-    const [ sentMessages, setSentMessages ] = useState([]);
-
-    const fetchRoom = async() => {
-      try {
-        const resData = await axios.get(`${APIROOTURL}/api/chat_room/${ID}/`,{
-          headers: {
-            'Authorization': `Token ${token}`, 
-          }
-        })
-        setRooms(resData.data.results);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    const fetchRoomReplies = async() => {
-      try {
-        const responseReplies = await axios.get(`${APIROOTURL}/api/chat_room_replies/${ID}/`,{
-          headers: {
-            'Authorization': `Token ${token}`, 
-          }
-        })
-        setRoomReplies(responseReplies.data.results);
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    const fetchUser = async() => {
-      try {
-        const responseData = await axios.get(`${APIROOTURL}/api/profile/${ID}/detail/`, {
-          headers: {
-            'Authorization': `Token ${token}`, 
-          }
-        })
-        setUserData(responseData.data);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    
-
-    const sendMessage = async() => {
-      let data = {
-        sender: userInfo.id,
-        msg_content: text,
-        reciever: userData.id,
-      }
-      await axios.post(`${APIROOTURL}/api/create-message/`, data ,{
+    const sendMessage = async(data) => {
+      Keyboard.dismiss()
+      await axios.post(`${APIROOTURL}/api/chat_message/create/`, data ,{
           headers: {
             'Authorization': `Token ${token}`,
           }
       })
+      .then(res => {
+        request()
+        userToData.request()
+      })
+      .catch(err => {
+        console.log(err)
+      })
+    }
+
+    const checkMessageUser = (item, user) => {
+      const nowUser = `Profile for ${user.user}`
+      if(item.author !== nowUser)
+        return true
+      else
+        return false
     }
 
     useEffect(() => {
-      fetchRoom();
-      fetchUser();
-      fetchRoomReplies();
+      userToData.request()
+      request();
     },[])
+  
+  if(loading) return <ActivityIndicator size={18} color={GlobalStyles.themeColor.color} />
 
-    const submitHandler = () => {
-        sendMessage()
-        setText('')
-        fetchRoom();
-    }
-
-    const DismissKeyboard = ({ children }) => (
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        {children}
-      </TouchableWithoutFeedback>
-    );
-
-    // console.log(ID);
+  if(errors) return <View><Text>{errors}</Text></View>
 
 const { container } = styles
  return(
   <View style={container}>
     <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-
-    <View >
-      <View style={{...styles.headerContainer }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} >
-          <AntDesign name="arrowleft" size={20} color="black" />
-        </TouchableOpacity>
-        <View style={{ alignItems: 'center', paddingHorizontal: 12 }}>
-          <Image source={{ uri: userData.profile_pic }} style={styles.userProfileStyles} />
-          <Text style={{ fontSize: 8, textAlign: 'center' }}>{userData.user}</Text>
+        <View style={{ elevation: 2, shadowOpacity: 3, borderBottomColor: "#ddd", borderBottomWidth: 0.5 }}>
+            <View style={{...styles.headerContainer }}>
+              <TouchableOpacity onPress={() => navigation.goBack()} >
+                <AntDesign name="arrowleft" size={20} color="black" />
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center', paddingHorizontal: 12 }}>
+                <Image source={{ uri: userToData.data.profile_pic }} style={styles.userProfileStyles} />
+                <Text style={{ fontSize: 8, textAlign: 'center' }}>{userToData.data.user}</Text>
+              </View>
+            </View>
         </View>
-      </View>
-    </View>
-    
-    <DismissKeyboard>
-      <ScrollView style={{ flex: 2 }}>
+          <FlatList 
+            data={roomData}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
 
-        {
-          rooms.map(room => (
-            <View key={room.id}>
-              <View  style={styles.recievedMsgItem}>
-                <Text>{room.msg_content}</Text>
-                <AntDesign name="check" size={8} color="grey" style={{ fontWeight: '700', alignSelf: 'flex-end' }} />
-              </View>
-              <Text style={styles.SentMsgTime}>about { moment(room.date_sent).startOf('hour').fromNow()}</Text>
-            </View>
-          ))
-        }
-
-        {
-          roomReplies.map(roomReply => (
-            <View key={roomReply.id}>
-              <View  style={styles.sentMsgItem}>
-                  <Text>{roomReply.msg_content}</Text>
-                  <AntDesign name="check" size={8} color="green" style={{ fontWeight: '700', alignSelf: 'flex-end' }} />
-              </View>
-              <Text style={styles.recievedMsgTime}>about { moment(roomReply.date_sent).startOf('hour').fromNow()}</Text>
-            </View>
-          ))
-        }
-
-      </ScrollView>
-    </DismissKeyboard>
-    
-    <View style={styles.inputContainer}>
-          <Input 
-            placeholder='Enter Message...'
-            value={text} 
-            onChangeText={text => setText(text)}
-            style={styles.textInput} 
+              <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+              {
+                checkMessageUser(item, user) ?
+                <View style={{ marginRight: 85 }} > 
+                  <ChatMessageComponent item={item} bgColor={"#fff"} />
+                </View> :
+                <View style={{ marginLeft: 85 }} > 
+                  <ChatMessageComponent item={item} bgColor={"#ddd"} />
+                </View>
+              }
+              </TouchableWithoutFeedback>
+            )}
+            keyExtractor={item => (item.id.toString())}
           />
-        <TouchableOpacity style={styles.sendBtn} onPress={submitHandler}>
-            <FontAwesome name="paper-plane-o" size={18}  style={styles.textStyle} />
-        </TouchableOpacity>
+          
+          <AppForm
+            initialValues={{ room: ID, description: "", message_to: chatWithID,}}
+            validationSchema={validationSchema}
+            onSubmit={(values) => sendMessage(values)}
+          >
+            <View style={styles.inputContainer}>
+                  <AppTextInput
+                    name="description"
+                    placeholder="Enter Message"
+                    placeholderColor="#ddd"
+                    multiline
+                    isInline
+                  />
+                  <TouchableOpacity style={styles.sendBtn}>
+                      <IconButton title="GO" icon="paper-plane-o" />
+                  </TouchableOpacity>
+            </View>
+          </AppForm>
     </View>
-  </View>
   )
 }
 
@@ -172,12 +134,13 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
    flex: 1,
-   backgroundColor: '#2C3335',
-   justifyContent: 'space-between',
+   backgroundColor: 'grey',
+  //  justifyContent: 'space-between',
   },
   textInput: {
     borderWidth: 0,
-    backgroundColor: "#fff",
+    backgroundColor: "grey",
+    color: "#fff",
     borderRadius: 5,  
     padding: 15,
     borderColor: "#fff",
@@ -201,7 +164,6 @@ const styles = StyleSheet.create({
   recievedMsgTime: {
     fontSize: 10,
     color: "#777",
-    // paddingHorizontal: 3,
     letterSpacing: 0.5,
     alignSelf: 'flex-start',
     marginLeft: 12
@@ -209,24 +171,7 @@ const styles = StyleSheet.create({
   SentMsgTime: {
     fontSize: 10,
     color: "#777",
-    // paddingHorizontal: 3,
     letterSpacing: 0.5,
-    alignSelf: 'flex-end',
-    marginRight: 12
-  },
-  textStyle: {
-    textAlign: 'center',
-    color: "#B83227",
-    fontWeight: "700"
-  },
-  recievedMsgItem: {
-    margin: 10,
-    padding: 8,
-    backgroundColor: '#fff',
-    maxWidth: 180,
-    borderRadius: 5,
-    alignSelf: 'flex-end',
-    elevation: 5
   },
   typing: {
     margin: 10,
@@ -244,11 +189,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   sendBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: '#2C3335',
     alignItems: 'center',
     justifyContent: 'center',
     borderLeftWidth: 0.4,
-    borderLeftColor: "#ddd",
+    borderLeftColor: "#777",
+    borderRadius: 50,
     margin: 5,
     width: 50,
     height: 50
@@ -260,6 +206,7 @@ const styles = StyleSheet.create({
       borderTopColor: "#ddd",
       backgroundColor: "#fff",
       margin: 0,
+      backgroundColor: 'grey'
   }
 })
 

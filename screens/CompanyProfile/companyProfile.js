@@ -1,162 +1,57 @@
-import React, { useContext, useReducer, useEffect, useState } from 'react'
+import React, {  useEffect, useState } from 'react'
 import axios from 'axios';
-import { View,  ScrollView, RefreshControl, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList } from 'react-native'
-import {  Ionicons, Entypo, AntDesign, Feather, SimpleLineIcons } from '@expo/vector-icons';
+import { connect } from 'react-redux'
+import { View,   RefreshControl, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList } from 'react-native'
+import {   Entypo, AntDesign,  SimpleLineIcons } from '@expo/vector-icons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import * as Animatable from 'react-native-animatable';
+import { Caption,  } from 'react-native-paper';
+import {  Tab, Tabs} from 'native-base';
+import { Surface, Text, Paragraph } from 'react-native-paper';
+
+
+
 import OtherHeaderComponent from '../../components/OtherHeaderComponent';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { GlobalStyles } from '../../styles/GlobalStyles'
-import { AuthContext } from '../../context/authentication/Context'
 import ProductCard from '../../components/productCard';
-import * as Animatable from 'react-native-animatable';
-import { Caption, Paragraph, Headline } from 'react-native-paper';
-import { Container, Header, Content, Tab, Tabs} from 'native-base';
-import { Surface, Text } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
-import { connect } from 'react-redux'
+import useFetchData from '../../hooks/useFetchData'
+import useAuthUser from '../../hooks/useAuthUser'
 
 
-const initialState = {
-  loading: true,
-  profile: {},
-  error: ''
-}
 
-const reducer = (state, action) => {
-  switch(action.type){
-      case 'FETCH_SUCCESS':
-          return {
-              loading: false,
-              profile: action.payload,
-              error: ''
-          }
-      case 'FETCH_FAILED':
-          return {
-              loading: false,
-              profile: {},
-              error: 'OOPs, Encountered an error when fetching your data.'
-          }
-      default:
-          return state
-  }
-}
-
-const CompanyProfile = ({ route, navigation, authToken }) => {
+const image1 = require('../../assets/images/nikisPizza.jpg');
+const image2 = require('../../assets/images/pizzaHut.jpg');
 
 
-  const image1 = require('../../assets/images/nikisPizza.jpg');
-  const image2 = require('../../assets/images/pizzaHut.jpg');
+
+const CompanyProfile = ({ route, authToken }) => {
 
   const { ID, } = route.params;
-
-  const [ state, dispatch ] = useReducer(reducer, initialState); 
-
-  const { authState } = useContext(AuthContext);
 
   const [ followedBtn, setFollowedBtn ] = useState(false);
 
   const [ followID, setFollowID ] = useState(null);
-
-  const [ userPosts, setUserPosts ] = useState([])
-
-  const [ currentUserProfile, setCurrentUserProfile ] = useState([]);
-
-  const [ isFollowing, setIsFollowing ] = useState(null);
-
-
+  
   const token = authToken;
+  
+  const authUser = useAuthUser(token)
 
-  const fetchCompanyProfile = async() => {
-    try{
-      const response = await axios.get(`${APIROOTURL}/api/profile/${ID}/detail/`,{
-        headers : {
-          'Authorization': `Token ${token}`
-        }
-      })  
-      dispatch({type: 'FETCH_SUCCESS', payload: response.data})
-    }catch(error){
-      dispatch({type: 'FETCH_FAILED'})
-    }
-    
-  }
+  const { data: profileData, loading, errors, request } = useFetchData(token, `api/profile/${ID}/detail/`)
 
-  const fetchProducts = async() => {
-    try{
-      const productResponse = await axios.get(`${APIROOTURL}/api/profileposts/${state.profile.user}`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-      })
-      setUserPosts(productResponse.data)
-    }catch(error){
-      console.log(error)
-    }
-  }
+  const postsData = useFetchData(token, `api/profileposts/${profileData.user}`)
 
-  const refreshFetchCompanyProfile = async() => {
-    try{
-      const response = await axios.get(`${APIROOTURL}/api/profile/${ID}/detail/`,{
-        headers : {
-          'Authorization': `Token ${token}`
-        }
-      })  
-      dispatch({type: 'FETCH_SUCCESS', payload: response.data})
-    }catch(error){
-      dispatch({type: 'FETCH_FAILED'})
-    }
-    
-  }
-
-  const refreshFetchProducts = async() => {
-    try{
-      const productResponse = await axios.get(`${APIROOTURL}/api/profileposts/${state.profile.user}`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-      })
-      setUserPosts(productResponse.data)
-    }catch(error){
-      console.log(error)
-    }
-  }
-
-  const fetchUser = async(token) => {
-    try{
-      const userResponse = await axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-      })
-      setCurrentUserProfile(userResponse.data)
-    }catch(error){
-      console.log(error);
-    }
-  }
-
-  const fetchIsFollowerCheck = async() => {
-    try {
-      const result = await axios.get(`${APIROOTURL}/api/isfollowing/?search=${state.profile.user}`,{
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      })
-      setIsFollowing(result.data.count);
-    } catch (error) {
-      console.log(error);     
-    }
-  }  
-
+  const followingData = useFetchData(token, `api/isfollowing/?search=${profileData.user}`)
 
   useEffect(() => {
-      fetchCompanyProfile()
-      fetchUser()
-     fetchIsFollowerCheck();
+      request()
+     followingData.request()
   },[])
 
   const data = {
-    user_from: `Profile for ${currentUserProfile.user}`,
-    user_to: state.profile.id
+    user_from: `Profile for ${authUser.user}`,
+    user_to: profileData.id
   };
 
   const followUser = () => {
@@ -194,23 +89,21 @@ const CompanyProfile = ({ route, navigation, authToken }) => {
   }
 
   const fastRefresh = () => {
-    refreshFetchCompanyProfile()
-    refreshFetchProducts()
+    request()
+    postsData.request()
     fetchUser()
   }
 
 
-  // console.log(isFollowing);
-  if (state.error) {
+  if (errors) {
     return (
       <>
         <>
         <SecondaryHeader />
-        {/* <ProfileHeader profileName={profile.user} /> */}
         <View style={{ flex: 1, margin: 25 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
             <Image source={noConnectionImage} style={{ width: 30, height: 30}} />
-            <Text style={{ textAlign: 'center', color: '#292E2E', letterSpacing:1, paddingHorizontal: 5 }}>{state.error}</Text> 
+            <Text style={{ textAlign: 'center', color: '#292E2E', letterSpacing:1, paddingHorizontal: 5 }}>{errors}</Text> 
           </View> 
                 
             <TouchableOpacity style={styles.refreshBtn}
@@ -232,27 +125,25 @@ const CompanyProfile = ({ route, navigation, authToken }) => {
         duration = {200}  
       >
         <TouchableOpacity style={styles.loadMoreBtn}
-          onPress={fetchProducts}
+          onPress={() => postsData.request()}
         >
-          <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15 }}>View all {state.profile.user}'s posts</Text>
-          {/* <ActivityIndicator size={10} color='white' style={{ paddingHorizontal: 8 }} /> */}
+          <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15 }}>View all {profileData.user}'s posts</Text>
         </TouchableOpacity>
       </Animatable.View>
     )
   }
 
-//  console.log('Name', state.profile);
 const { container } = styles
 const refreshControl = <RefreshControl
-        refreshing={state.loading}
+        refreshing={loading}
         onRefresh={fastRefresh}
       />
  return(
     
   <>
     <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-    <OtherHeaderComponent name={state.profile.user} />
-      {state.loading ? 
+    <OtherHeaderComponent name={profileData.user} />
+      {loading ? 
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
               <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
         </View>
@@ -262,25 +153,9 @@ const refreshControl = <RefreshControl
     
         ListHeaderComponent={
           <>
-            <View style={container}>
-
-                  
-                  <ImageBackground style={styles.coverImageHeader} source={{ uri: state.profile.cover_photo }}>
+            <View style={container}>                 
+                  <ImageBackground style={styles.coverImageHeader} source={{ uri: profileData.cover_photo }}>
                     <View style={styles.child}>
-
-                    {/* <View style={styles.topIcons}>
-
-                    <TouchableOpacity style={{padding: 5, backgroundColor: '#fff', borderRadius: 8}} onPress={() => {
-                      navigation.goBack()
-                    }}>
-                        <AntDesign name="leftcircleo" size={28} color="#B83227" />
-                    </TouchableOpacity>
-
-                        <TouchableOpacity style={{ padding: 5, backgroundColor: '#B83227', borderRadius: 8, elevation: 5 }}>
-                          <AntDesign name="heart" color="#fff" size={25} /> 
-                        </TouchableOpacity>
-                      
-                    </View> */}
                     </View>
                   </ImageBackground>
 
@@ -288,27 +163,21 @@ const refreshControl = <RefreshControl
 
                     <View style={{ flex: 1, marginBottom: 6, paddingHorizontal: 20 }} >
 
-                      <Image source={{ uri: state.profile.profile_pic }} style={styles.profilephoto} />
+                      <Image source={{ uri: profileData.profile_pic }} style={styles.profilephoto} />
                     
                     <View style={{ flexDirection: 'row', marginTop: 15,  justifyContent: 'space-between' }}>
                         <View >
                           <View style={{ flexDirection: 'row'}}>
-                            <Text style={{...styles.mainText, fontSize: 15}}>{state.profile.user}</Text>
+                            <Text style={{...styles.mainText, fontSize: 15}}>{profileData.user}</Text>
                             {
-                              state.profile.verified ? <AntDesign name="star" size={10} color="black" /> : null
+                              profileData.verified ? <AntDesign name="star" size={10} color="black" /> : null
                             }
                             
                           </View>
-                          <Text style={styles.secondaryText}>{state.profile.profile_type.name}</Text>
+                          <Text style={styles.secondaryText}>{profileData.profile_type.name}</Text>
                         </View>
 
                         <View style={{ flexDirection: 'row', position: 'absolute',bottom: 30, right: 1}}>
-                            {/* <TouchableOpacity style={styles.cartBtnContainer}>
-                              <Feather name="phone" size={18} style={{...styles.bookmark, elevation: 5, marginHorizontal: 12}} />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.cartBtnContainer} >
-                              <Feather name="mail" size={18} style={{...styles.msgBookmark, elevation: 5,}} />
-                            </TouchableOpacity> */}
                             {
                               followedBtn ? 
                               
@@ -342,8 +211,8 @@ const refreshControl = <RefreshControl
                             <Entypo name="calendar" size={18} color="#FF5A09" /> 
                         </View>
                         <View style={{ paddingHorizontal: 5}}>
-                          <Text style={{...styles.mainText, fontWeight: '600'}}>{state.profile.working_days}</Text> 
-                          <Text  style={{...styles.secondaryText, fontSize: 13}}>{state.profile.working_hours}</Text> 
+                          <Text style={{...styles.mainText, fontWeight: '600'}}>{profileData.working_days}</Text> 
+                          <Text  style={{...styles.secondaryText, fontSize: 13}}>{profileData.working_hours}</Text> 
                         </View>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -351,21 +220,21 @@ const refreshControl = <RefreshControl
                           <Entypo name="location-pin" size={18} color="#FF5A09" />
                         </View>
                         <View style={{   paddingHorizontal: 5 }}>
-                          <Text style={{...styles.mainText,fontWeight: '600'}}>{state.profile.location}</Text> 
+                          <Text style={{...styles.mainText,fontWeight: '600'}}>{profileData.location}</Text> 
                         </View>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
                           <Entypo name="globe" size={18} color="#FF5A09" />
                         </View >
-                          <Text style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{state.profile.contact}</Text> 
+                          <Text style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{profileData.contact}</Text> 
                       </View>
                       
                         <View style={styles.section}>
                           <MaterialCommunityIcons name="account-group" size={18} color="#FF5A09" />
-                          <Paragraph style={[styles.paragraph,styles.caption]}>{state.profile.following.length}</Paragraph>
+                          <Paragraph style={[styles.paragraph,styles.caption]}>{followingData.data.count}</Paragraph>
                           <Caption style={{...styles.caption, paddingLeft: 2}}>following</Caption>
-                          <Paragraph style={[styles.paragraph,styles.caption]}>{state.profile.following.length}</Paragraph>
+                          <Paragraph style={[styles.paragraph,styles.caption]}>{followingData.data.count}</Paragraph>
                           <Caption style={{...styles.caption, paddingLeft: 2}}>followers</Caption>
                         </View>
                     </View>
@@ -375,6 +244,12 @@ const refreshControl = <RefreshControl
 
                 <Tabs 
                     tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: GlobalStyles.themeColor.color}}
+                    tabContainerStyle={{
+                      elevation: 0,
+                      shadowOpacity: 0,
+                      borderBottomWidth: 1,
+                      borderBottomColor: "#ddd"
+                    }}
                   >
 
                 <Tab heading="Top Products"
@@ -404,7 +279,7 @@ const refreshControl = <RefreshControl
                         
                     </Surface>
 
-                    <Surface style={{ ...styles.descriptionContainer, marginTop: 8, marginBottom: 8 }}>
+                    <Surface style={{ ...styles.descriptionContainer, marginVertical: 8 }}>
                         
                         <Image source={image2} style={{ flex: 1, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
                         <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
@@ -438,7 +313,7 @@ const refreshControl = <RefreshControl
                   >
                       <View style={{ marginVertical: 8, paddingHorizontal: 20 }}>
                         <View >
-                            <Text style={{...styles.mainText, fontSize: 14.5, letterSpacing: 0.5, lineHeight: 18,  fontWeight: 'normal'}}>{state.profile.description}</Text>
+                            <Text style={{...styles.mainText, fontSize: 14.5, letterSpacing: 0.5, lineHeight: 18,  fontWeight: 'normal'}}>{profileData.description}</Text>
                         </View>
                     </View>
                   </Tab>
@@ -459,8 +334,9 @@ const refreshControl = <RefreshControl
               </View>
           </>
         }
-      data={userPosts.results}
+      data={postsData.data.results}
       // onEndReached={fetchProducts}
+      showsVerticalScrollIndicator={false}
       ListFooterComponent={renderFooter}
       refreshControl={refreshControl}
       renderItem={({ item }) => (
@@ -636,16 +512,9 @@ loadMoreBtn: {
     flexDirection: 'row',
     width: '100%',
     height: 100,
-    borderRadius: 10,
     padding: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 4,
+    borderTopWidth: 0.5,
+    borderTopColor: "#ddd"
   },
   locationContainer: {
     flex: 1,

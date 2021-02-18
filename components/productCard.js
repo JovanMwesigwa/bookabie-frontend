@@ -1,37 +1,34 @@
-import React, { useState, useContext, useEffect } from 'react'
-import { View, StyleSheet, Image, TouchableOpacity, TouchableHighlight   } from 'react-native'
-import {  AntDesign, Feather, Entypo, FontAwesome5, FontAwesome } from '@expo/vector-icons';
-import { Text, TouchableRipple } from 'react-native-paper';
+import React, { useState, useContext} from 'react'
+import { View, StyleSheet, Image, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight   } from 'react-native'
+import {  AntDesign, Feather, Entypo } from '@expo/vector-icons';
+import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { GlobalStyles } from '../styles/GlobalStyles'
 import axios from 'axios'
 import moment from 'moment';
 import FullImageModal from './Modals/FullImageModal';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { UserInfoContext } from '../context/userInfoContext/UserInfoContextProvider'
-import { CompanyContext } from '../context/profiles/CompanyContextProvider';
 import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import ShareDialogBox from './ShareDialogBox/ShareDialogBox';
-import { fetchaddItemToCart, fetchCartItemRemove } from '../redux/cart/CartRedux';
+import { fetchaddItemToCart, fetchCartItemRemoveNoRefresh } from '../redux/cart/CartRedux';
 import { connect } from 'react-redux'
+import ActionButtons from './ActionButtons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 
 
 
-
-const ProductCard = ({authToken, addToCartFunc, removeCartItemFunc, item, reloadPosts}) => {
+const ProductCard = ({authToken, authUserID, addToCartFunc, removeCartItemFunc, item, reloadPosts}) => {
   
   const [shareBoxvisible, setShareBoxVisible] = useState(false);
-  
-  const  { fetchFirstPostsData }  = useContext(CompanyContext);
 
+  const navigation = useNavigation()
+  
   const [ fullImageModal, setFullImageModal ] = useState(false);
 
   const [ pressLike, setPressedLike ] = useState(false);
 
   const [ createdLikeID, setCreatedLikeID ] = useState(null);
-
-  const [ isLiked, setIsLiked ] = useState(false);
 
   const [ addedToCart, setAddedToCart ] = useState(false);
 
@@ -39,7 +36,6 @@ const ProductCard = ({authToken, addToCartFunc, removeCartItemFunc, item, reload
 
   const token = authToken
 
-  const navigation = useNavigation()
 
   const data = {
     liked_post: [item.id,],
@@ -54,12 +50,6 @@ const ProductCard = ({authToken, addToCartFunc, removeCartItemFunc, item, reload
     setShareBoxVisible(false);
   }
 
-
-  const bgColor = isLiked ? 'pink' : '#ddd';
-  const heartIcon = pressLike ?  <Entypo name="heart" size={20} color="#B83227" style={{ textAlign: 'center' }} /> 
-                  :  <Entypo name="heart-outlined" size={20} color="#616C6F" style={{ textAlign: 'center' }} />                
-  
- 
   const likePost = async() => {
     setPressedLike(true)
     try {
@@ -103,19 +93,16 @@ const ProductCard = ({authToken, addToCartFunc, removeCartItemFunc, item, reload
     setAddedToCart(true);
   }
 
-  const removeFromCartBtn = () => {
-    setAddedToCart(false);
-  }
-
   const addToCartHandler = () => {
     addToCart();
     addToCartFunc(token, addToCartData);
   }
 
   const removeFromCart = () => {
-    removeFromCartBtn()
-    removeCartItemFunc(token, item.id)
+    setAddedToCart(false);
+    removeCartItemFunc(token, addToCartData)
   }
+
 
   
 const { container } = styles
@@ -125,45 +112,54 @@ const { container } = styles
 
   <View style={container} >
 
-    <TouchableRipple style={{paddingLeft: 20, paddingRight: 12, paddingTop: 20}} onPress={() => navigation.navigate('Product Details', 
-  { post: item, ID: item.id, addToCartFunc: addToCartHandler, removeFromCartFunc: removeFromCart })}>
-
+    <TouchableWithoutFeedback onPress={() => navigation.navigate('Product Details', { post: item, ID: item.id, addToCartFunc: addToCartHandler, removeFromCartFunc: removeFromCart })}>
+    <View style={styles.cardContainer}>
       <View>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-          <TouchableOpacity onPress = {() => navigation.navigate("CompanyProfile", {ID: item.author.id})}>
+        <View style={{ flex: 1, flexDirection: 'row'}}>
+
+          {
+            authUserID !== item.author.id ?
+              <TouchableOpacity onPress = {() => navigation.navigate("CompanyProfile", {ID: item.author.id})}>
               <Image source={{ uri: item.author.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
-          </TouchableOpacity>
+            </TouchableOpacity> :
+            <TouchableOpacity onPress = {() => navigation.navigate("Profile", {ID: item.author.id})}>
+              <Image source={{ uri: item.author.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
+            </TouchableOpacity>
+          }
+          
             <View style={{ paddingHorizontal: 12 }}>
               { name != item.author.user.username ? 
                 <View style={{ flexDirection: 'row' }} >
                   <Text style={{...GlobalStyles.darkHeaderText, fontSize: 16}}>{item.author.user.username}</Text>
                   {
-                    item.author.verified ? <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} /> : null
+                    item.author.verified && <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} /> 
                   }
                 </View> :
                 <TouchableOpacity style={{ flexDirection: 'row' }} onPress = {() => navigation.navigate("Profile" )}>
                   <Text style={GlobalStyles.darkHeaderText}>{item.author.user.username}</Text>
                   {
-                    item.author.verified ? <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} /> : null
+                    item.author.verified && <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} /> 
                   }
                 </TouchableOpacity>
                   
                 }
                 
                 <View style={styles.ratingsContainer}>
-                
-                    <Text style={GlobalStyles.greyTextSmall}>/ Posted about { moment(item.created).startOf('hour').fromNow()}</Text>
-                    
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <MaterialIcons name="location-on" size={15} color={GlobalStyles.greenColor.color} />
+                    <Text style={{ color: GlobalStyles.greenColor.color, fontSize: 12 }}>Nankulabye</Text>
+                  </View>
+                      <Text style={[GlobalStyles.greyTextSmall, {fontSize: 12}]}>/ Posted about { moment(item.created).startOf('hour').fromNow()}</Text>
                 </View>
             </View>
           </View>
         <View style={styles.actionContainer}>
             {
               addedToCart ? 
-              <TouchableOpacity style={{...styles.bookmarkIcon, backgroundColor: "#B83227"}} >
+              <TouchableOpacity style={[styles.bookmarkIcon, {backgroundColor: "#B83227"}]} onPress={removeFromCart}>
                 <Feather name="check" size={20} color="white" />
               </TouchableOpacity> :
-              <TouchableOpacity style={{...styles.bookmarkIcon}} onPress={addToCartHandler}>
+              <TouchableOpacity style={styles.bookmarkIcon} onPress={addToCartHandler}>
                 <Feather name="plus" size={20} color="white" />
               </TouchableOpacity>
             }
@@ -184,7 +180,8 @@ const { container } = styles
               {item.offer && <Text style={{ fontSize: 13,color: '#2C3335', fontWeight: "bold", color: "gold",  }}>  <Text style={{ color: '#777' }}>•</Text>  {item.offer}%  <Text style={{color: '#777', fontSize: 11}}>Off</Text></Text>}
             </View>
         </View>
-    </TouchableRipple>
+      </View>
+    </TouchableWithoutFeedback>
 
 
     <ShareDialogBox  hideShareDialog={hideShareDialog} shareBoxvisible={shareBoxvisible} setShowShowShareDialog={setShowShowShareDialog}/>
@@ -200,12 +197,10 @@ const { container } = styles
           likes={item.likes} 
         />
 
-        {item.image ? 
+        {item.image && 
         <TouchableWithoutFeedback onPress={() => setFullImageModal(true)}>
           <Image source={{uri: item.image }} style={{ width: "100%", height: 180}} />
         </TouchableWithoutFeedback> 
-        :
-          null
         }
           <View style={styles.commentsContainer}>
           <Text style={{...GlobalStyles.greyTextSmall, fontWeight: 'bold'}}>ON SALE  • </Text>
@@ -223,38 +218,29 @@ const { container } = styles
 
           </View>
       </View>
+
       <View style={styles.reactionContainer}>
-        {
-          pressLike ? 
-           
-          <TouchableOpacity 
-            style={{ flex: 1, paddingHorizontal: 8, 
-            paddingVertical: 3,  backgroundColor: "pink", 
-            borderRadius: 9 }} 
-            onPress={UnLikePost}>
-            <FontAwesome name='heart' size={18} color="#B83227" style={{ textAlign: 'center' }} />
-          </TouchableOpacity>
-            :
-          <TouchableOpacity style={{ flex: 1, paddingHorizontal: 8, 
-            paddingVertical: 3, color: '#ddd', backgroundColor: '#ddd', 
-            borderRadius: 9 }}
-            onPress={likePost}>
-              <FontAwesome name="heart-o" size={18} color={pressLike ? GlobalStyles.themeColor.color : '#616C6F'} style={{ textAlign: 'center' }} />
-          </TouchableOpacity>
+          <TouchableHighlight style={styles.iconContainer}>
+            {
+              pressLike ? <ActionButtons name="heart" backgroundColor="pink" color={GlobalStyles.themeColor.color} 
+              onPressHandler={UnLikePost}
+                />
+                :
+                <ActionButtons name="heart-o" backgroundColor='#ddd' onPressHandler={likePost} color='#616C6F' 
+                  /> 
+            }
+          </TouchableHighlight>
 
-        }
-        
-        
-        <TouchableOpacity style={styles.comment} onPress={() => {
-          navigation.navigate('AddComment', {item: item, reloadPosts: reloadPosts  })
-        }}>
-          <FontAwesome5 name="comment" size={18} color="#616C6F" style={{ textAlign: 'center' }} />
-        </TouchableOpacity>
+        <TouchableHighlight style={[styles.iconContainer, { marginHorizontal: 8 }]} >
+            <ActionButtons name="comment-o" backgroundColor='#ddd' onPressHandler={() => navigation.navigate('AddComment', {item: item, refreshPost: reloadPosts  })} color='#616C6F' 
+          />
+        </TouchableHighlight>
 
-        <TouchableOpacity onPress={() => setShowShowShareDialog()} style={{flex: 1,  paddingHorizontal: 8, paddingVertical: 3, color: '#ddd', backgroundColor: '#ddd', borderRadius: 9 }}>
-          <Feather name="share-2" size={18} color="#616C6F" style={{ textAlign: 'center' }} />
-        </TouchableOpacity>
+        <TouchableHighlight onPress={() => setShowShowShareDialog()} style={styles.iconContainer}>
+            <ActionButtons name="share" comment backgroundColor='#ddd' color='#616C6F' />
+        </TouchableHighlight>
       </View>
+
     </View>
   </View>
   )
@@ -269,11 +255,10 @@ const styles = StyleSheet.create({
    backgroundColor: "white",
    elevation: 1
   },
+  cardContainer: {paddingLeft: 20, paddingRight: 12, paddingTop: 20},
   comment: {
     flex: 1,
-    marginHorizontal: 8,  
-    paddingHorizontal: 8, 
-    paddingVertical: 3, 
+    marginHorizontal: 8,   
     color: '#ddd', 
     backgroundColor: '#ddd', 
     borderRadius: 9 
@@ -293,6 +278,9 @@ actionContainer: {
 threeDots: {
   paddingHorizontal: 4,
 },  
+iconContainer: {
+  flex: 1,
+},
   bookmarkIcon: {
     backgroundColor: '#1287A5',
     padding: 5,
@@ -318,7 +306,7 @@ threeDots: {
     marginVertical: 18,
   },
   ratingsContainer: {
-    flexDirection: "row",
+    alignItems: "flex-start"
   },
   modalText: {
     fontSize: 19,
@@ -381,15 +369,16 @@ threeDots: {
 
 const mapStateToProps = state => {
   return{
-    authToken: state.auth.token
+    authToken: state.auth.token,
+    cartData: state.cart.cartItems
   }
 }
 
 const mapDispatchToProps = dispatch => {
   return{
     addToCartFunc: (token, id) => dispatch(fetchaddItemToCart(token, id)),
-    removeCartItemFunc: (token, id) => dispatch(fetchCartItemRemove(token, id)),
-    cartItemDetailsFunc: (token, id) => dispatch(fetchCartItemDetails(token, id))
+    removeCartItemFunc: (token, id) => dispatch(fetchCartItemRemoveNoRefresh(token, id)),
+    cartItemDetailsFunc: (token, id) => dispatch(fetchCartItemDetails(token, id)),
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(ProductCard);

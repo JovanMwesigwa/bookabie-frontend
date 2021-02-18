@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext} from 'react'
-import { View, Text, StyleSheet, StatusBar,Image, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, StatusBar,Image, } from 'react-native'
 import NavigationComponent from './navigation/navigation'
 import AuthNavigation from './navigation/authNavigation'
 import { GlobalStyles } from './styles/GlobalStyles'

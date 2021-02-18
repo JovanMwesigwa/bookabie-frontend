@@ -1,13 +1,47 @@
-import React from 'react'
+import React,{ useState} from 'react'
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import { GlobalStyles } from '../styles/GlobalStyles'
-import { useNavigation } from '@react-navigation/native';
+import { connect } from 'react-redux';
+import { fetchaddItemToCart, fetchCartItemRemove } from '../redux/cart/CartRedux';
+import { useNavigation } from '@react-navigation/native'
 
 
-const MainProductCard = ({ item }) => {
+const MainProductCard = ({ item, authToken, addToCartFunc, removeItemFromCartFunc }) => {
 
   const navigation = useNavigation()
 
+  const [ addedToCart, setAddToCart ] = useState(false);
+
+  const [ loading, setLoading ] = useState(false);
+
+  const addToCartData = {
+    product: item.id,
+}
+
+
+const token = authToken
+
+  const addToCart = () => {
+    setLoading(true);
+    setAddToCart(true)
+  }
+
+  const removeFromCart = () => {
+    setLoading(true);
+    setAddToCart(false)
+  }
+
+  const fetchaddItemToCart = () => {
+    addToCart()
+    addToCartFunc(token, addToCartData);
+    setLoading(false)
+  }
+
+  const fetchRemoveItemToCart = () => {
+    removeFromCart()
+    removeItemFromCartFunc(token, item.id)
+    setLoading(false)
+  }
 
 const { container } = styles
  return(
@@ -32,7 +66,15 @@ const { container } = styles
                   null
                 
                 }
-                <Text style={styles.cartBtn}>Add to Cart</Text>
+                  {
+                    addedToCart ? 
+                    <TouchableOpacity onPress={fetchRemoveItemToCart}>
+                        <Text style={styles.outlineCartBtn}>Added to Cart</Text> 
+                    </TouchableOpacity> :
+                    <TouchableOpacity onPress={fetchaddItemToCart}>
+                        <Text style={styles.cartBtn}>Add to Cart</Text>
+                    </TouchableOpacity>
+                  }
             </View>
       </View>
   </View>
@@ -55,7 +97,24 @@ cardContainer: {
     padding: 10,
     paddingVertical: 12,
   },
-  cartBtn: { backgroundColor: GlobalStyles.themeColor.color, color: 'white', fontSize: 12, padding: 5, borderRadius: 5, textAlign: 'center' },
+  outlineCartBtn: {
+    backgroundColor: 'white', 
+    color: GlobalStyles.themeColor.color, 
+    fontSize: 12, 
+    padding: 5, 
+    borderRadius: 5, 
+    textAlign: 'center' ,
+    borderWidth: 1,
+    borderColor: GlobalStyles.themeColor.color,
+  },
+  cartBtn: { 
+    backgroundColor: GlobalStyles.themeColor.color, 
+    color: 'white', 
+    fontSize: 12, 
+    padding: 5, 
+    borderRadius: 5, 
+    textAlign: 'center' 
+  },
   mainText: {
       fontSize: 15,
       fontWeight: '600'
@@ -70,4 +129,18 @@ cardContainer: {
       paddingLeft: 0,
   }
 })
-export default MainProductCard
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return{
+    addToCartFunc: (token, id) => dispatch(fetchaddItemToCart(token, id)),
+    removeItemFromCartFunc: (token, id) => dispatch(fetchCartItemRemove(token, id)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MainProductCard)

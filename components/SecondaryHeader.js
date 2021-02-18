@@ -7,12 +7,12 @@ import { GlobalStyles } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
 import SearchComponent from '../components/searchComponent';
 import { connect } from 'react-redux';
+import { fetchCartData } from '../redux/cart/CartRedux';
 
 
 
 
-
-const SecondaryHeader = ({authToken}) => {
+const SecondaryHeader = ({cartData, authToken, cartDataFetch }) => {
 
     const navigation = useNavigation();
 
@@ -36,6 +36,7 @@ const SecondaryHeader = ({authToken}) => {
 
     useEffect(() => {
       fetchUserInfo()
+      cartDataFetch(token)
     },[])
 
 const { container } = styles
@@ -46,6 +47,16 @@ const { container } = styles
             <Image source={{ uri: userInfo.profile_pic }} style={styles.imageStyle} />
           </TouchableOpacity>
           <SearchComponent />
+       </View> 
+       <View>
+          <TouchableOpacity onPress={() => navigation.navigate("Cart")} >
+            <AntDesign name='shoppingcart' size={30} 
+            style={{paddingHorizontal: 5}}
+            color={GlobalStyles.darkFontColor.color}  />
+          </TouchableOpacity>
+          <View style={styles.cartNumberContainer}>
+              <Text style={styles.cartNumber}>{cartData.length}</Text>
+          </View>
        </View>
     </View>
   )
@@ -55,6 +66,8 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',   
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 15, 
     height: 55,
     elevation: 5,
@@ -102,15 +115,22 @@ const styles = StyleSheet.create({
   },
   cartNumberContainer: {
     position: "absolute",
-    left: 320,
-    bottom: 30,
+    right: 2,
+    bottom: 15,
     zIndex: 1,
   }
 })
 
 const mapStateToProps = state => {
   return{
+    cartData: state.cart.cartItems,
     authToken: state.auth.token
   }
 }
-export default connect(mapStateToProps)(SecondaryHeader);
+
+const mapDispatchToProps = dispatch => {
+  return{
+    cartDataFetch: token => dispatch(fetchCartData(token))
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(SecondaryHeader);

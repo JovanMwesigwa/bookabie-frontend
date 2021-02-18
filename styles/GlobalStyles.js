@@ -11,6 +11,9 @@ export const GlobalStyles = StyleSheet.create({
   greyColor: {
     color: "#777"
   },
+  greenColor:{
+    color: '#218F76'
+  } ,
   darkHeaderText: {
     fontSize: 14,
     color: "#333945",
@@ -66,8 +69,8 @@ export const GlobalStyles = StyleSheet.create({
     paddingHorizontal: 5 
   },
   smallRoundedPictContainer: { 
-    width: 45, 
-    height: 45, 
+    width: 50, 
+    height: 50, 
     borderRadius: 35,
     borderWidth: 0.5,
     borderColor: '#ddd',

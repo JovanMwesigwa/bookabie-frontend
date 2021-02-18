@@ -8,7 +8,7 @@ const RETRIEVE_TOKEN = 'RETRIEVE_TOKEN';
 const REGISTER = 'REGISTER';
 const LOGIN = 'LOGIN';
 const LOGOUT = 'LOGOUT';
- 
+  
 // This is the initialState
 const initialState = {
     loading: true,

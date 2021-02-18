@@ -1,70 +1,47 @@
-import React, { useContext, useReducer, useEffect, useState } from 'react'
-import axios from 'axios';
-import { View,   Dimensions, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList, RefreshControl } from 'react-native'
+import React, {  useEffect, useState } from 'react'
+import { View, StyleSheet,   Dimensions, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList, RefreshControl } from 'react-native'
 import {  Entypo, AntDesign} from '@expo/vector-icons';
-import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
+import { Surface, Text } from 'react-native-paper';
+import { connect } from 'react-redux';
+import * as Animatable from 'react-native-animatable';
+
+
+
 import ProfileHeader from '../../components/ProfileHeader';
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import ProductCard from '../../components/productCard';
-import * as Animatable from 'react-native-animatable';
 import { Caption, Paragraph,  } from 'react-native-paper';
 import {  Tab, Tabs } from 'native-base';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MapModalComponent from '../../components/MapComponent';
 import SecondaryHeader from '../../components/SecondaryHeader';
-import { Surface, Text } from 'react-native-paper';
-import { StyleSheet } from 'react-native';
-import { connect } from 'react-redux';
+import useFetchData from '../../hooks/useFetchData'
 
 
 
-// loading
-// profile
-// errors
 
-const initialState = {
-  loading: true,
-  profile: {},
-  error: "",
-}
-
-const reducer = (state, action) => {
-  switch(action.type){
-    case 'FETCH_SUCCESS':
-      return {
-        loading: false,
-        profile: action.payload,
-        error: ""
-      }
-    case 'FETCH_FAILURE':
-      return{
-        loading: false,
-        profile: {},
-        error: "OOPs!, Something went wrong."
-      }
-    default:
-      return state
-  }
-}
-
+const userUrl = "api/userprofile/user/detail/"
+const followersUrl = "api/followers/"
 const noConnectionImage = require('../../assets/images/noint.png');
-
 const mapImage = require('../../assets/images/m.jpg');
+const image1 = require('../../assets/images/nikisPizza.jpg');
+const image2 = require('../../assets/images/pizzaHut.jpg');
+
+
+
 
 const Profile = ({  navigation, authToken }) => {
 
-  const [ state, dispatch ] = useReducer(reducer, initialState); 
-
-  const [ followers, setFollowers ] = useState([])
-
   const [ modalShown, setModalShown ] = useState(false);
 
-  const [ userPosts, setUserPosts ] = useState([])
-
-  const image1 = require('../../assets/images/nikisPizza.jpg');
-  const image2 = require('../../assets/images/pizzaHut.jpg');
-
   const token = authToken
+
+  const { data, loading, errors, request } = useFetchData(token, userUrl);
+
+  const followersData = useFetchData(token, followersUrl)
+
+  const postsData = useFetchData(token, `api/profileposts/${data.user}`)
+
 
   const showMap = () => {
     setModalShown(true);
@@ -75,94 +52,27 @@ const Profile = ({  navigation, authToken }) => {
   }
 
   
-  const fetchUser = async() => {
-    try{
-      const userResponse = await axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-      })
-      dispatch({type: 'FETCH_SUCCESS', payload: userResponse.data})
-    }catch(error){
-      dispatch({type: 'FETCH_FAILURE' })
-    }
-  }
-
-  const fetchProducts = async() => {
-    try{
-      const productsResponse = await axios.get(`${APIROOTURL}/api/profileposts/${profile.user}`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-      }) 
-      setUserPosts(productsResponse.data)  
-    }catch(error){
-      console.log(error);
-    }
-    
-  }
-
-  const refreshFetchedUser = async() => {
-    try{
-      const userResponse = await axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-      })
-      dispatch({type: 'FETCH_SUCCESS', payload: userResponse.data})
-    }catch(error){
-      dispatch({type: 'FETCH_FAILURE' })
-    }
-  }
-
-  const refreshFetchProducts = async() => {
-    try{
-      const productsResponse = await axios.get(`${APIROOTURL}/api/profileposts/${profile.user}`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-      }) 
-      setUserPosts(productsResponse.data)  
-    }catch(error){
-      console.log(error);
-    }
-    
-  }
-
-  const getFollowers = async() => {
-    try{
-      const followersData = await axios.get(`${APIROOTURL}/api/followers/`,{
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      })
-      setFollowers(followersData.data.results);
-    }catch(error){
-      console.log(error);
-    }
-  }
-
   const fastRefresh = () => {
-    refreshFetchedUser()
-    refreshFetchProducts()
+    request()
+    followersData.request()
   }
 
 
   useEffect(() => {
-    fetchUser();
-    getFollowers();
+    request()
+    followersData.request()
   },[])
 
 
-  if (state.error) {
+
+  if (errors) {
     return (
       <>
         <SecondaryHeader />
-        {/* <ProfileHeader profileName={profile.user} /> */}
         <View style={{ flex: 1, margin: 25 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
             <Image source={noConnectionImage} style={{ width: 30, height: 30}} />
-            <Text style={{ textAlign: 'center', color: '#292E2E', letterSpacing:1, paddingHorizontal: 5 }}>{state.error}</Text> 
+            <Text style={{ textAlign: 'center', color: '#292E2E', letterSpacing:1, paddingHorizontal: 5 }}>{errors}</Text> 
           </View> 
                 
             <TouchableOpacity style={styles.refreshBtn}
@@ -184,7 +94,7 @@ const Profile = ({  navigation, authToken }) => {
         duration = {200}  
       >
         <TouchableOpacity style={styles.loadMoreBtn}
-          onPress={fetchProducts}
+          onPress={() => postsData.request()}
         >
           <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15 }}>View all my posts</Text>
         </TouchableOpacity>
@@ -195,19 +105,18 @@ const Profile = ({  navigation, authToken }) => {
 
   // fetchProducts()
 
-const profile = state.profile;
 const { container } = styles
 
 const refreshControl = <RefreshControl
-  refreshing={state.loading}
-  onRefresh={fastRefresh}
+  refreshing={loading}
+  onRefresh={() => request()}
 />
  return(
 
   <>
       <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-    <ProfileHeader profileName={profile.user} />
-      {state.loading ? 
+    <ProfileHeader profileName={data.user} />
+      {loading ? 
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
               <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
         </View>
@@ -220,7 +129,7 @@ const refreshControl = <RefreshControl
           <View style={styles.container}>
 
          
-          <ImageBackground style={styles.coverImageHeader} source={{uri: profile.cover_photo}}>
+          <ImageBackground style={styles.coverImageHeader} source={{uri: data.cover_photo}}>
             <View style={styles.child}>
 
             </View>
@@ -230,20 +139,20 @@ const refreshControl = <RefreshControl
 
             <View style={{ flex: 1, marginBottom: 3, paddingHorizontal: 20 }} >
 
-              <Image source={{ uri: profile.profile_pic }} style={styles.profilephoto} />
+              <Image source={{ uri: data.profile_pic }} style={styles.profilephoto} />
             
             <View style={{ flexDirection: 'row', marginTop: 15,  justifyContent: 'space-between' }}>
                 <View >
                   <View style={{ flexDirection: 'row'}}>
-                    <Text style={{...styles.mainText, fontSize: 15}}>{profile.user}</Text>
+                    <Text style={{...styles.mainText, fontSize: 15}}>{data.user}</Text>
                     <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} />
                   </View>
-                  <Text style={styles.secondaryText}>{profile.profile_type.name}</Text>
+                  <Text style={styles.secondaryText}>{data.profile_type.name}</Text>
                 </View>
 
                 <View style={{ flexDirection: 'row', position: 'absolute',bottom: 30, right: 1}}>
                     <TouchableOpacity style={styles.cartBtnContainer} onPress={() => {
-                      navigation.navigate('Edit Profile', {Profile: state.profile, RefreshFetchedUser: refreshFetchedUser})
+                      navigation.navigate('Edit Profile', {Profile: data, RefreshFetchedUser: request})
                     }}>
                       <Text style={{ color: '#1287A5', fontWeight: '600' }}>EDIT</Text>
                     </TouchableOpacity>
@@ -259,8 +168,8 @@ const refreshControl = <RefreshControl
                     <Entypo name="calendar" size={18} color="#FF5A09" /> 
                 </View>
                 <View style={{ paddingHorizontal: 5}}>
-                  <Paragraph style={{...styles.mainText, fontWeight: '600'}}>{profile.working_days}</Paragraph>
-                  <Caption  style={{...styles.secondaryText, fontSize: 13}}>{profile.working_hours}</Caption> 
+                  <Paragraph style={{...styles.mainText, fontWeight: '600'}}>{data.working_days}</Paragraph>
+                  <Caption  style={{...styles.secondaryText, fontSize: 13}}>{data.working_hours}</Caption> 
                 </View>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -268,20 +177,20 @@ const refreshControl = <RefreshControl
                   <Entypo name="location-pin" size={18} color="#FF5A09" />
                 </View>
                 <View style={{   paddingHorizontal: 5 }}>
-                  <Paragraph style={{...styles.mainText,fontWeight: '600'}}>{profile.location}</Paragraph> 
+                  <Paragraph style={{...styles.mainText,fontWeight: '600'}}>{data.location}</Paragraph> 
                 </View>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', }}>
                 <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
                   <Entypo name="globe" size={18} color="#FF5A09" />
                 </View >
-                  <Caption style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{profile.contact}</Caption> 
+                  <Caption style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{data.contact}</Caption> 
               </View>
               <View style={styles.section}>
                   <MaterialCommunityIcons name="account-group" size={18} color="#FF5A09" />
-                  <Paragraph style={[styles.paragraph,styles.caption]}>{followers.length}</Paragraph>
+                  <Paragraph style={[styles.paragraph,styles.caption]}>{followersData.data.count}</Paragraph>
                   <Caption style={{...styles.caption, paddingLeft: 2}}>followers</Caption>
-                  <Paragraph style={[styles.paragraph,styles.caption]}>{profile.following.length}</Paragraph>
+                  <Paragraph style={[styles.paragraph,styles.caption]}>{data.following.length}</Paragraph>
                   <Caption style={{...styles.caption, paddingLeft: 2}}>following</Caption>
               </View>
             </View>
@@ -293,6 +202,12 @@ const refreshControl = <RefreshControl
           
               <Tabs 
                 tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: GlobalStyles.themeColor.color}}
+                tabContainerStyle={{
+                  elevation: 0,
+                  shadowOpacity: 0,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#ddd"
+                }}
               >
 
                 <Tab heading="Top Products"
@@ -310,7 +225,7 @@ const refreshControl = <RefreshControl
                         </View>  
                     </Surface>
 
-                    <Surface style={{ ...styles.descriptionContainer, marginTop: 8, marginBottom: 8 }}>                       
+                    <Surface style={{ ...styles.descriptionContainer, marginVertical: 8 }}>                       
                       <Image source={image2} style={{ flex: 1, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
                         <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
                           <Text style={styles.mainText}>Super Pizza Granola </Text>
@@ -330,7 +245,7 @@ const refreshControl = <RefreshControl
                     
                       <View style={{ flex: 1, marginVertical: 8, paddingHorizontal: 20 }}>
                         <View style={{ flex: 1, }}>
-                            <Paragraph muted style={{...styles.mainText,  letterSpacing: 0.5, lineHeight: 18, fontSize: 14.5, fontWeight: '600'}}>{profile.description}</Paragraph>
+                            <Paragraph muted style={{...styles.mainText,  letterSpacing: 0.5, lineHeight: 18, fontSize: 14.5, fontWeight: '600'}}>{data.description}</Paragraph>
                         </View>
                     </View>
                   </Tab>
@@ -356,17 +271,18 @@ const refreshControl = <RefreshControl
                   </Tab>
 
                 </Tabs>
-      
           </View>
       </View>
    </>
     }
-      data={userPosts.results}
+      data={postsData.data.results}
       refreshControl={refreshControl}
+      showsVerticalScrollIndicator={false}
       ListFooterComponent={renderFooter}
       renderItem={({ item }) => (
         <ProductCard
           item={item}
+          refreshPost={request}
         />
       )}
       keyExtractor={(item) => item.id.toString()}
@@ -418,9 +334,10 @@ mapStyle: {
   footer: { 
     flex: 1, 
     backgroundColor: 'white', 
-    elevation: 1, 
-    paddingBottom: 10, 
-    paddingVertical: 20,
+    elevation: 0,
+    shadowOpacity: 0, 
+    // paddingBottom: 10, 
+    // paddingVertical: 20,
 },
 section: {
   flexDirection: 'row',
@@ -524,17 +441,9 @@ loadMoreBtn: {
     flexDirection: 'row',
     width: '100%',
     height: 100,
-    borderRadius: 10,
     padding: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 4,
-
+    borderTopWidth: 0.5,
+    borderTopColor: "#ddd"
   },
   locationContainer: {
     flex: 1,

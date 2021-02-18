@@ -2,8 +2,11 @@ import React, {useState, useEffect, useContext, useReducer } from 'react'
 import axios from 'axios'
 import { connect } from 'react-redux'
 import { AntDesign, Feather, FontAwesome5 } from '@expo/vector-icons';
-import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
-import { View,  StyleSheet, Image, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList } from 'react-native'
+import { View,  StyleSheet, Image, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList, TouchableWithoutFeedback } from 'react-native'
+import * as Animatable from 'react-native-animatable';
+
+
+
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import FullImageModal from '../../components/Modals/FullImageModal';
@@ -11,11 +14,11 @@ import OtherHeaderComponent from '../../components/OtherHeaderComponent';
 import CommentComponent from '../../components/CommentComponent';
 import {  Paragraph, Subheading, Button, Dialog, Portal, Text } from 'react-native-paper';
 import LikedBy from '../../components/LikedBy';
-import * as Animatable from 'react-native-animatable';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { fetchaddItemToCart, } from '../../redux/cart/CartRedux';
-
-
+import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
+import useFetchData from '../../hooks/useFetchData'
+import useAuthUser from '../../hooks/useAuthUser'
+import ErrorView from '../../components/ErrorView';
 
 
 const initialState = {
@@ -43,7 +46,7 @@ const reducer = (state, action) => {
   }
 }
 
-const ProductDetails = ({ route, navigation, authToken,reloadPosts }) => {
+const ProductDetails = ({ route, navigation, authToken, reloadPosts }) => {
 
     const [ state, dispatch ] = useReducer(reducer, initialState);
 
@@ -65,9 +68,9 @@ const ProductDetails = ({ route, navigation, authToken,reloadPosts }) => {
     const showDialog = () => setVisible(true);
 
     const token = authToken;
-
-    const { ID, post, addToCartFunc, removeFromCartFunc } = route.params
     
+    const { ID, post, addToCartFunc, removeFromCartFunc } = route.params
+
     const fetchPostDetail = async() => {
       try{
         const response = await axios.get(`${APIROOTURL}/api/post/${ID}/detail/`,{
@@ -93,6 +96,13 @@ const ProductDetails = ({ route, navigation, authToken,reloadPosts }) => {
         console.log(err);
       }
     }
+
+    useEffect(() => {
+      fetchPostDetail()
+      fetchUserMe()
+      fetchCheckIsLikedPost()
+    },[])
+
 
     const editBtnHandler = () => {
       navigation.navigate('Edit Post', {ID: ID, item: post })
@@ -164,42 +174,31 @@ const ProductDetails = ({ route, navigation, authToken,reloadPosts }) => {
     removeFromCartFunc()
   }
 
-    useEffect(() => {
-      fetchPostDetail() 
-      fetchUserMe()
-    },[])
 
-    useEffect(() => {
-      fetchCheckIsLikedPost()
-    },[])
 
     const fastRefresh = () => {
-      refreshFetchPostDetail()
+      fetchPostDetail()
       refreshFetchUserMe()
     }
 
+    const numOfComments = () => {
+      const commentsCount = state.post.comments.length
+      return commentsCount
+    }
 
-  if (state.error) {
-    return (
-      <>
-        <OtherHeaderComponent />
-        <View style={{ flex: 1 }}>
-          <View style={{ flex: 1 }}>
+    const numOfLikes = () => {
+      const likesCount = state.post.likes.length
+      return likesCount
+    }
 
-          </View>
-            <Animatable.View style={styles.errorStyles}
-                animation='fadeInUp'
-                delay={1000}
-                duration = {500}> 
-                  <Text style={{ textAlign: 'center', color: 'white', letterSpacing:1 }}>{state.error}</Text> 
-              </Animatable.View>
-          <View style={{ flex: 1 }}>
-          
-          </View> 
-        </View>
-      </>
-    )
-  } 
+
+  if(state.loading) return( 
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
+      <ActivityIndicator size='small' collapsable color='#B83227' />
+    </View>
+  )
+
+  if(state.error) return <ErrorView onPress={reloadPosts} error={state.error} />
 
 const { container } = styles
   const refreshControl = <RefreshControl
@@ -225,20 +224,20 @@ const { container } = styles
           <FullImageModal   
             showModal={fullImageModalOpen} 
             closeModal={setFullImageModalOpen}
-            comments={state.post.comments.length}
+            comments={numOfComments}
             image={state.post.image}
-            likes={ state.post.likes.length} />
+            likes={numOfLikes} />
 
-          { state.post.image ?
 
-          <TouchableWithoutFeedback style={styles.imageContainer}
-            onPress={() => setFullImageModalOpen(true)} >
-
-              <Image source={{ uri: state.post.image }} style={{ flex: 1, width: null, height: null, resizeMode: 'contain' }} />
-              
-          </TouchableWithoutFeedback> :
-          null
+          { state.post.image &&
+            <TouchableWithoutFeedback style={styles.imageContainer} onPress={() => setFullImageModalOpen(true)} > 
+              <View style={styles.imageStyles}>
+                  <Image source={{ uri: state.post.image }} style={{ flex: 1, width: null, height: null, resizeMode: 'contain' }} />
+              </View>
+            </TouchableWithoutFeedback> 
           }
+
+
           {state.post.author.user.username == userInfo.username ? 
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity style={styles.editBtn} onPress={editBtnHandler}>
@@ -350,13 +349,14 @@ const { container } = styles
           
     
           <View style={{ flexDirection: 'row', alignItems: 'center',paddingVertical: 8, paddingHorizontal: 15 }}>
-            {!state.post.comments.length ? <Text style={styles.text}>(0) COMMENTS</Text> : <Text style={styles.text}>({state.post.comments.length}) COMMENTS</Text>}
+            {!numOfComments ? <Text style={styles.text}>(0) COMMENTS</Text> : <Text style={styles.text}>({state.post.comments.length}) COMMENTS</Text>}
             <FontAwesome5 name="rocket" size={14} color="#777" style={{ textAlign: 'center', paddingHorizontal: 4 }} />
           </View>
         </>
       }
       data={state.post.comments}
       refreshControl={refreshControl}
+      showsVerticalScrollIndicator={false}
       renderItem={({item}) => (
         <View style={styles.commentsContainer}>
           <CommentComponent item={item} />
@@ -367,7 +367,7 @@ const { container } = styles
     
     <View style={styles.UploadBtn}>
         <TouchableOpacity onPress={() => {
-          navigation.navigate('AddComment', { item: state.post, reloadPosts: reloadPosts,  })
+          navigation.navigate('AddComment', { item: state.post, refreshPost: fastRefresh,  })
         }}>
           <FontAwesome5 name="comment" size={18} color="white" style={{ textAlign: 'center' }} />
         </TouchableOpacity>
@@ -412,6 +412,7 @@ const styles = StyleSheet.create({
     color: '#2C3335',
     fontWeight: "700",
   },
+  imageStyles: { backgroundColor: "black", width: "100%", height: 300 },
   descriptionContainer: {
       flex: 1,
   },

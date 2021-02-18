@@ -55,6 +55,7 @@ const refreshControl = <RefreshControl
 
             <FlatList
               data={cartData}
+              showsVerticalScrollIndicator={false}
               refreshControl={refreshControl}
               renderItem={({item}) => (
                 <View style={{ flex: 2 }}>

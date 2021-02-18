@@ -8,12 +8,14 @@ const FETCH_CART_FAILURE = 'FETCH_CART_FAILURE';
 const ADD_ITEM_TO_CART = 'ADD_ITEM_TO_CART';
 const REMOVE_CART_ITEM = 'REMOVE_CART_ITEM';
 const CART_ITEM_DETAILS = 'CART_ITEM_DETAILS';
+const CHECK_ITEM_IN_CART = 'CHECK_ITEM_IN_CART';
 
 // This is the cart initial state
 const initialState = {
     loading: true,
     cartItems: [],
-    errors: ""
+    errors: "",
+    inCart: false,
 }
 
 // These are the cart actions (functions)
@@ -30,6 +32,7 @@ export const fetchCartSuccess = cartData => {
     }
 }
 
+
 export const addItemToCart = id => {
     return{
         type: ADD_ITEM_TO_CART,
@@ -44,10 +47,10 @@ export const removeCartItem = id => {
     }
 }
 
-export const checkItemInCart = cartData => {
+export const checkItemInCart = (id) => {
     return{
-        type: CART_ITEM_DETAILS,
-        payload: cartData
+        type: CHECK_ITEM_IN_CART,
+        payload: id
     }
 }
 
@@ -58,6 +61,15 @@ export const fetchCartFailure = errors => {
     }
 }
 
+export const fetchCheckItemInCart = id => {
+    return dispatch => {
+        if(state.cartItems.id.includes(id) === true)
+            return true
+        else
+            return false
+    }
+}
+   
 export const fetchCartItemDetails = (token, id) => {
     return dispatch => {
         axios.get(`${APIROOTURL}/api/cart_item/${id}/details/`,{
@@ -72,10 +84,10 @@ export const fetchCartItemDetails = (token, id) => {
             .catch(err => {
                 dispatch(fetchCartFailure(err))
             })
-    }
-}
-
-export const fetchCartData = token => {
+    }   
+}  
+   
+export const fetchCartData = token =>  {
     return dispatch => {
         dispatch(fetchCartRequest())
         axios.get(`${APIROOTURL}/api/my_cart/`,{
@@ -103,13 +115,32 @@ export const fetchCartItemRemove = (token, id) => {
           })
           .then(res => {
             dispatch(fetchCartData(token))
-          })
+          }) 
           .catch(err => {
             dispatch(fetchCartFailure(err))
-          })
-    }
+          }) 
+        //   dispatch(fetchCartData(token))
+    } 
 } 
 
+export const fetchCartItemRemoveNoRefresh = (token, id) => {
+    return dispatch => {
+        dispatch(removeCartItem(id))
+        axios.delete(`${APIROOTURL}/api/cart_item/${id}/remove/`, {
+            headers: {
+              'Authorization': `Token ${token}`, 
+            }
+          })
+          .then(res => {
+            // dispatch(fetchCartData(token))
+          }) 
+          .catch(err => {
+            dispatch(fetchCartFailure(err))
+          }) 
+        //   dispatch(fetchCartData(token))
+    } 
+} 
+ 
 export const fetchaddItemToCart = (token, id) => {
     return dispatch => {
         dispatch(addItemToCart(id))
@@ -120,11 +151,13 @@ export const fetchaddItemToCart = (token, id) => {
             }
           })
           .then(res => {
-            dispatch(fetchCartData(token))
+                const cartID = res.data.id
+                dispatch(fetchCartData(token))
+                return cartID
           })
           .catch(err => {
             dispatch(fetchCartFailure(err))
-          })
+          }) 
     }
 }
 
@@ -142,14 +175,14 @@ const cartReducer = (state = initialState, action) => {
                 loading: false,
                 cartItems: action.payload,
                 errors: ''
-            }
+            } 
         case ADD_ITEM_TO_CART:
             return{
-                ...state,
+                ...state, 
                 loading: false,
             }
         case CART_ITEM_DETAILS:
-            return{
+            return{ 
                 ...state,
                 cartItems: action.payload,
                 errors: ''
@@ -159,6 +192,11 @@ const cartReducer = (state = initialState, action) => {
                 ...state,
                 loading: false,
             }
+            case  CHECK_ITEM_IN_CART:
+                return{
+                    ...state,
+                    inCart: true
+                }
         case FETCH_CART_FAILURE:
             return{
                 ...state,

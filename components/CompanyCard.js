@@ -1,30 +1,41 @@
 import React from 'react'
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import { GlobalStyles } from '../styles/GlobalStyles'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation} from '@react-navigation/native'
 
 
-const CompanyCard = ({  item, companyName }) => {
+
+const CompanyCard = ({  item, authUserName }) => {
 
   const navigation = useNavigation();
 
-//  console.log(item);
 
 const { container } = styles
  return(
   <View style={container}>
       <View style={styles.cardContainer}>
-            <Image source={{ uri: item.profile_pic }} style={GlobalStyles.largeRoundedPictContainer} />
-            <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
 
-            { companyName != item.user ? 
-                <TouchableOpacity onPress={() => navigation.navigate("CompanyProfile", 
+      { authUserName === item.user ? 
+          <TouchableOpacity onPress={() => navigation.navigate("Profile", { ID: item.id, })}>
+            <Image source={{ uri: item.profile_pic }} style={GlobalStyles.largeRoundedPictContainer} />
+          </TouchableOpacity> :
+
+
+          <TouchableOpacity onPress={() => navigation.navigate("CompanyProfile", { ID: item.id, })}>
+            <Image source={{ uri: item.profile_pic }} style={GlobalStyles.largeRoundedPictContainer} />
+          </TouchableOpacity> 
+
+      }
+
+
+            <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
+            { authUserName === item.user ? 
+                <TouchableOpacity onPress={() => navigation.navigate("Profile", 
                 { ID: item.id, })}>
-  
                   <Text style={{...GlobalStyles.text, fontWeight: '700'}}>{item.user}</Text>
                 </TouchableOpacity> :
 
-                <TouchableOpacity onPress={() => navigation.navigate("Profile", 
+                <TouchableOpacity onPress={() => navigation.navigate("CompanyProfile", 
                 { ID: item.id, })}>
 
                   <Text style={{...GlobalStyles.text, fontWeight: '700'}}>{item.user}</Text>
@@ -32,11 +43,8 @@ const { container } = styles
             
             }
                 <Text style={GlobalStyles.mutedText}>{item.profile_type.name}</Text>
-                <Text style={{ color: '#218F76', fontWeight: "700" }}>{item.location}</Text>
+                <Text style={{ color: GlobalStyles.greenColor.color, fontWeight: "700" }}>{item.location}</Text>
                 <Text style={{ fontSize: 13,color: '#2C3335', fontWeight: "bold", color: "gold", fontWeight: 'bold'}}>Open</Text>
-                {/* <TouchableOpacity style={styles.cartBtnContainer} >
-                    <Text style={{ backgroundColor: 'red', color: 'white', padding: 5, borderRadius: 12, textAlign: 'center' }}>Add to Cart</Text>
-                </TouchableOpacity> */}
             </View>
       </View>
   </View>

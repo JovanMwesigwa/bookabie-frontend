@@ -1,46 +1,47 @@
-import React, { useState, useEffect, useContext, } from 'react'
-import { StatusBar, StyleSheet, Text, View, TouchableOpacity, Image, KeyboardAvoidingView, Keyboard } from 'react-native'
-import PostProductHeader from '../../components/PostProductHeader'
-import { AuthContext } from '../../context/authentication/Context'
-import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
+import React, { useState,} from 'react'
+import { StatusBar, StyleSheet, Text, View, Keyboard } from 'react-native'
 import axios from 'axios'
-import { Container, Header, Content, Item, Input, ListItem,  Textarea, Radio, Right, Left } from 'native-base';
-import { UserInfoContext } from '../../context/userInfoContext/UserInfoContextProvider';
 import { connect } from 'react-redux'
-import { ActivityIndicator } from 'react-native';
-import { GlobalStyles } from '../../styles/GlobalStyles';
+import { useNavigation, useRoute } from '@react-navigation/native'
+import * as Yup from 'yup'
 
 
 
 
-const AddComment = ({authToken, route, navigation })  => {
+import AppTextInput from '../../components/Forms/AppTextInput'
+import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
+import PostProductHeader from '../../components/PostProductHeader'
+import AppForm from '../../components/Forms/AppForm';
+import SubmitButton from '../../components/Forms/SubmitButton'
+import { hotReloadPosts } from '../../redux/posts/postsRedux';
+import useAuthUser from '../../hooks/useAuthUser'
+import useFetchData from '../../hooks/useFetchData'
 
-    const [ content, setContent ] = useState(null);
+
+const validationSchema = Yup.object().shape({
+    body: Yup.string().required().label("Comment")
+})
+
+const AddComment = ({authToken })  => {
+
+    const navigation = useNavigation()
+    const route = useRoute()
+
     const [ loading, setLoading ] = useState(false);
-    const { authState } = useContext(AuthContext);
-    const { userInfo } = useContext(UserInfoContext);
 
-    const token = authToken
+    const token = authToken;
+
+    const userInfo = useAuthUser(token)
+ 
+    const postData = useFetchData(token, )
 
     //  CAHNGE THIS WARNING USING NAVIGATION.SETOPTIONS
-    const { item,  reloadPosts } = route.params;
+    const { item, refreshPost } = route.params;
 
-    const data = {
-        post: item.id,
-        body: content,
-        author: `Profile for ${userInfo.user}`
-    }
 
-    const postCommentHandler = () => {
+    const submitHandler = async (data) => {
         setLoading(true)
-        setTimeout(() => {
-            submitComment()
-        },1000)
-        
-    }
- 
-    const submitComment = () => {
-        axios.post(`${APIROOTURL}/api/comment/create/`, data, {
+        await axios.post(`${APIROOTURL}/api/comment/create/`, data, {
             headers: {
                 'Authorization': `Token ${token}`, 
                 data: data
@@ -53,91 +54,57 @@ const AddComment = ({authToken, route, navigation })  => {
                 console.log(err);
             })
             setLoading(false)
-            // reloadPosts()
+            // hotReloadPostsFunc(token)
+            refreshPost()
             navigation.goBack()
+            
+            
     }
 
-    // console.log("Profile for ",userInfo.user);
     return (
-
-        <View style={styles.container} onPress={() => Keyboard.dismiss()}>
+        <>
             <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
             <PostProductHeader />
+        <View style={styles.container} onPress={() => Keyboard.dismiss()}>
             
             <Text style={{ color: '#777', fontSize: 12, padding: 15 }}>Your comment:</Text>
             
-            <View style={{ flex: 1, padding: 12}}>
-                    <Image source={{ uri: userInfo.profile_pic }} style={styles.profileContainer} />
-                <View style={{ flexDirection: 'row' }}>
-                    <Textarea rowSpan={4}  style={styles.inputContainer} 
-                        // placeholder='Add your Comment' 
-                        placeholderTextColor="grey" 
-                        value={content}
-                        onChangeText={text => setContent(text)}
-                    />
-                    <TouchableOpacity style={styles.buttonContainer} onPress={postCommentHandler}> 
-                    {
-                        loading ? <ActivityIndicator color="#fff" size={15} style={styles.indicatorStyles} /> :
-                        <Text style={{ fontSize: 15, color: 'white', }}>Send</Text>
-                    }
-                    </TouchableOpacity>
+                <View style={styles.formContainer}>
+
+                    <AppForm 
+                        initialValues={{post: item.id, body: "", author: `Profile for ${userInfo.user}`}}
+                        validationSchema={validationSchema}
+                        onSubmit={(values) => submitHandler(values)}
+                    >
+                        <AppTextInput
+                            name="body"
+                            placeholder="Your Comment Here"
+                            multiline
+                            isInline
+                        />
+                        <View style={{ paddingLeft: 8}}>
+                            <SubmitButton title="Send" loading={loading} />
+                        </View>
+                    </AppForm>
+
                 </View>
-            </View>
         </View>
+    </>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff'
-    },
-    profileContainer: {
-        width: 40,
-        height: 40,
-        // backgroundColor: 'white',
-        borderRadius: 45
-    },
-    authorProfileContainer: {
-        width: 35,
-        height: 35,
-        // backgroundColor: 'white',
-        borderRadius: 35
-    },
-    indicatorStyles: {
-        paddingHorizontal: 15,
-        paddingTop: 4
-    },
-    postContainer: {
-        // flex: 1,
-        flexDirection: 'row', 
-        paddingHorizontal: 15, 
-        // borderBottomWidth: 0.5, 
-        // borderBottomColor: '#ddd',
-        // backgroundColor: '#ddd',
-        // alignItems: 'center',
-        borderTopWidth: 0.5,
-        borderTopColor: '#ddd',
-        paddingVertical: 8
-},
-    inputContainer: {
-        flex: 1,
-        marginVertical: 10,
-        padding: 8,
-        borderRadius: 5,
-        borderWidth: 0.5,
-        borderColor: '#7B8788',
-        margin: 18,
-    
-      },
-      buttonContainer: {
-        padding: 5,
+        backgroundColor: '#fff',
         paddingHorizontal: 8,
-        backgroundColor: '#B83227',
-        borderRadius: 5,
-        marginVertical: 18,
-        height: '30%'
-      },
+    },
+
+    formContainer: { 
+        flexDirection: 'row',
+        width: "100%",
+        justifyContent: "space-around"
+    },
 })
 
 const mapStateToProps = state => {
@@ -146,4 +113,9 @@ const mapStateToProps = state => {
     }
 }
 
-export default connect(mapStateToProps, null)(AddComment)
+const mapDispatchToProps = dispatch => {
+    return {
+        hotReloadPostsFunc: (token) => dispatch(hotReloadPosts(token))
+    }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(AddComment)

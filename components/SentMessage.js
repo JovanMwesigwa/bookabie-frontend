@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import moment from 'moment';
 import { connect } from 'react-redux'
+import { GlobalStyles } from '../styles/GlobalStyles';
  
 
 
@@ -21,7 +22,7 @@ const SentMessagesItem = ({authToken, item}) => {
 
     const fetchUser = async() => {
         try{
-            const resData = await axios.get(`${APIROOTURL}/api/profile/${item.reciever}/detail/`,{
+            const resData = await axios.get(`${APIROOTURL}/api/profile/${item.room_to}/detail/`,{
                 headers: {
                     'Authorization': `Token ${token}`
                 }
@@ -43,12 +44,12 @@ const { container } = styles
     <Surface style={styles.surface}>
         
         <View style={styles.senderProfile}>
-            <Image source={{ uri: userData.profile_pic }} style={{ flex: 1, width: null, height: null, borderRadius: 65 }} />
+            <Image source={{ uri: userData.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
         </View>
             
         <View style={styles.messageContent}>
             <View style={{ flexDirection: 'row' }}>
-                <Text style={styles.greyHeader}>Sent To</Text>
+                <Text style={styles.greyHeader}>Chat with</Text>
                 <Text style={{ paddingHorizontal: 5, fontSize: 13, fontWeight: '700' }}>{userData.user}</Text>
             </View>
             <View>
@@ -58,9 +59,7 @@ const { container } = styles
             </View>
         </View>
         
-        <MaterialCommunityIcons name="email-check-outline" size={18} color='green' />
-
-        
+        <MaterialCommunityIcons name="account-group" size={18} color='green' />
     </Surface>
 //   </View>
   ) 
@@ -84,8 +83,8 @@ const styles = StyleSheet.create({
     height: 95,
     width: "85%",
     borderRadius: 5,
-    borderTopWidth: 0.8,
-    borderTopColor: "#ddd",
+    borderBottomWidth: 0.8,
+    borderBottomColor: "#ddd",
   },
   SentMsgTime: {
     fontSize: 10,
@@ -107,10 +106,7 @@ const styles = StyleSheet.create({
       fontSize: 12,
   },
   senderProfile: {
-      borderWidth: 0.5,
-      width: 45,
-      height: 45,
-      borderRadius: 65
+
   }
 })
 

@@ -1,37 +1,28 @@
-import React,{ useState, useEffect, useContext, }  from 'react'
-import { View,  StatusBar,  Image } from 'react-native'
-import { Divider, Surface, Text } from 'react-native-paper';
-import { StyleSheet } from 'react-native';
-import { AuthContext } from '../context/authentication/Context'
-import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import axios from 'axios';
+import React,{  useEffect, }  from 'react'
+import { View, StyleSheet,  Image } from 'react-native'
+import { Surface, Text } from 'react-native-paper';
 import moment from 'moment';
 import { connect } from 'react-redux'
 
+
+
+
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { GlobalStyles } from '../styles/GlobalStyles';
+import useFetchData from '../hooks/useFetchData'
 
 
 const MessagesItem = ({authToken, item}) => {
 
     const token = authToken;
 
-    const [ userData, setUserData ] = useState({});
+    const userID = item.room_to;
 
-    const fetchUser = async() => {
-        try{
-            const resData = await axios.get(`${APIROOTURL}/api/profile/${item.sender}/detail/`,{
-                headers: {
-                    'Authorization': `Token ${token}`
-                }
-            })
-            setUserData(resData.data);
-        }catch(err){
-            console.log(err);
-        }
-    }
+    const { data,  request } = useFetchData(token, `api/profile/${userID}/detail/`)
+
 
     useEffect(() => {
-        fetchUser();
+        request();
     },[])
 
 const { container } = styles
@@ -40,13 +31,13 @@ const { container } = styles
     <Surface style={styles.surface}>
         
         <View style={styles.senderProfile}>
-            <Image source={{ uri: userData.profile_pic }} style={{ flex: 1, width: null, height: null, borderRadius: 65 }} />
+            <Image source={{ uri: data.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
         </View>
             
         <View style={styles.messageContent}>
             <View style={{ flexDirection: 'row' }}>
-                <Text style={styles.greyHeader}>Inbox from</Text>
-                <Text style={{ paddingHorizontal: 5, fontSize: 13, fontWeight: "700" }}>{userData.user}</Text>
+                <Text style={styles.greyHeader}>Chat with</Text>
+                <Text style={{ paddingHorizontal: 5, fontSize: 13, fontWeight: "700" }}>{data.user}</Text>
             </View>
             <View>
                 <Text numberOfLines={2}>{item.msg_content}</Text>
@@ -54,9 +45,7 @@ const { container } = styles
             </View>
         </View>
         
-        {/* <MaterialCommunityIcons name="email-outline" size={18} color='#B83227' /> */}
-
-        
+        <MaterialCommunityIcons name="account" size={18} color='green' />
     </Surface>
   ) 
 }
@@ -77,8 +66,8 @@ const styles = StyleSheet.create({
     height: 95,
     width: "85%",
     borderRadius: 5,
-    borderTopWidth: 0.8,
-    borderTopColor: "#ddd",
+    borderBottomWidth: 0.8,
+    borderBottomColor: "#ddd",
   },
   SentMsgTime: {
     fontSize: 10,
@@ -99,10 +88,7 @@ const styles = StyleSheet.create({
       fontSize: 12,
   },
   senderProfile: {
-      borderWidth: 0.5,
-      width: 45,
-      height: 45,
-      borderRadius: 65
+
   }
 })
 

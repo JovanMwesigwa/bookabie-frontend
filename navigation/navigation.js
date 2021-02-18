@@ -1,12 +1,9 @@
 import React from 'react'
-import { Text, TouchableRipple } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
-import 'react-native-gesture-handler';
-import { GlobalStyles } from '../styles/GlobalStyles'
-
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { FontAwesome, Icon, Entypo } from '@expo/vector-icons';
-import { NavBar } from 'galio-framework';
+import { connect } from 'react-redux'
+import {  Entypo } from '@expo/vector-icons';
+
 
 // These are screen imports
 import Notifications from '../screens/Notifications/Notifications';
@@ -21,30 +18,31 @@ import Category from '../screens/Category/Category';
 import HeaderComponent from '../components/header';
 import TopProducts from '../screens/TopProducts/TopProducts';
 import CompanyProfile from '../screens/CompanyProfile/companyProfile';
-import { MyTheme } from '../themes/MyTheme'
-import { DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
+
 
 // These are navigation imports
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack'
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
+
+
+
 import ProductDetails from '../screens/ProductDetails/ProductDetails';
 import CompanyList from '../screens/CompanyList/CompanyList';
 import CompanyDetails from '../screens/CompanyDetails/CompanyDetails';
 import DrawerContent  from '../screens/DrawerContent/DrawerContent'
 import ProductEdit from '../screens/ProductEdit/ProductEdit';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import PopularProducts from '../components/PopularProducts';
 import PostProduct from '../screens/PostProduct/PostProduct';
 import EditProfile from '../screens/EditProfile/EditProfile';
 import AddComment from '../screens/AddComment/AddComment';
+import { GlobalStyles } from '../styles/GlobalStyles'
 import SearchResults from '../screens/SearchResults/SearchResults';
 import Messages from '../screens/Messages/Messages';
 import ChatRoom from '../screens/Chat/ChatRoom';
-import { TouchableHighlight } from 'react-native-gesture-handler';
-import { connect } from 'react-redux'
+import MainTabsNavigation from './MainTabsNavigation';
+
 
 
 // These are navigation initiallization variables
@@ -84,7 +82,8 @@ function MyTabs({ navigation, authToken }) {
        }}
       >
 
-      <Tab.Screen name="Find" 
+    <Tab.Screen 
+    name="Find" 
       component={Find}
         options={{
           tabBarLabel: "Home",
@@ -110,14 +109,6 @@ function MyTabs({ navigation, authToken }) {
         )
       }} />
       
-      {/* <Tab.Screen name="Cart" component={Cart}
-        options={{
-          tabBarLabel: "My Cart",
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="shopping-cart" color={color} size={size} />
-          )
-        }} /> */}
-
       <Tab.Screen name="Profile" component={Profile}
         options={{
           tabBarLabel: "Profile",
@@ -274,21 +265,6 @@ const SettingsStackNavigator = ({navigation}) => {
   )
 }
 
-// Notifications stack navigator
-
-const NoficationsStackNavigator = ({navigation,}) => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name="Notifications" 
-        component={Notifications}
-        options={{ 
-          // headerShown: false,
-          headerTitle: () => <HeaderComponent Cart={Cart} />
-        }}/>
-    </Stack.Navigator>
-  )
-}
 
 // Root Drawer navigator
 const NavigationComponent = ({ navigation,  }) => {
@@ -305,7 +281,8 @@ const NavigationComponent = ({ navigation,  }) => {
             // backgroundColor: '#d2fae5',
         }}
     >
-      <Drawer.Screen name="Home" component={HomeStackNaviator} />
+      {/* <Drawer.Screen name="Home" component={HomeStackNaviator} /> */}
+      <Drawer.Screen name="HomeTab" component={MainTabsNavigation} />
       {/* <Drawer.Screen name="Nofications" component={NoficationsStackNavigator} />
       <Drawer.Screen name="Settings" component={SettingsStackNavigator} /> */}
     </Drawer.Navigator>

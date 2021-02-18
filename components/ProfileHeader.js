@@ -1,15 +1,9 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import { AntDesign } from '@expo/vector-icons';
+import { View, Text, StyleSheet } from 'react-native'
 import { GlobalStyles } from '../styles/GlobalStyles'
-import { useNavigation } from '@react-navigation/native';
 
 
 const ProfileHeader = ({ profileName }) => {
-
-    const navigation = useNavigation();
-
-    // console.log(profileName);
 
 const { container } = styles
  return(
