@@ -2,6 +2,8 @@ import React, { useState, useContext} from 'react'
 import { View, StyleSheet, Image, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight   } from 'react-native'
 import {  AntDesign, Feather, Entypo } from '@expo/vector-icons';
 import { Text } from 'react-native-paper';
+import { BlurView } from 'expo-blur';
+
 import { useNavigation } from '@react-navigation/native';
 import { GlobalStyles } from '../styles/GlobalStyles'
 import axios from 'axios'
@@ -199,7 +201,9 @@ const { container } = styles
 
         {item.image && 
         <TouchableWithoutFeedback onPress={() => setFullImageModal(true)}>
-          <Image source={{uri: item.image }} style={{ width: "100%", height: 180}} />
+          <BlurView intensity={100}>
+            <Image source={{uri: item.image }} style={{ width: "100%", height: 180}} />
+          </BlurView>
         </TouchableWithoutFeedback> 
         }
           <View style={styles.commentsContainer}>

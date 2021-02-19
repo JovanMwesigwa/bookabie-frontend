@@ -2,25 +2,25 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { AntDesign } from '@expo/vector-icons';
 import { GlobalStyles } from '../styles/GlobalStyles'
-import { useNavigation } from '@react-navigation/native';
+// import { useNavigation } from '@react-navigation/native';
 
 
-const PostProductHeader = ({submitHandler}) => {
+const PostProductHeader = ({submitHandler, onPress}) => {
 
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
 
 const { container } = styles
  return(
     <View>
-    <View style={{...styles.headerContainer }}>
-      <TouchableOpacity onPress={() => navigation.goBack()} >
-        <AntDesign name="close" size={25} color="black" />
-      </TouchableOpacity>
+      <View style={{...styles.headerContainer }}>
+        <TouchableOpacity onPress={onPress} >
+          <AntDesign name="close" size={25} color="black" />
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={submitHandler}>
-          <Text style={{...GlobalStyles.headerText, color: '#B83227', fontWeight: 'bold', fontSize: 16}}>Post</Text>
-      </TouchableOpacity>
-      </View>
+        <TouchableOpacity onPress={submitHandler}>
+            <Text style={{...GlobalStyles.headerText, color: '#B83227', fontWeight: 'bold', fontSize: 16}}>Post</Text>
+        </TouchableOpacity>
+        </View>
     </View>
   )
 }

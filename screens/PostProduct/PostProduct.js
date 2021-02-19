@@ -1,8 +1,9 @@
-import React, {useState } from 'react'
+import React, {useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, StatusBar } from 'react-native'
 import { ListItem,  Radio, Right, Left } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import Constants from 'expo-constants';
 import axios from 'axios';
 import { connect } from 'react-redux'
 import * as Yup from 'yup'
@@ -29,39 +30,33 @@ const validationSchema = Yup.object().shape({
 
 const PostProduct = ({reloadPosts, navigation, authToken }) => {
 
-  const [selectedImage, setSelectedImage] = useState(null);
-
   const [ load, setLoad ] = useState(false)
+
+  const [ image, setImage ] = useState(null);
+
+  const getPermissions = async() => {
+    const { status } = await   ImagePicker.requestCameraPermissionsAsync()
+    if(!status === 'granted') return alert("Sorry, you need permission to work with this..")
+  }
 
 
   const token = authToken
 
+  const pickImage = async() => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    })
 
-  let openImagePickerAsync = async () => {
-    let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      alert("Permission to access camera roll is required!");
-      return;
-    }
-
-    const options = {
-      noData: true,
-    };
-    let pickerResult = await ImagePicker.launchImageLibraryAsync(options, response => {
-      console.log("Image response", response);
-    });
-
-    
-
-    if (pickerResult.cancelled === true) {
-      return;
-    }
-    // setSelectedImage({ localUri: pickerResult.uri });
-    setSelectedImage(pickerResult.uri);
-
-
+    if(!result.cancelled) setImage(result)
   }
+
+
+  useEffect(() => {
+    getPermissions()
+  },[])
 
   const loadPost = () => {
     setTimeout(() => {
@@ -71,6 +66,18 @@ const PostProduct = ({reloadPosts, navigation, authToken }) => {
     },1000)
   }
 
+  // //create object with uri, type, image name
+var photo = {
+  uri: image.uri,
+  type: 'image/jpeg',
+  name: 'photo.jpg',
+};
+
+  //use formdata
+  var formData = new FormData(); 
+  //append created photo{} to formdata
+  formData.append('image', photo);
+  //use axios to POST
 
   const submitHandler = async(data) => {
 
@@ -78,8 +85,9 @@ const PostProduct = ({reloadPosts, navigation, authToken }) => {
     
     await axios.post(`${APIROOTURL}/api/post/create/`, data, {
         headers: {
-          // "Content-Type": "multipart/form-data",
-            'Authorization': `Token ${token}`, 
+            'Authorization': `Token ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data;', 
             data: data
           }
         })
@@ -98,15 +106,15 @@ const { container } = styles
  return(
   <View style={container}>
         <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-    <PostProductHeader submitHandler={submitHandler} />
+        <PostProductHeader submitHandler={submitHandler} onPress={() => navigation.goBack()} />
     <ScrollView showsVerticalScrollIndicator={false} style={{ paddingHorizontal: 10 }}>
 
       <View style={{ padding: 15, justifyContent: 'center', alignItems: 'center' }}>
       </View>
             <AppForm  
-              initialValues={{ title: "", description: "", catergory: "Gadgets and Electronics", price: "", offer: "", available: true, image: null }}
+              initialValues={{ title: "", description: "", catergory: "Gadgets and Electronics", price: "", offer: "", available: true, image: formData }}
               validationSchema={validationSchema}
-              onSubmit={(values) => submitHandler(values)}
+              onSubmit={(values) => console.log(values)}
             >
               <AppTextInput 
                 name="title"
@@ -132,24 +140,17 @@ const { container } = styles
                 keyboardType="number-pad"
               />
 
-          <TouchableOpacity >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 12, borderColor: '#ddd', borderWidth: 1,borderStyle: 'dashed', padding: 8, borderRadius: 12 }}>
-            <MaterialIcons name="add-a-photo" size={18} color="#2C3335" />  
-            <Text style={{ paddingHorizontal: 15, fontSize: 15, color: '#777', }}>Upload Photo</Text>
+          <View>
+            
           </View>
-        </TouchableOpacity>
 
-        {
-          selectedImage !== null ? 
-          <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: selectedImage }}
-                style={styles.thumbnail}
-              />
-          </View> 
-          :
-          null
-      }
+          <TouchableOpacity onPress={pickImage}>
+          <View style={styles.imagePickerStyles}>
+            <MaterialIcons name="add-a-photo" size={18} color="#2C3335" />  
+            <Text style={styles.imageTextStyles}>Upload Photo</Text>
+          </View>
+          </TouchableOpacity>
+
 
           <ListItem selected={true}>
 
@@ -183,7 +184,8 @@ const styles = StyleSheet.create({
   //  paddingHorizontal: 15,
    backgroundColor: '#fff'
   },
-  
+  imagePickerStyles: { flexDirection: 'row', alignItems: 'center', marginVertical: 12, borderColor: '#ddd', borderWidth: 1,borderStyle: 'dashed', padding: 8, borderRadius: 12 },
+  imageTextStyles: { paddingHorizontal: 15, fontSize: 15, color: '#777', },
   thumbnail: {
     flex: 1,
     width: null,
