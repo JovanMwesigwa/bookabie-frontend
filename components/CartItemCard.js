@@ -25,25 +25,25 @@ const CartItemCard = ({ item, refreshItems, authToken, removeCartItemFunc }) => 
 const { container } = styles
  return(
   <View style={container}>
-      <View style={styles.cardContainer}>
+       <View style={styles.cardContainer}>
             { 
-              item.product.image ? <Image source={{uri:item.product.image}} style={{ flex: 2, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} /> 
+              item.image ? <Image source={{uri:item.image}} style={{ flex: 2, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} /> 
               :
               <View></View> 
             }
             <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
                 <TouchableOpacity style={{ flex: 1 }} 
-                  onPress={() => navigation.navigate("Product Details", { post: item, ID: item.product.id,})}
+                  onPress={() => navigation.navigate("Product Details", { post: item, ID: item.id,})}
                 >
-                  <Text numberOfLines={1} style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{item.product.title}</Text>
+                  <Text numberOfLines={1} style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{item.title}</Text>
                 </TouchableOpacity>
-                <Text numberOfLines={1} style={{...GlobalStyles.greyTextSmall, flex: 1, fontSize: 13}}>From - {item.product.author.user}</Text>
+                <Text numberOfLines={1} style={{...GlobalStyles.greyTextSmall, flex: 1, fontSize: 13}}>From - {item.author.user}</Text>
                 {
-                  item.product.price ? <Text style={{ color: '#218F76', fontWeight: "700",  }}>$ {item.product.price}</Text> :
+                  item.price ? <Text style={{ color: '#218F76', fontWeight: "700",  }}>$ {item.price}</Text> :
                   <Text style={{  flex: 1, color: '#218F76', fontWeight: "700",  }}>OFFER</Text>
                 } 
                 {
-                  item.product.offer ? <Text style={styles.offerStyles}>{item.product.offer} Off</Text> :
+                  item.offer ? <Text style={styles.offerStyles}>{item.offer} Off</Text> :
                   null
                 
                 }
@@ -54,7 +54,7 @@ const { container } = styles
                   }
                 </TouchableOpacity>
             </View>
-      </View>
+      </View> 
   </View>
   )
 }

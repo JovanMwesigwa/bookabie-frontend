@@ -1,34 +1,40 @@
-import React, { useContext, useReducer, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import axios from 'axios';
-import { View, Text, StyleSheet, ScrollView, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, TextInput } from 'react-native'
-import {  Ionicons, Entypo, AntDesign, Feather, MaterialIcons } from '@expo/vector-icons';
-import OtherHeaderComponent from '../../components/OtherHeaderComponent';
-import { CompanyContext } from '../../context/profiles/CompanyContextProvider';
+import * as Yup from 'yup';
+import { View, Text, StyleSheet, ScrollView, StatusBar, TextInput } from 'react-native'
+import { Entypo,  MaterialIcons } from '@expo/vector-icons';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
-import ReadMore from '@fawazahmed/react-native-read-more';
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { AuthContext } from '../../context/authentication/Context'
 import { Textarea } from 'native-base';
 import EditProfileHeader from '../../components/EditProfileHeader';
 
 
+import AppForm from '../../components/Forms/AppForm'
+import AppTextInput from '../../components/Forms/AppTextInput';
+import AppImagePickerTwo from '../../components/Forms/AppImagePickerTwo';
+import AppImagePickerThree from '../../components/Forms/AppImagePickerThree';
+import SubmitButton from '../../components/Forms/SubmitButton';
+
+
+const validationSchema = Yup.object().shape({
+  location: Yup.string().label("Location"),
+  description: Yup.string().label("Description"),
+  contact:  Yup.string().label("Contact"),
+  workingHours: Yup.string().label("WorkingHours"),
+  workingDays: Yup.string().label("WorkingDays"),
+  profilePic: Yup.string().label("ProfilePic"),
+  coverPhoto: Yup.string().label("CoverPhoto"),
+  // profileType:  Yup.string().label("ProfileType"),
+})
+
+
 const EditProfile = ({  navigation, route }) => {
 
-  const { Profile, RefreshFetchedUser } = route.params;
+  const { Profile, RefreshFetchedUser, token, fetchUserProfile } = route.params;
 
-  const [ contact, setContact ] = useState(Profile.contact);
-  const [ location, setLocation ] = useState(Profile.location);
-  const [ workingHours, setWorkingHours ] = useState(Profile.working_hours);
-  const [ workingDays, setWorkingDays ] = useState(Profile.working_days);
-  const [ user, setUser ] = useState(Profile.user);
-  const [ description, setDescription ] = useState(Profile.description);
-  const [ profile_type, setProfile_type ] = useState(Profile.profile_type);
-  const [ cover_photo, setCover_photo ] = useState(Profile.cover_photo);
-  const [ profile_pic, setProfile_pic] = useState(Profile.profile_pic);
+  const [ load, setLoad ] = useState(null)
 
-  const { authState } = useContext(AuthContext);
-
-  const token = authState.token
 
   const goToProfile = () => {
     navigation.navigate('Profile')
@@ -38,16 +44,33 @@ const EditProfile = ({  navigation, route }) => {
     RefreshFetchedUser()
   }
 
-  const data = {
-      working_days: workingDays,
-      working_hours: workingHours,
-      location: location,
-      description: description,
-      contact: contact,
-  }
+  const submitHandler = async(values) => {
+
+    setLoad(true)
+    const data = new FormData()
+
+    var coverPhotoUri = {
+      uri: values.coverPhoto.uri,
+      type: 'image/jpeg',
+      name: 'photo.jpg',
+    };
+
+    var profilephotoUri = {
+      uri: values.profilephoto.uri,
+      type: 'image/jpeg',
+      name: 'photo.jpg',
+    };
+
+    
+    data.append("location", values.location);
+    data.append("description", values.description);
+    data.append("contact", values.contact);
+    data.append("working_hours", values.workingHours);
+    data.append("working_days", values.workingDays);
+    data.append("cover_photo", coverPhotoUri);
+    data.append("profile_pic", profilephotoUri);
 
 
-  const submitHandler = async() => {
     await axios.put(`${APIROOTURL}/api/profile/${Profile.id}/update/`, data, {
         headers: {
             'Authorization': `Token ${token}`, 
@@ -55,154 +78,80 @@ const EditProfile = ({  navigation, route }) => {
           }
         })
         .then(res => {
-            // console.log(res.data);
         })
         .catch(err => {
             console.log(err);
         })
+        fetchUserProfile()
         calledRefreshFunc()
         goToProfile()
+        setLoad(false)
+
   }
 
 
 const { container } = styles
  return(
+   <>
+      <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
+     <EditProfileHeader submitHandler={submitHandler} />
 
-  <>
-    <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-    <EditProfileHeader submitHandler={submitHandler} />
-  <ScrollView style={container}>
+      <ScrollView style={container}>
+        <AppForm
+          initialValues={{ location: Profile.location, description: Profile.description, contact: Profile.contact, workingHours: Profile.working_hours, workingDays: Profile.working_days, profilephoto: "", coverPhoto: "" }}
+          validationSchema={validationSchema}
+          onSubmit={submitHandler}
+        >
+
+        <AppImagePickerTwo name="coverPhoto"  placeHolder="Change cover pic" pic={Profile.cover_photo}/>
+
+        <AppImagePickerThree name="profilephoto" placeHolder="Change profile pic" pic={Profile.profile_pic} />
+
+          <AppTextInput 
+            name="location"
+            placeholder={Profile.location}
+            icon="globe" 
+          />
+
+          <AppTextInput 
+            name="description"
+            multiline
+            placeholder={Profile.description}
+            icon="user-o" 
+          />
+
+          <AppTextInput 
+            name="contact"
+            placeholder={Profile.contact}
+            icon="phone" 
+          />
+
+          <AppTextInput 
+            name="workingHours"
+            placeholder={Profile.working_hours}
+            icon="phone" 
+          />
+
+          <AppTextInput 
+            name="workingDays"
+            placeholder={Profile.working_days}
+            icon="phone" 
+          />
 
 
-  <ImageBackground style={styles.coverImageHeader} source={{uri: cover_photo}}>
-    <View style={styles.child}>
-        <TouchableOpacity style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 0.5, borderColor: 'white', marginVertical: 12, width: '40%', borderColor: 'white', padding: 5, borderRadius: 12 }}>
-                <MaterialIcons name="add-a-photo" size={18} color="#ddd" />  
-                <Text style={{ paddingHorizontal: 15, fontSize: 13, color: '#ddd', }}>Remove Photo</Text>
-          </View>
-        </TouchableOpacity>
-    </View>
-  </ImageBackground>
+          <SubmitButton title="Edit" loading={load} />
+        </AppForm>
 
-  <View style={styles.footer}>
-
-    <View style={{ flex: 1, marginBottom: 12, paddingHorizontal: 20 }} >
-
-    <TouchableOpacity style={styles.profilephoto} >
-        <Image source={{ uri: profile_pic }} style={styles.profPic}/>
-    </TouchableOpacity>
-     
-     {/* <View style={{ flexDirection: 'row',  }}>
-        <View >
-          <View style={{ flexDirection: 'row'}}>
-                <TextInput 
-                    value={user}
-                    onChangeText={text => setUser(text)}
-                    style={styles.userUnput}
-            />
-
-          </View>
-
-                <TextInput 
-                    value={profile_type}
-                    onChangeText={text => setProfile_type(text)}
-                    style={styles.userUnput}
-                />
-        </View>
-     </View> */}
-
-    </View>
-
-    <View style={{ flex: 1, paddingHorizontal: 20 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
-            <Entypo name="calendar" size={18} color="#FF5A09" /> 
-        </View>
-        <View style={{ paddingHorizontal: 5}}>
-            <TextInput 
-                    value={workingDays}
-                    onChangeText={text => setWorkingDays(text)}
-                    style={styles.input}
-            />
-            <TextInput 
-                    value={workingHours}
-                    onChangeText={text => setWorkingHours(text)}
-                style={styles.input}
-             />
-          {/* <Text style={{...styles.mainText, fontWeight: '600'}}>Monday to Sunday</Text> 
-          <Text  style={{...styles.secondaryText, fontSize: 13}}>08:00AM - 09:00PM</Text>  */}
-        </View>
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
-          <Entypo name="location-pin" size={18} color="#FF5A09" />
-        </View>
-        <View style={{   paddingHorizontal: 5 }}>
-
-            <TextInput 
-                value={location}
-                onChangeText={text => setLocation(text)}
-                style={styles.input}
-             />
-          {/* <Text style={{...styles.mainText,fontWeight: '600'}}>{Profile.location}</Text>  */}
-        </View>
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center',  }}>
-        <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
-          <Entypo name="globe" size={18} color="#FF5A09" />
-        </View >
-
-        <View  style={{   paddingHorizontal: 5 }}>
-            <TextInput placeholder="contact"
-                value={contact}
-                onChangeText={text => setContact(text)}
-                style={styles.input}
-             />
-        </View>
-
-      </View>
-    </View>
-
-    <View style={{ borderBottomWidth: 0.5, borderBottomColor: '#ddd', paddingTop: 8 }}>
-
-    </View>
-
-    <View style={{ flex: 1, marginVertical: 8, paddingHorizontal: 20 }}>
-        <View style={{ flex: 1 }}>
-            <Text style={styles.headerFont}>About Us</Text>
-        </View>
-        <View style={{ flex: 1, }}>
-          
-          
-        <Textarea rowSpan={5}  style={styles.inputContainer}  
-          value={description}
-          onChangeText={text => setDescription(text)}
-          style={styles.input}
-        />
-              
-          {/* </ReadMore> */}
-        </View>
-    </View>
-
-    <View>
-      <View style={{ flex: 1, marginTop: 8, paddingHorizontal: 20 }}>
-          <Text style={styles.headerFont}>Location</Text>
-      </View>
-      <View style={{ flex: 2 }}>
-
-      </View>
-    </View>
-
-  </View>
- </ScrollView>
-</>
+      </ScrollView>
+   </>
  )
 }
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "#fff",
    flex: 1,
+   paddingHorizontal: 10
   },
   cardText: {
     padding: 24
@@ -280,25 +229,18 @@ userUnput: {
   
   },
   headerTextContainer: {
-    // flexDirection: "row",
-    // alignItems: "center",
-    // justifyContent: 'center',
     position: "absolute",
     bottom: 1,
-    // paddingTop:24
-    // left: 12
   },
   headerText: {
     paddingHorizontal: 15,
     flexDirection: "row",
-    // paddingBottom: 18
   },
   descriptionContainer: {
     backgroundColor: 'white',
     flexDirection: 'row',
     width: '100%',
     height: 100,
-    // flex: 1,
     margin: 4,
     marginLeft: 0,
     marginTop: 8,
@@ -327,7 +269,6 @@ userUnput: {
     flex: 1,
     padding: 8,
     backgroundColor: 'white',
-    // borderRadius: 14,
     marginTop: 8,
     marginBottom: 5,
     elevation: 1,
@@ -335,4 +276,5 @@ userUnput: {
   },
 
 })
+
 export default EditProfile;

@@ -55,7 +55,7 @@ const { container } = styles
             color={GlobalStyles.darkFontColor.color}  />
           </TouchableOpacity>
           <View style={styles.cartNumberContainer}>
-              <Text style={styles.cartNumber}>{cartData.length}</Text>
+              <Text style={styles.cartNumber}>{cartData.product.length}</Text>
           </View>
        </View>
     </View>

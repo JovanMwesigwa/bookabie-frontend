@@ -1,16 +1,13 @@
 import React, {useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, StatusBar } from 'react-native'
+import { View, Text, StyleSheet, ScrollView,  Image, StatusBar } from 'react-native'
 import { ListItem,  Radio, Right, Left } from 'native-base';
-import { MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import Constants from 'expo-constants';
 import axios from 'axios';
 import { connect } from 'react-redux'
 import * as Yup from 'yup'
 
 
 
-
+import AppImagePicker from '../../components/Forms/AppImagePicker'
 import PostProductHeader from '../../components/PostProductHeader';
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
@@ -24,7 +21,8 @@ const validationSchema = Yup.object().shape({
   title: Yup.string().required().max(255).label("Title"),
   description: Yup.string().label("Description"),
   price: Yup.number().label("Price"),
-  offer: Yup.string().label("Offer")
+  offer: Yup.string().label("Offer"),
+  image: Yup.string().label("Image")
 })
 
 
@@ -32,31 +30,7 @@ const PostProduct = ({reloadPosts, navigation, authToken }) => {
 
   const [ load, setLoad ] = useState(false)
 
-  const [ image, setImage ] = useState(null);
-
-  const getPermissions = async() => {
-    const { status } = await   ImagePicker.requestCameraPermissionsAsync()
-    if(!status === 'granted') return alert("Sorry, you need permission to work with this..")
-  }
-
-
   const token = authToken
-
-  const pickImage = async() => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    })
-
-    if(!result.cancelled) setImage(result)
-  }
-
-
-  useEffect(() => {
-    getPermissions()
-  },[])
 
   const loadPost = () => {
     setTimeout(() => {
@@ -66,28 +40,30 @@ const PostProduct = ({reloadPosts, navigation, authToken }) => {
     },1000)
   }
 
-  // //create object with uri, type, image name
-var photo = {
-  uri: image.uri,
-  type: 'image/jpeg',
-  name: 'photo.jpg',
-};
 
-  //use formdata
-  var formData = new FormData(); 
-  //append created photo{} to formdata
-  formData.append('image', photo);
-  //use axios to POST
+  
 
-  const submitHandler = async(data) => {
+  const submitHandler = async(values) => {
 
     setLoad(true)
+
+    const data = new FormData()
+
+    var photo = {
+        uri: values.image.uri,
+        type: 'image/jpeg',
+        name: 'photo.jpg',
+      };
+
+    data.append("title", values.title);
+    data.append("description", values.description);
+    data.append("price", values.price);
+    data.append("offer", values.offer);
+    data.append("image", photo);
     
     await axios.post(`${APIROOTURL}/api/post/create/`, data, {
         headers: {
             'Authorization': `Token ${token}`,
-            'Accept': 'application/json',
-            'Content-Type': 'multipart/form-data;', 
             data: data
           }
         })
@@ -108,49 +84,45 @@ const { container } = styles
         <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
         <PostProductHeader submitHandler={submitHandler} onPress={() => navigation.goBack()} />
     <ScrollView showsVerticalScrollIndicator={false} style={{ paddingHorizontal: 10 }}>
-
+ 
       <View style={{ padding: 15, justifyContent: 'center', alignItems: 'center' }}>
       </View>
             <AppForm  
-              initialValues={{ title: "", description: "", catergory: "Gadgets and Electronics", price: "", offer: "", available: true, image: formData }}
+              initialValues={{ title: "", description: "", catergory: "Gadgets and Electronics", price: "", offer: "", available: true, image: "" }}
               validationSchema={validationSchema}
-              onSubmit={(values) => console.log(values)}
+              onSubmit={submitHandler}
             >
               <AppTextInput 
                 name="title"
-                placeholder='Add an Interesting Title' 
+                placeholder='Add an Interesting Title'
+                icon="user-o" 
                 multiline
                />
 
               <AppTextInput 
                 name="description"
                 placeholder='Your Product Description ' 
+                icon="user-o"
                 multiline 
-              />
+              /> 
 
               <AppTextInput 
                 placeholder='price' 
                 name="price"
+                icon="user-o"
                 keyboardType="number-pad"
               />
 
               <AppTextInput 
                 placeholder='Any Offer (Optional) '
                 name="offer"
+                icon="user-o"
                 keyboardType="number-pad"
               />
 
-          <View>
-            
-          </View>
+         
 
-          <TouchableOpacity onPress={pickImage}>
-          <View style={styles.imagePickerStyles}>
-            <MaterialIcons name="add-a-photo" size={18} color="#2C3335" />  
-            <Text style={styles.imageTextStyles}>Upload Photo</Text>
-          </View>
-          </TouchableOpacity>
-
+          <AppImagePicker name="image" />
 
           <ListItem selected={true}>
 
@@ -184,8 +156,7 @@ const styles = StyleSheet.create({
   //  paddingHorizontal: 15,
    backgroundColor: '#fff'
   },
-  imagePickerStyles: { flexDirection: 'row', alignItems: 'center', marginVertical: 12, borderColor: '#ddd', borderWidth: 1,borderStyle: 'dashed', padding: 8, borderRadius: 12 },
-  imageTextStyles: { paddingHorizontal: 15, fontSize: 15, color: '#777', },
+
   thumbnail: {
     flex: 1,
     width: null,
@@ -218,27 +189,3 @@ const mapDispatchToProps = dispatch => {
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(PostProduct);
-
-// //create object with uri, type, image name
-// var photo = {
-//   uri: IMAGE_PATH,
-//   type: 'image/jpeg',
-//   name: 'photo.jpg',
-// };
-
-// //use formdata
-// var formData = new FormData(); 
-// //append created photo{} to formdata
-// formData.append('image', photo);
-// //use axios to POST
-// axios({
-//   method: 'POST',
-//   url: api_url +  'customer/upload-avatar',
-//   data: formData,
-//   headers: {
-//       'Authorization': "Bearer  "  +  YOUR_BEARER_TOKEN,
-//       'Accept': 'application/json',
-//       'Content-Type': 'multipart/form-data;'    
-//   }}) .then(function (response) { console.log(response)})
-//   .catch(function (error) { console.log(error.response)
-// });

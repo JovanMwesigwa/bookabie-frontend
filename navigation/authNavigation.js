@@ -8,7 +8,7 @@ import Login from '../screens/Registration/Login';
 import { createStackNavigator } from '@react-navigation/stack'
 import Signup from '../screens/Registration/Signup';
 import SplashScreen from '../screens/Registration/SplashScreen';
-
+import CreateProfileStack from '../screens/Registration/CreateProfileStack';
 const AuthStack = createStackNavigator();
 
 
@@ -36,6 +36,12 @@ const AuthNavigation = (props) => {
           <AuthStack.Screen
           name='Signup'
           component={Signup}
+          options={{
+            headerShown: false
+        }} />
+        <AuthStack.Screen
+          name='CreateProfile'
+          component={CreateProfileStack}
           options={{
             headerShown: false
         }} />

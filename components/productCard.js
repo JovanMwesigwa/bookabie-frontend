@@ -1,48 +1,66 @@
 import React, { useState, useContext} from 'react'
-import { View, StyleSheet, Image, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight   } from 'react-native'
-import {  AntDesign, Feather, Entypo } from '@expo/vector-icons';
-import { Text } from 'react-native-paper';
+import { View, StyleSheet, Image, TouchableOpacity, Text, TouchableWithoutFeedback, TouchableHighlight   } from 'react-native'
+import {  AntDesign, Feather, Entypo, MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-
 import { useNavigation } from '@react-navigation/native';
-import { GlobalStyles } from '../styles/GlobalStyles'
 import axios from 'axios'
 import moment from 'moment';
-import FullImageModal from './Modals/FullImageModal';
-import { UserInfoContext } from '../context/userInfoContext/UserInfoContextProvider'
-import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
-import ShareDialogBox from './ShareDialogBox/ShareDialogBox';
-import { fetchaddItemToCart, fetchCartItemRemoveNoRefresh } from '../redux/cart/CartRedux';
 import { connect } from 'react-redux'
+
+
+
+
 import ActionButtons from './ActionButtons';
-import { MaterialIcons } from '@expo/vector-icons';
+import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
+import { fetchaddItemToCart, fetchCartItemRemoveNoRefresh } from '../redux/cart/CartRedux';
+import { GlobalStyles } from '../styles/GlobalStyles'
+import { UserInfoContext } from '../context/userInfoContext/UserInfoContextProvider'
+import FullImageModal from './Modals/FullImageModal';
+import ShareDialogBox from './ShareDialogBox/ShareDialogBox';
+import useActionButton from '../hooks/useButtonAction'
+import useCheck from '../hooks/useCheck'
 
 
 
 
-const ProductCard = ({authToken, authUserID, addToCartFunc, removeCartItemFunc, item, reloadPosts}) => {
+
+
+const ProductCard = ({authToken, authUserID, addToCartFunc, removeCartItemFunc, item,  reloadPosts}) => {
   
   const [shareBoxvisible, setShareBoxVisible] = useState(false);
 
   const navigation = useNavigation()
   
   const [ fullImageModal, setFullImageModal ] = useState(false);
-
-  const [ pressLike, setPressedLike ] = useState(false);
-
-  const [ createdLikeID, setCreatedLikeID ] = useState(null);
-
-  const [ addedToCart, setAddedToCart ] = useState(false);
-
+  
   const { userInfo } = useContext(UserInfoContext);
-
+  
   const token = authToken
 
+  // This action button hook is called when a user likes a button
+  // passing in the token, reloadPosts fucntions from redux and the url
+  const { 
+    request: likePost, 
+    pressedBtn: pressLike, 
+    setPressedBtn: setPressedLike 
+  } = useActionButton(token, reloadPosts, `api/like/${item.id}`)
+  
 
-  const data = {
-    liked_post: [item.id,],
-    liker: `Profile for ${userInfo.user}`
-  }
+  // This action button hook is called on re-render and returns true if a post is liked and vice versa
+  // passing in the token and the url
+  const { 
+    approved: likes, 
+    setApproved: setLikes 
+  } = useCheck(token, `api/likes/${item.id}`)
+
+
+  // This action button hook is called when a user adds an item to the cart..
+  // passing in the token and the url
+  const { 
+    approved: addedToCart, 
+    setApproved: setAddedToCart 
+  } = useCheck(token, `api/check_in_cart/${item.id}`)
+
 
   const setShowShowShareDialog  = () => {
     setShareBoxVisible(true);
@@ -51,42 +69,20 @@ const ProductCard = ({authToken, authUserID, addToCartFunc, removeCartItemFunc, 
   const hideShareDialog = () => {
     setShareBoxVisible(false);
   }
-
-  const likePost = async() => {
-    setPressedLike(true)
-    try {
-      const responseID = await axios.post(`${APIROOTURL}/api/like_post/`, data, {
-        headers: {
-          'Authorization': `Token ${token}`, 
-          data: data
-        }
-      })
-      setCreatedLikeID(responseID.data.id);
-      reloadPosts()
-    } catch (error) {
-      console.log(error)
-    }
     
-  }
-
-  const UnLikePost = () => {
+  const UnLikePost = async() => {
     setPressedLike(false)
-    axios.delete(`${APIROOTURL}/api/unlike_post/${createdLikeID}/delete/`,{
+    setLikes(false)
+    await axios.get(`${APIROOTURL}/api/unlike/${item.id}/`, {
       headers: {
         'Authorization': `Token ${token}`, 
       }
+    }).then(res => {
+    }).catch(err => {
+      console.log(err)
     })
-    .then(res => {
-      reloadPosts()
-    })
-    .catch(err => {
-        console.log(err);
-    })
-  }
-
-
-  const addToCartData = {
-      product: item.id,
+    reloadPosts()
+    
   }
 
   const name = userInfo.user;
@@ -97,14 +93,13 @@ const ProductCard = ({authToken, authUserID, addToCartFunc, removeCartItemFunc, 
 
   const addToCartHandler = () => {
     addToCart();
-    addToCartFunc(token, addToCartData);
+    addToCartFunc(token, item.id);
   }
 
   const removeFromCart = () => {
     setAddedToCart(false);
-    removeCartItemFunc(token, addToCartData)
+    removeCartItemFunc(token, item.id)
   }
-
 
   
 const { container } = styles
@@ -114,7 +109,7 @@ const { container } = styles
 
   <View style={container} >
 
-    <TouchableWithoutFeedback onPress={() => navigation.navigate('Product Details', { post: item, ID: item.id, addToCartFunc: addToCartHandler, removeFromCartFunc: removeFromCart })}>
+    <TouchableWithoutFeedback onPress={() => navigation.navigate('Product Details', { post: item, ID: item.id, addToCartFunc: addToCartHandler, removeFromCartFunc: removeFromCart, addedToCart: addedToCart })}>
     <View style={styles.cardContainer}>
       <View>
         <View style={{ flex: 1, flexDirection: 'row'}}>
@@ -158,8 +153,8 @@ const { container } = styles
         <View style={styles.actionContainer}>
             {
               addedToCart ? 
-              <TouchableOpacity style={[styles.bookmarkIcon, {backgroundColor: "#B83227"}]} onPress={removeFromCart}>
-                <Feather name="check" size={20} color="white" />
+              <TouchableOpacity style={[styles.bookmarkIcon, {backgroundColor: "#B83227", flexDirection: 'row'}]} onPress={removeFromCart}>
+                <Text style={[GlobalStyles.greyTextSmall, {fontSize: 12, color: "white", fontWeight: 'bold', alignItems: 'center'}]}>ADDED TO CART</Text>
               </TouchableOpacity> :
               <TouchableOpacity style={styles.bookmarkIcon} onPress={addToCartHandler}>
                 <Feather name="plus" size={20} color="white" />
@@ -192,7 +187,8 @@ const { container } = styles
 
         <View style={styles.details}>
 
-        <FullImageModal showModal={fullImageModal} 
+        <FullImageModal 
+          showModal={fullImageModal} 
           closeModal={setFullImageModal}
           image={item.image}
           comments={item.comments}
@@ -208,9 +204,9 @@ const { container } = styles
         }
           <View style={styles.commentsContainer}>
           <Text style={{...GlobalStyles.greyTextSmall, fontWeight: 'bold'}}>ON SALE  • </Text>
-          { item.likes == 1 ?
-            <Text style={styles.likesContainer}>{item.likes} like  •</Text> :
-            <Text style={styles.likesContainer}>{item.likes} likes  • </Text> 
+          { item.favourites == 1 ?
+            <Text style={styles.likesContainer}>{item.favourites} like  •</Text> :
+            <Text style={styles.likesContainer}>{item.favourites} likes  • </Text> 
             
           }
 
@@ -226,7 +222,7 @@ const { container } = styles
       <View style={styles.reactionContainer}>
           <TouchableHighlight style={styles.iconContainer}>
             {
-              pressLike ? <ActionButtons name="heart" backgroundColor="pink" color={GlobalStyles.themeColor.color} 
+              likes || pressLike ? <ActionButtons name="heart" backgroundColor="pink" color={GlobalStyles.themeColor.color} 
               onPressHandler={UnLikePost}
                 />
                 :
@@ -253,55 +249,18 @@ const { container } = styles
 
 const styles = StyleSheet.create({
 
-  container: {
-  borderTopWidth: 0.5,
-  borderTopColor: '#ddd',
-   backgroundColor: "white",
-   elevation: 1
+  actionContainer: {
+    position: 'absolute',
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  cardContainer: {paddingLeft: 20, paddingRight: 12, paddingTop: 20},
-  comment: {
-    flex: 1,
-    marginHorizontal: 8,   
-    color: '#ddd', 
-    backgroundColor: '#ddd', 
-    borderRadius: 9 
-  },
-  reactionContainer: { 
-    flexDirection: 'row', 
-    paddingHorizontal: 20, 
-    justifyContent: 'space-between',
-},
-actionContainer: {
-  position: 'absolute',
-  right: 0,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center'
-},
-threeDots: {
-  paddingHorizontal: 4,
-},  
-iconContainer: {
-  flex: 1,
-},
   bookmarkIcon: {
     backgroundColor: '#1287A5',
     padding: 5,
     borderRadius: 5,
     margin: 5
-  },
-  commentsContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingHorizontal: 20, 
-    paddingVertical: 5
-  },
-  topBtnContainer: {
-    padding: 5, 
-    backgroundColor: '#fff', 
-    borderRadius: 8, 
-    elevation: 5
   },
   buttonContainer: {
     padding: 18,
@@ -309,8 +268,65 @@ iconContainer: {
     borderRadius: 8,
     marginVertical: 18,
   },
-  ratingsContainer: {
-    alignItems: "flex-start"
+  bookmark: {
+    position: "absolute",
+    color: "#fff",
+    top: -56 / 2,
+    right: 5,
+    padding: 13,
+    backgroundColor: "#B83227",
+    borderRadius: 56 / 2,
+    zIndex: 10
+  },
+  cardContainer: {
+    paddingLeft: 20, 
+    paddingRight: 12, 
+    paddingTop: 20
+  },
+  cartAlertMsg: {
+    position: "absolute",
+    bottom: 2,
+    left: 0,
+    padding: 18,
+    width: "100%",
+    height: 64,
+  },
+  commentsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingHorizontal: 20, 
+    paddingVertical: 5
+  },
+  comment: {
+    flex: 1,
+    marginHorizontal: 8,   
+    color: '#ddd', 
+    backgroundColor: '#ddd', 
+    borderRadius: 9 
+  },
+  container: {
+  borderTopWidth: 0.5,
+  borderTopColor: '#ddd',
+   backgroundColor: "white",
+   elevation: 1
+  },
+  description: {
+    flex: 1,
+    paddingBottom: 22
+  },
+  detailsContainer: {
+    flexDirection: "row"
+  },
+  details: {
+    flex: 3,
+  },
+  iconContainer: {
+    flex: 1,
+  },
+  likesContainer: {
+    fontSize: 12,
+    color: "#777",
+    letterSpacing: 0.5
   },
   modalText: {
     fontSize: 19,
@@ -328,20 +344,22 @@ iconContainer: {
     color: "red",
     fontWeight: 'bold'
   },
-  description: {
-    flex: 1,
-    paddingBottom: 22
+  ratingsContainer: {
+    alignItems: "flex-start"
   },
-  details: {
-    flex: 3,
+  reactionContainer: { 
+    flexDirection: 'row', 
+    paddingHorizontal: 20, 
+    justifyContent: 'space-between',
   },
-  likesContainer: {
-    fontSize: 12,
-    color: "#777",
-    letterSpacing: 0.5
-  },
-  detailsContainer: {
-    flexDirection: "row"
+  threeDots: {
+    paddingHorizontal: 4,
+  },  
+  topBtnContainer: {
+    padding: 5, 
+    backgroundColor: '#fff', 
+    borderRadius: 8, 
+    elevation: 5
   },
   topButtons: {
     flexDirection: "row",
@@ -351,24 +369,6 @@ iconContainer: {
     left: 8,
     right: 8
   },
-  cartAlertMsg: {
-    position: "absolute",
-    bottom: 2,
-    left: 0,
-    padding: 18,
-    width: "100%",
-    height: 64,
-  },
-  bookmark: {
-    position: "absolute",
-    color: "#fff",
-    top: -56 / 2,
-    right: 5,
-    padding: 13,
-    backgroundColor: "#B83227",
-    borderRadius: 56 / 2,
-    zIndex: 10
-  }
 })
 
 const mapStateToProps = state => {

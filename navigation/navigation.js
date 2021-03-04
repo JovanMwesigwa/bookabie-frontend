@@ -71,7 +71,7 @@ function MyTabs({ navigation, authToken }) {
     <Tab.Navigator
       initialRouteName="Find"
       activeColor={GlobalStyles.themeColor.color}
-      inactiveColor={GlobalStyles.greyColor.color}
+      inactiveColor={GlobalStyles.darkFontColor.color}
       labeled={false}
       barStyle={{ 
         backgroundColor: '#fff', 

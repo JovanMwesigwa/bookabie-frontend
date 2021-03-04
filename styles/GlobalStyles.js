@@ -11,6 +11,9 @@ export const GlobalStyles = StyleSheet.create({
   greyColor: {
     color: "#777"
   },
+  blue: {
+    color: "#1287A5",
+  },
   greenColor:{
     color: '#218F76'
   } ,

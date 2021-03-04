@@ -54,7 +54,7 @@ const refreshControl = <RefreshControl
           </View>
 
             <FlatList
-              data={cartData}
+              data={cartData.product}
               showsVerticalScrollIndicator={false}
               refreshControl={refreshControl}
               renderItem={({item}) => (
@@ -74,7 +74,7 @@ const refreshControl = <RefreshControl
         }
           <View style={styles.pricing}>
             <View style={styles.pricingInfo}>
-              <Text style={styles.infoText}>Items - {cartData.length}</Text>
+              <Text style={styles.infoText}>Items - {cartData.product.length}</Text>
               <Text style={styles.infoText}>Price - </Text>
             </View>
           </View>

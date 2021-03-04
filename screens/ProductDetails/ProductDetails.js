@@ -19,6 +19,11 @@ import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
 import useFetchData from '../../hooks/useFetchData'
 import useAuthUser from '../../hooks/useAuthUser'
 import ErrorView from '../../components/ErrorView';
+import AppText from '../../components/AppText';
+import AppHeaderText from '../../components/AppHeaderText';
+import { fetchPosts } from '../../redux/posts/postsRedux';
+
+
 
 
 const initialState = {
@@ -46,7 +51,7 @@ const reducer = (state, action) => {
   }
 }
 
-const ProductDetails = ({ route, navigation, authToken, reloadPosts }) => {
+const ProductDetails = ({ route, navigation, authToken, reloadPosts, reloadAllPosts }) => {
 
     const [ state, dispatch ] = useReducer(reducer, initialState);
 
@@ -69,7 +74,7 @@ const ProductDetails = ({ route, navigation, authToken, reloadPosts }) => {
 
     const token = authToken;
     
-    const { ID, post, addToCartFunc, removeFromCartFunc } = route.params
+    const { ID, post, addToCartFunc, removeFromCartFunc, addedToCart } = route.params
 
     const fetchPostDetail = async() => {
       try{
@@ -97,44 +102,37 @@ const ProductDetails = ({ route, navigation, authToken, reloadPosts }) => {
       }
     }
 
+    const refetchPosts = () => {
+      reloadPosts(token)
+      fastRefresh()
+    }
+
     useEffect(() => {
       fetchPostDetail()
       fetchUserMe()
       fetchCheckIsLikedPost()
     },[])
 
-
-    const editBtnHandler = () => {
-      navigation.navigate('Edit Post', {ID: ID, item: post })
+    const goHome = () => {
+      navigation.goBack()
     }
 
+
     const deleteBtnHandler = async() => {
+      
       await axios.delete(`${APIROOTURL}/api/post/${ID}/delete/`,{
         headers: {
           'Authorization': `Token ${token}`
         }
       })
       .then(res => {
-        console.log(res.data);
+        
       })
       .catch(err => {
         console.log(err);
       })
-      navigation.navigate('Find')
-      fetchFirstPostsData();
-    }
-
-    const refreshFetchPostDetail = async() => {
-      try{
-        const response = await axios.get(`${APIROOTURL}/api/post/${ID}/detail/`,{
-          headers: {
-            'Authorization': `Token ${token}`
-          }
-        })
-        dispatch({type: 'FETCH_SUCCESS', payload: response.data })
-      }catch(error){
-        dispatch({type: 'FETCH_FAILED' })
-      }
+      setVisible(false)
+      goHome() 
     }
 
     const refreshFetchUserMe = async() => {
@@ -238,59 +236,57 @@ const { container } = styles
           }
 
 
-          {state.post.author.user.username == userInfo.username ? 
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-            <TouchableOpacity style={styles.editBtn} onPress={editBtnHandler}>
-              <Text style={{ fontSize: 12,   color: '#1287A5', textAlign: 'center' }}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.deleteBtn} onPress={showDialog}>
-                <Text style={{ fontSize: 12,  color: '#1287A5', textAlign: 'center' }}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-          :
-          null
-          }   
+         
           
           <View style={styles.descriptionContainer}>
                 
-              <View style={{ flexDirection: "row", paddingTop: 12, paddingHorizontal: 15 }}>
-                  <View>
+              <View style={styles.infoContainer}>
 
+                  <View style={{flex: 1 }}>
                       <View  style={styles.accountContainer}>
-                          <Image source={{ uri: state.post.author.profile_pic }} style={GlobalStyles.largeRoundedPictContainer} />
-                          <View style={{  paddingLeft: 10 }}>
-                            <View style={{ flexDirection: 'row' }}> 
-                              <Text style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{state.post.author.user.username}</Text>
-                              {
-                                state.post.author.verified ?  <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} /> : null
-                              }
-                             
+
+                        <View style={styles.profileContainer}>
+                            <Image source={{ uri: state.post.author.profile_pic }} style={GlobalStyles.largeRoundedPictContainer} />
+                            <View style={{ alignItems: 'center' }}>
+                              <View style={{ flexDirection: 'row' }}> 
+                                <Text style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{state.post.author.user.username}</Text>
+                                {
+                                  state.post.author.verified ?  <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} /> : null
+                                }
+                              
+                              </View>
+                              <Text style={{...GlobalStyles.greyTextSmall, fontSize: 13}}>{state.post.author.profile_type.name}</Text>
                             </View>
-                            <Text style={{...GlobalStyles.greyTextSmall, fontSize: 13}}>{state.post.author.profile_type.name}</Text>
-                          </View>
+                        </View>
+
+                        {
+                            state.post.author.user.username == userInfo.username &&
+                            <View style={{ flexDirection: 'row', alignSelf: 'flex-start'}}>
+                              <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate('Edit Post', {ID: ID, item: post, refreshPost: fastRefresh, })}>
+                                <AppText color={GlobalStyles.blue.color}>Edit</AppText>
+                              </TouchableOpacity>
+                              <TouchableOpacity style={styles.deleteBtn} onPress={showDialog}>
+                                <AppText color={GlobalStyles.blue.color}>Delete</AppText>
+                              </TouchableOpacity>
+                            </View>
+                          }   
                       </View>
 
                       <View>
-                        <Text style={{...GlobalStyles.darkTitleText, fontSize: 20}}>{state.post.title}</Text>
-                        {
-                        state.post.price ? 
-                        <Text style={{ fontSize: 15, paddingTop: 8, color: 'red', fontWeight: '700', letterSpacing: 0.5 }}>${state.post.price}</Text>
-                          : null
-                        }
-                        {state.post.offer && <Text style={{fontSize: 15,letterSpacing: 0.5,  color: 'gold', fontWeight: '700' }}>{state.post.offer} Offer</Text>}
+                          <AppHeaderText>{state.post.title}</AppHeaderText>
+                          { state.post.price && <AppText color='red' fontWeight='700'>${state.post.price}</AppText> }
+                          {state.post.offer && <AppText color='gold' fontWeight='700'>{state.post.offer} Offer</AppText>}
                       </View>
-                      <View  style={{ paddingHorizontal: 15,  flexDirection: 'row', alignItems: 'center', paddingTop: 5 }}>
-              
-                  {state.post.likes.map(like => (
-                    <View key={like.id}>
-                      <LikedBy item={like} />
-                    </View>
-                    ))}
-                    { state.post.likes.length == 0 ? null :
-                      <Text style={{ alignItems: 'center', paddingRight: 5,...GlobalStyles.greyTextSmall, color: GlobalStyles.darkFontColor.color, fontWeight: '700' }}> and {state.post.likes.length - 1} others liked this product</Text> 
-                    }
+                    
+                    <View  style={styles.likeInfo}>
+                        { state.post.likes.length == 0 ? null :
+                          <Text style={{ alignItems: 'center', paddingRight: 5,...GlobalStyles.greyTextSmall, color: GlobalStyles.darkFontColor.color, fontWeight: '700' }}>You and {state.post.likes.length - 1} others liked this product</Text> 
+                        }
                   </View>
+
+
                   </View>
+
                   {
                     state.post.author.user.username !== userInfo.username ? 
                       <View style={styles.interactionContainer}> 
@@ -303,11 +299,11 @@ const { container } = styles
                           <Feather name="phone" size={18} style={{...styles.bookmark, elevation: 5}} />
                         </TouchableOpacity>
                         {
-                          addedItemToCart ? 
-                          <TouchableOpacity style={styles.bookmarkStyles} onPress={removeFromCart}>
+                          addedToCart ? 
+                          <TouchableOpacity style={styles.bookmarkStyles} onPress={removeFromCartFunc}>
                             <Feather name="check" size={18} style={{...styles.bookmark, elevation: 5, backgroundColor: '#1287A5',}} />
                           </TouchableOpacity> :
-                          <TouchableOpacity style={styles.bookmarkStyles} onPress={addToCart}>
+                          <TouchableOpacity style={styles.bookmarkStyles} onPress={addToCartFunc}>
                             <Feather name="plus" size={18} style={{...styles.bookmark, elevation: 5, backgroundColor: '#1287A5',}} />
                           </TouchableOpacity>
                         }
@@ -330,20 +326,13 @@ const { container } = styles
                   </Dialog>
                 </Portal>
 
-              <View style={{ paddingHorizontal: 15, paddingTop: 5}}>
-                    <Subheading style={styles.headerFont}>Description</Subheading>
+              <View style={{ paddingHorizontal: 15, marginVertical: 8}}>
+                    <AppText fontWeight="700">Description</AppText>
+                    <AppText fontSize={15}>{state.post.description}</AppText>
               </View>
 
-              <View style={{ flex: 1, marginBottom: 8, paddingHorizontal: 15 }}>
-                  
-                  <View style={{ flex: 1, }}>
-                    <Paragraph style={{ fontSize: 16,}}>{state.post.description}</Paragraph>
-                </View>
-              </View>
           </View>
 
-          
-            
           </View>
 
           
@@ -365,13 +354,14 @@ const { container } = styles
       keyExtractor={(item) => item.id.toString()}
     />
     
-    <View style={styles.UploadBtn}>
-        <TouchableOpacity onPress={() => {
+    <TouchableWithoutFeedback 
+        onPress={() => {
           navigation.navigate('AddComment', { item: state.post, refreshPost: fastRefresh,  })
-        }}>
-          <FontAwesome5 name="comment" size={18} color="white" style={{ textAlign: 'center' }} />
-        </TouchableOpacity>
-    </View>
+            }}>
+        <View style={styles.UploadBtn}>
+              <FontAwesome5 name="comment" size={18} color="white" />
+        </View>
+    </TouchableWithoutFeedback>
     </> }
   </>
   )
@@ -381,7 +371,7 @@ const { container } = styles
 const styles = StyleSheet.create({
   container: {
    flex: 1,
-   backgroundColor: 'white'
+   backgroundColor: 'white',
   },
   headerFont: {
     fontSize: 15,
@@ -393,28 +383,42 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300
   },
+  likeInfo: { paddingHorizontal: 15,  flexDirection: 'row', alignItems: 'center', paddingTop: 5 },
   UploadBtn: {
-    padding: 15,
+    alignItems: 'center',
     backgroundColor: GlobalStyles.themeColor.color, 
-    borderRadius: 24, 
-    position: 'absolute',
+    borderRadius: 50/2, 
     bottom: 20,
+    elevation: 5,
+    height: 50,
+    position: 'absolute',
+    justifyContent: 'center',
     right: 20,
-    elevation: 5
+    width: 50,
+  },
+  profileContainer: {
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   commentsContainer: {
     flex: 1,
     paddingHorizontal: 15,
     marginTop: 8
   },
+  infoContainer: { flexDirection: "row", paddingTop: 12 },
   accountName: {
     fontSize: 15,
     color: '#2C3335',
     fontWeight: "700",
   },
-  imageStyles: { backgroundColor: "black", width: "100%", height: 300 },
+  imageStyles: { 
+    backgroundColor: "black", 
+    width: "100%", 
+    height: 300 
+  },
   descriptionContainer: {
       flex: 1,
+      marginHorizontal: 10
   },
   secDesContainer: { 
     flex: 1,
@@ -439,9 +443,9 @@ separator: {
   borderBottomColor: "#ddd"
 },
 accountContainer: { 
-  flexDirection: 'row', 
-  alignItems: 'center', 
-  paddingVertical: 8 ,
+  flexDirection: 'row',
+  justifyContent: 'space-between', 
+  width: "100%",
 },
   topButtons: {
     flexDirection: "row",
@@ -521,4 +525,10 @@ const mapStateToProps = state => {
   }
 }
 
-export default connect(mapStateToProps, null)(ProductDetails)
+const mapDispatchToProps = dispatch => {
+  return {
+    reloadAllPosts: token => dispatch(fetchPosts(token))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProductDetails)

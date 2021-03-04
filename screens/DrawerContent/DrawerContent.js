@@ -1,46 +1,32 @@
 import React,{ useContext, useEffect, useState } from 'react';
-import { View, StyleSheet, Image } from 'react-native'
+import { View, StyleSheet, Image, ActivityIndicator } from 'react-native'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import axios from 'axios';
 import { Ionicons, MaterialCommunityIcons,Feather, FontAwesome, AntDesign } from '@expo/vector-icons'
-import { Avator, Title, Caption, Paragraph, Drawer, Text, TouchableRipple, Switch } from 'react-native-paper'
+import { Title, Caption, Paragraph, Drawer, Text, TouchableRipple, Switch } from 'react-native-paper'
 import {  DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { signOut } from '../../redux/auth/authRedux'
+import { signOut, logoutHandler } from '../../redux/auth/authRedux'
 import { useNavigation } from '@react-navigation/native';
+import { Button } from 'react-native';
 
 
 
-const logo = require('../../assets/Logos/bbieL.png')
+const logo = require('../../assets/Logos/logo.png')
 const logo2 = require('../../assets/Logos/myLogo.png')
+import useFetchData from '../../hooks/useFetchData'
+import { fetchUserProfile } from '../../redux/userProfile/userProfileRedux';
+import SplashLoadingScreen from '../SplashLoadingScreen.js/SplashLoadingScreen';
+import ErrorView from '../../components/ErrorView';
 
 
 
-
-const DrawerContent = ({navigation, authToken, authLogout}) => {
+const DrawerContent = ({navigation, authToken, authLogout, userProfile, fetchUser}) => {
 
     const [ inboxMessagesLength, setInboxMessagesLength ] = useState([]);
 
     const token = authToken;
-
-    // const logOut = authLogout
-
-    const [ userInfo, setUserInfo ] = useState([]);
-
-    const fetchUserInfo = () => {
-      axios.get(`${APIROOTURL}/api/userprofile/user/detail/`,{
-        headers: {
-            'Authorization': `Token ${token}`
-          }
-    })
-        .then(res => {
-            setUserInfo(res.data);
-        })
-        .catch(err => {
-            console.log(err);
-        })
-    }
 
     const getInboxMessageList = async() => {
         try{
@@ -60,30 +46,35 @@ const DrawerContent = ({navigation, authToken, authLogout}) => {
         // navigation.navigate("Splash")
     }
 
+    const reloadPosts = () => {
+        fetchUser(token)
+        getInboxMessageList();
+    }
+
     useEffect(() => {
-        fetchUserInfo();
+        fetchUser(token)
         getInboxMessageList();
     },[])
 
-     return(
+    if (userProfile.loading) return <SplashLoadingScreen />
+
+    if (userProfile.error) return <ErrorView onPress={reloadPosts} error={userProfile.error} />
+
+        return(
          <View style={{ flex: 1 }}>
              <DrawerContentScrollView >
                 <View style={styles.drawerContent}>
                     <View style={styles.userInfoSection}>
                         <View style={{ flexDirection: 'row', marginTop: 15, alignItems: 'center' }}>
-                                <Image source={{ uri: userInfo.profile_pic }} style={{ width: 50, height: 50, borderRadius: 50, borderWidth: 0.5, borderColor: '#777'}} />
+                                <Image source={{ uri: userProfile.profile.profile_pic }} style={{ width: 50, height: 50, borderRadius: 50, borderWidth: 0.5, borderColor: '#777'}} />
                             <View style={{ marginLeft: 12 }}>
-                                <Title style={styles.title}>{userInfo.user}</Title>
-                                <Caption style={styles.caption}>@{userInfo.location}</Caption>
+                                <Title style={styles.title}>{userProfile.profile.user}</Title>
+                                <Caption style={styles.caption}>@{userProfile.profile.location}</Caption>
                             </View>
                         </View>
                         <View style={styles.row}>
                             <View style={styles.section}>
-                                <Paragraph style={[styles.paragraph,styles.caption]}>80</Paragraph>
-                                <Caption style={styles.caption}>following</Caption>
-                            </View>
-                            <View style={styles.section}>
-                                <Paragraph style={[styles.paragraph,styles.caption]}>100</Paragraph>
+                                <Paragraph style={[styles.paragraph,styles.caption]}>{userProfile.profile.followers.length}</Paragraph>
                                 <Caption style={styles.caption}>followers</Caption>
                             </View>
                         </View>
@@ -156,19 +147,20 @@ const DrawerContent = ({navigation, authToken, authLogout}) => {
 
                 </View>
                 <View style={{ flexDirection: 'row', elevation: 5, paddingHorizontal: 15, alignItems: 'center' }}>
-                    <Image source={logo} style={{ width: 34, height: 34 }} />
+                    <Image source={logo} style={{ width: 34, height: 34, borderRadius: 5 }} />
                     <Image source={logo2} style={styles.cartStyles} />
                     <View>
                         <Text style={styles.textStyle}>Bookabie</Text>
                         <Text style={styles.capTextStyle}>Sell & Buy Beyond</Text>
                     </View>
                 </View> 
+                
              </DrawerContentScrollView>
              <Drawer.Section style={styles.bottomDrawerSection}>
                  <TouchableOpacity style={{ flexDirection: 'row', 
                     alignItems: 'center', paddingHorizontal: 12, 
                     paddingVertical: 12 }}
-                    onPress={signOutHandler}
+                    // onPress={() => logoutHandler()}
                     >
                     <Ionicons name="md-exit" size={28} color="#777" />
                     <Text style={{ paddingLeft: 15, fontSize: 15, color: '#777' }}>Sign Out</Text>
@@ -250,13 +242,15 @@ const DrawerContent = ({navigation, authToken, authLogout}) => {
 
  const mapStateToProps = state => {
      return{
-         authToken: state.auth.token
+         authToken: state.auth.token,
+         userProfile: state.userProfile
      }
- }
+ } 
 
  const mapDispatchToProps = dispatch => {
      return{
-         authLogout: (token) => dispatch(signOut(token))
+         authLogout: (token) => dispatch(signOut(token)),
+         fetchUser: token => dispatch(fetchUserProfile(token))
      }
  }
 

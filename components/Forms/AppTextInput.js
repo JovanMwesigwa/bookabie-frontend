@@ -1,24 +1,35 @@
 import React from 'react'
 import { StyleSheet, Text, View, TextInput } from 'react-native'
-import { useFormikContext } from 'formik'
-import GlobalStyles from '../../styles/GlobalStyles'
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 
-const AppTextInput = ({ name, placeholder, placeholderColor="#777" ,isInline, ...otherProps}) => {
+import { useFormikContext } from 'formik'
+
+
+
+const AppTextInput = ({ name, placeholder, value=null, placeholderColor="#777" ,isInline, icon, ...otherProps}) => {
     const {handleChange, setFieldTouched, touched, errors } = useFormikContext()
     if(!errors) return null
     return (
         <>
-            <TextInput style={styles.inputContainer} 
-                  name={name}
-                  placeholder={placeholder}
-                  placeholderTextColor={placeholderColor}
-                  {...otherProps}
-                  onBlur={() => setFieldTouched(name)}
-                  onChangeText={handleChange(name)}
-              />
-              <View style={isInline && styles.inline}>
-                {touched[name] && <Text style={{ color: "red" }}>{errors[name]}</Text>}
-              </View>
+            <View>
+                <TextInput style={styles.inputContainer} 
+                    name={name}
+                    value={value}
+                    placeholder={placeholder}
+                    placeholderTextColor={placeholderColor}
+                    {...otherProps}
+                    onBlur={() => setFieldTouched(name)}
+                    onChangeText={handleChange(name)}
+                />
+                <FontAwesome name={icon} color="#05375a" size={18} style={styles.iconStyles} />
+            </View>
+            {
+                !errors ? 
+                <View style={isInline && styles.inline}>
+                    {touched[name] && <Text style={{ color: "red" }}>{errors[name]}</Text>}
+                </View> : 
+                null
+            }
         </>
     )
 }
@@ -27,7 +38,8 @@ const styles = StyleSheet.create({
     inputContainer: {
         marginVertical: 10,
         fontSize: 16,
-        padding: 8,
+        padding: 10,
+        paddingLeft: 30,
         borderRadius: 12,
         borderWidth: 0.3,
         borderColor: '#7B8788',
@@ -38,7 +50,13 @@ const styles = StyleSheet.create({
           position: 'absolute',
           bottom: 0,
           left: 8
-      }
+      },
+      iconStyles: {
+        position: 'absolute',
+        alignSelf: 'flex-start',
+        left: 10,
+        bottom: 33
+    }
 })
 
 export default AppTextInput

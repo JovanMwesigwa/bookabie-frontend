@@ -98,8 +98,12 @@ export const signOut = (token) => {
             }
           })
         .then(response => {
-            const remove = () => {
-                AsyncStorage.removeItem("Token")
+            const remove = async() => {
+                try {
+                    await AsyncStorage.removeItem("Token")
+                } catch (error) {
+                    console.log("An error occurred when logging you out")
+                }
             }
             remove();
             dispatch(logout());
@@ -122,6 +126,17 @@ export const load = () => {
             }
         } catch (error) {
             console.log(error);
+        } 
+    }
+}
+ 
+export const logoutHandler = () => {
+    return async(dispatch) => {
+        try {
+            await AsyncStorage.removeItem("Token")
+            dispatch(logout())
+        } catch (error) {
+            console.log("An error occurred when logging you out")
         }
     }
 }
@@ -162,9 +177,10 @@ const authReducer = (state = initialState, action) => {
     }
 }
 
-setTimeout(() => {
-    load()  
-}, 5000);
+// setTimeout(() => {
+//     load()  
+// }, 5000);
+
 
 
 export default authReducer;

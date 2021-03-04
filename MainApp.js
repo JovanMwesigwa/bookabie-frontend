@@ -6,7 +6,7 @@ import { GlobalStyles } from './styles/GlobalStyles'
 import { connect } from 'react-redux'
 import { load } from './redux/auth/authRedux';
 
-const logo = require('./assets/Logos/White.png');
+const logo = require('./assets/Logos/logo.png');
 
 const MainApp = ({ authToken,  loadToken}) => {
 
@@ -25,8 +25,10 @@ useEffect(() => {
    return (
      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: GlobalStyles.themeColor.color }}>
        <StatusBar barStyle="light-content" backgroundColor={GlobalStyles.themeColor.color} />
-       <Image source={logo} style={styles.logoStyles} />
-       <Text style={{ color: '#fff' }}>Bookabie</Text>
+       <View style={styles.logoStyles}>
+         <Image source={logo} style={styles.image} />
+       </View>
+       <Text style={{ color: '#fff', fontSize: 16, letterSpacing: 0.5 }}>Bookabie</Text>
      </View>
    )
  }
@@ -53,11 +55,20 @@ const styles = StyleSheet.create({
   flex: 1,
   backgroundColor: "#E6EDED",
   },
-  logoStyles: { 
-    width: 55, 
-    height: 55, 
+  image: {
+    width: "100%",
+    height: "100%",
     resizeMode: 'contain',
-    borderRadius: 10 
+  },
+  logoStyles: { 
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#fff",
+    elevation: 5,
+    height: 70, 
+    overflow: 'hidden',
+    width: 70, 
+    marginBottom: 5
 },
 })
 

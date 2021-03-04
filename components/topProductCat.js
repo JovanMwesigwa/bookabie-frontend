@@ -1,58 +1,56 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'react-native'
-import { AntDesign, } from '@expo/vector-icons';
-import { Card, Button } from 'react-native-paper';
+import React, { useState } from 'react'
+import { View,  StyleSheet, Image } from 'react-native'
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
+import { GlobalStyles } from '../styles/GlobalStyles'
+import GalleryModal from './Modals/GalleryModal'
+
+
 
 const TopProductCat = ({ topBrand }) => {
 
-  // console.log('ACCOUNT IS', topBrand.sponsored_profile);
+  const [ showing, setShowing ] = useState(false);
+
+  const open = () => {
+    setShowing(true)
+  }
+
+  const close = () => {
+    setShowing(false)
+  }
+
 const { container } = styles
  return(
-  <Card style={container}>
-      <View style={{ flex: 2, }}>
-        <Image source={{ uri: topBrand.profile_pic }} style={{ flex: 1,   borderRadius: 5, width: null, height:null, resizeMode: "cover" }} />
-      </View>
-        <View style={styles.topDescription}>
-          <View style={{ flexDirection: "row", justifyContent: 'center' }}>
-            <Text style={styles.text}>{topBrand.user}</Text>
-            <AntDesign name="star" size={10} color="black" />
+   <>
+    <GalleryModal modalOpen={showing} closeModal={close} item={topBrand} />
+    <TouchableWithoutFeedback onPress={open}>
+        <View style={styles.outer}>
+          <View style={container}>
+                <Image source={{ uri: topBrand.profile_pic }} style={{ flex: 1,   borderRadius: 5, width: null, height:null, resizeMode: "cover" }} />
           </View>
-            <Text style={styles.secText}>{topBrand.profile_type.name}</Text>   
         </View>
-  </Card>
+    </TouchableWithoutFeedback>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    height: 135,
-    backgroundColor: "white",
-    margin: 12,
-    width: 200,
-    borderRadius: 8,
+    height: 73,
+    backgroundColor: "black",
+    width: 73,
+    borderRadius: 75/2,
+    overflow: 'hidden',
     elevation: 5,
   },
-  topDescription: {
-    paddingVertical: 2,
-    position: 'absolute',
-    backgroundColor: "#fff",
-    backfaceVisibility: "hidden",
-    width: "100%",
-    bottom: 0,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8
-  },
-  text: {
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#2C3335'
-  },
-  secText:{
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#7777'
+  outer: {
+    alignItems: 'center',
+    borderWidth: 2,
+    borderRadius: 85/2,
+    borderStyle: 'dashed',
+    borderColor: GlobalStyles.blue.color,
+    height: 85, 
+    width: 85,
+    justifyContent: 'center'
   }
 })
 export default TopProductCat

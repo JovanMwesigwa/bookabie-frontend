@@ -7,6 +7,7 @@ import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import axios from 'axios';
 import { GlobalStyles } from '../styles/GlobalStyles';
 import { connect } from 'react-redux'
+import AppText from './AppText';
 
 
 
@@ -38,12 +39,12 @@ const CommentComponent = ({ authToken, item }) => {
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.profileContainer}>
-                <Image source={{ uri: item.author.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
+                <Image source={{ uri: item.author.profile_pic }} style={[GlobalStyles.smallRoundedPictContainer, {width: 38, height: 38}]} />
             </TouchableOpacity>
             <View style={styles.textBody}>
-                <Text style={GlobalStyles.darkHeaderText}>{userData.user}</Text>
-                <Text style={{ fontSize: 11, color: '#777',letterSpacing: 0.2 }}>/ Posted about { moment(item.date_commented).startOf('hour').fromNow()}</Text>
-                <Paragraph style={{ paddingVertical: 6, color: GlobalStyles.darkFontColor.color}}>{item.body}</Paragraph>
+                <AppText {...styles.username}>{userData.user}</AppText>
+                <AppText {...styles.timeStamp}>/ Posted about { moment(item.date_commented).startOf('hour').fromNow()}</AppText>
+                <AppText {...styles.text} >{item.body}</AppText>
             </View>
         </View>
     )
@@ -61,8 +62,20 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: 12,
     },
+    text: {
+        fontSize: 14,
+        paddingVertical: 8
+    },
     profileContainer: {
         marginRight: 15
+    },
+    timeStamp: {
+        fontSize: 11, 
+        color: '#777'
+    },
+    username: {
+        fontWeight: "700",
+        fontSize: 14
     }
 })
 

@@ -2,76 +2,77 @@ import React, {useState, useContext } from 'react'
 import { View, Text, StyleSheet, ActivityIndicator, TextInput, ScrollView, TouchableOpacity, Button, Image, KeyboardType, StatusBar } from 'react-native'
 import { ListItem,  Textarea, Radio, Right, Left } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import MainHeaderComponent from '../../components/MainHeaderComponent';
-import PostProductHeader from '../../components/PostProductHeader';
-import { CompanyContext } from '../../context/profiles/CompanyContextProvider';
-import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
-import { AuthContext } from '../../context/authentication/Context'
+import { connect } from 'react-redux'
 import axios from 'axios';
+import * as Yup from 'yup';
 
-const ProductEdit = ({pickImage, navigation, route }) => {
 
-  const { item } = route.params;
 
-  const [selectedImage, setSelectedImage] = useState(null);
+import AppImagePickerFour from '../../components/Forms/AppImagePickerFour'
+import PostProductHeader from '../../components/PostProductHeader';
+import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
+import { hotReloadPosts } from '../../redux/posts/postsRedux';
+import AppTextInput from '../../components/Forms/AppTextInput';
+import AppForm from '../../components/Forms/AppForm'
+import SubmitButton from '../../components/Forms/SubmitButton';
 
-  const [ load, setLoad ] = useState(false);
 
-  const [ title, setTitle ] = useState(item.title);
-  const [ description, setDescription ] = useState(item.description);
-  const [ price, setPrice ] = useState(item.price);
-  const [ offer, setOffer ] = useState(item.offer);
 
-  const  { fetchFirstPostsData }  = useContext(CompanyContext);
+const validationSchema = Yup.object().shape({
+  title: Yup.string().required().max(255).label("Title"),
+  description: Yup.string().label("Description"),
+  price: Yup.number().label("Price"),
+  offer: Yup.string().label("Offer"),
+  image: Yup.string().nullable().label("Image")
+})
 
-  const { authState } = useContext(AuthContext);
 
-  const token = authState.token;
 
-  
-  // console.log(item.id);
 
-  let openImagePickerAsync = async () => {
-    let permissionResult = await ImagePicker.requestCameraRollPermissionsAsync();
 
-    if (permissionResult.granted === false) {
-      alert("Permission to access camera roll is required!");
-      return;
-    }
+const ProductEdit = ({authToken, navigation, route,   }) => {
 
-    let pickerResult = await ImagePicker.launchImageLibraryAsync();
-    // console.log(pickerResult);
+  const { item, refreshPost} = route.params;
 
-    if (pickerResult.cancelled === true) {
-      return;
-    }
+  const [ load, setLoad ] = useState(false)
 
-    setSelectedImage({ localUri: pickerResult.uri });
-
-  }
-
-  const goToFeed = () => {
-    navigation.navigate('Find')
-  }
+  const token = authToken
 
   const loadPost = () => {
     setTimeout(() => {
-        fetchFirstPostsData()
-        goToFeed()
+      refreshPost()
+      navigation.goBack()
         setLoad(false)
     },1000)
   }
 
-  const data = {
-      title: title,
-      description: description,
-      price: price,
-      offer: offer
-  }
+  const submitHandler = async(values) => {
 
-  const submitHandler = () => {
-      setLoad(true)
+
+    setLoad(true)
+    const data = new FormData()
+
+    if(values.image !== null) {
+      var photo = {
+          uri: values.image.uri,
+          type: 'image/jpeg',
+          name: 'photo.jpg',
+        };
+  
+      data.append("title", values.title);
+      data.append("description", values.description);
+      data.append("price", values.price);
+      data.append("offer", values.offer);
+      data.append("image", photo);
+    }else{
+      data.append("title", values.title);
+      data.append("description", values.description);
+      data.append("price", values.price);
+      data.append("offer", values.offer);
+      data.append("image", values.image);
+    }
+
+
       axios.put(`${APIROOTURL}/api/post/${item.id}/update/`, data, {
         headers: {
             'Authorization': `Token ${token}`, 
@@ -84,7 +85,6 @@ const ProductEdit = ({pickImage, navigation, route }) => {
         .catch(err => {
             console.log(err);
         })
-
         loadPost()
   }
 
@@ -94,59 +94,55 @@ const { container } = styles
  return(
   <View style={container}>
         <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-    <PostProductHeader submitHandler={submitHandler} goToFeed={goToFeed}/>
+        <PostProductHeader submitHandler={submitHandler} onPress={() => navigation.goBack()} />
     <ScrollView showsVerticalScrollIndicator={false} style={{ paddingHorizontal: 10 }}>
-
+ 
       <View style={{ padding: 15, justifyContent: 'center', alignItems: 'center' }}>
-        {/* <Text style={styles.headerText}>Sell your product Today</Text> */}
       </View>
+            <AppForm  
+              initialValues={{ 
+                title: item.title, 
+                description: item.description, 
+                catergory: "Gadgets and Electronics", 
+                price: item.price, 
+                offer: item.offer, 
+                available: item.available, 
+                image: item.image
+               }}
+              validationSchema={validationSchema}
+              onSubmit={submitHandler}
+            >
+              <AppTextInput 
+                name="title"
+                placeholder={item.title}
+                icon="user-o" 
+                multiline
+               />
 
-          <TextInput style={styles.inputContainer} 
-          placeholder='Add an Interesting Title' 
-          placeholderTextColor="#777"
-          value={title}
-          onChangeText={text => setTitle(text)}
-          />
-         
-          <Textarea rowSpan={5}  style={styles.inputContainer} 
-          placeholder='Your Product Description ' 
-          placeholderTextColor="grey" 
-          value={description}
-          onChangeText={text => setDescription(text)}
-          />
+              <AppTextInput 
+                name="description"
+                placeholder={item.description} 
+                icon="user-o"
+                multiline 
+              /> 
 
-          <TextInput style={styles.inputContainer} 
-          placeholder='price' 
-          keyboardType="numbers-and-punctuation"
-          value={price}
-          onChangeText={text => setPrice(text)}
-           />
-
-          <TextInput style={styles.inputContainer} 
-          placeholder='Any Offer (Optional) ' 
-          keyboardType="numbers-and-punctuation"
-          value={offer}
-          onChangeText={text => setOffer(text)}
-          />
-
-          <TouchableOpacity onPress={openImagePickerAsync} >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 12, borderColor: '#ddd', borderWidth: 1,borderStyle: 'dashed', padding: 8, borderRadius: 12 }}>
-            <MaterialIcons name="add-a-photo" size={18} color="#2C3335" />  
-            <Text style={{ paddingHorizontal: 15, fontSize: 15, color: '#777', }}>Upload Photo</Text>
-          </View>
-        </TouchableOpacity>
-
-        {
-          selectedImage !== null ? 
-          <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: selectedImage.localUri }}
-                style={styles.thumbnail}
+              <AppTextInput 
+                placeholder={item.price} 
+                name="price"
+                icon="user-o"
+                keyboardType="number-pad"
               />
-          </View> 
-          :
-          null
-      }
+
+              <AppTextInput 
+                placeholder={item.offer}
+                name="offer"
+                icon="user-o"
+                keyboardType="number-pad"
+              />
+
+         
+
+          <AppImagePickerFour name="image" defaultImage={item.image} />
 
           <ListItem selected={true}>
 
@@ -163,15 +159,11 @@ const { container } = styles
               />
             </Right>
           </ListItem>
-          {load ? 
-          <TouchableOpacity style={styles.buttonContainer} onPress={submitHandler}>
-            <ActivityIndicator color="#B83227" size={18} />
-            {/* <Text style={{ fontSize: 18, textAlign: 'center', color: 'white', fontWeight: 'bold' }}></Text> */}
-          </TouchableOpacity> :
-          <TouchableOpacity style={styles.buttonContainer} onPress={submitHandler}>
-            <Text style={{ fontSize: 18, textAlign: 'center', color: '#B83227', fontWeight: 'bold' }}>Edit Post</Text>
-          </TouchableOpacity>
-          }
+          
+          <SubmitButton title="Post" loading={load} />
+          
+        </AppForm>
+          
     </ScrollView>
   </View>
   )
@@ -220,4 +212,17 @@ const styles = StyleSheet.create({
     height: 85
   }
 })
-export default ProductEdit;
+
+const mapStateToProps = state => {
+  return{
+    authToken: state.auth.token
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    reloadPosts: token => dispatch(hotReloadPosts(token)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProductEdit);

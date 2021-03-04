@@ -1,13 +1,13 @@
 import React, {  useEffect, useState } from 'react'
 import axios from 'axios';
 import { connect } from 'react-redux'
-import { View,   RefreshControl, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList } from 'react-native'
+import { View, RefreshControl, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList } from 'react-native'
 import {   Entypo, AntDesign,  SimpleLineIcons } from '@expo/vector-icons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as Animatable from 'react-native-animatable';
 import { Caption,  } from 'react-native-paper';
 import {  Tab, Tabs} from 'native-base';
-import { Surface, Text, Paragraph } from 'react-native-paper';
+import {  Text, Paragraph } from 'react-native-paper';
 
 
 
@@ -17,12 +17,10 @@ import { GlobalStyles } from '../../styles/GlobalStyles'
 import ProductCard from '../../components/productCard';
 import { StyleSheet } from 'react-native';
 import useFetchData from '../../hooks/useFetchData'
-import useAuthUser from '../../hooks/useAuthUser'
+import TopProduct from '../../components/TopProduct';
+import AppButton from '../../components/AppButton';
 
 
-
-const image1 = require('../../assets/images/nikisPizza.jpg');
-const image2 = require('../../assets/images/pizzaHut.jpg');
 
 
 
@@ -30,68 +28,72 @@ const CompanyProfile = ({ route, authToken }) => {
 
   const { ID, } = route.params;
 
-  const [ followedBtn, setFollowedBtn ] = useState(false);
-
-  const [ followID, setFollowID ] = useState(null);
+  const [ follows, setFollows ] = useState(null);
   
   const token = authToken;
-  
-  const authUser = useAuthUser(token)
 
   const { data: profileData, loading, errors, request } = useFetchData(token, `api/profile/${ID}/detail/`)
 
   const postsData = useFetchData(token, `api/profileposts/${profileData.user}`)
 
-  const followingData = useFetchData(token, `api/isfollowing/?search=${profileData.user}`)
+  const topPosts = useFetchData(token, `api/topproducts/${ID}/`)
+
+  const followingData = useFetchData(token, `api/followers/${ID}/`)
 
   useEffect(() => {
       request()
      followingData.request()
+     topPosts.request()
+     fetchFollowData()
   },[])
 
-  const data = {
-    user_from: `Profile for ${authUser.user}`,
-    user_to: profileData.id
-  };
-
-  const followUser = () => {
-    axios.post(`${APIROOTURL}/api/follow_user/`, data,{
-      headers: {
-        'Authorization': `Token ${token}`,
-        data: data
-      }
-    })
-    .then(res => {
-      setFollowID(res.data.id)
-    })
-    .catch(err => {
-      console.log(err);
-    })
-    fastRefresh()
-    setFollowedBtn(true)
-  }
-
-
-  const unFollowUser = () => {
-    axios.delete(`${APIROOTURL}/api/following/${followID}/delete/`,{
+  const fetchFollowData = async () => {
+    await axios.get(`${APIROOTURL}/api/follows/${ID}/`,{
       headers: {
         'Authorization': `Token ${token}`,
       }
-    })
-    .then(res => {
-
+    }).then(res => {
+      setFollows(res.data)
     })
     .catch(err => {
-      console.log(err);
+      console.log(err)
     })
-    fastRefresh()
-    setFollowedBtn(false);
   }
+
+  const fetchFollowUser = async () => {
+    setFollows(true)
+    await axios.get(`${APIROOTURL}/api/follow/${ID}/`,{
+      headers: {
+        'Authorization': `Token ${token}`,
+      }
+    }).then(res => {
+      fastRefresh()
+    })
+    .catch(err => {
+      console.log(err)
+    })
+  }
+
+  const fetchUnFollowUser = async () => {
+    setFollows(false)
+    await axios.get(`${APIROOTURL}/api/unfollow/${ID}/`,{
+      headers: {
+        'Authorization': `Token ${token}`,
+      }
+    }).then(res => {
+      fastRefresh()
+    })
+    .catch(err => {
+      console.log(err)
+    })
+  }
+
 
   const fastRefresh = () => {
     request()
-    postsData.request()
-    fetchUser()
+    followingData.request()
+    topPosts.request()
+    fetchFollowData()
   }
 
 
@@ -149,6 +151,7 @@ const refreshControl = <RefreshControl
         </View>
     :
 
+    
     <FlatList
     
         ListHeaderComponent={
@@ -177,19 +180,19 @@ const refreshControl = <RefreshControl
                           <Text style={styles.secondaryText}>{profileData.profile_type.name}</Text>
                         </View>
 
-                        <View style={{ flexDirection: 'row', position: 'absolute',bottom: 30, right: 1}}>
+                        <View style={styles.actionBtns}>
                             {
-                              followedBtn ? 
+                              follows ? 
                               
                             <TouchableOpacity style={styles.followingBtnContainer}
-                              onPress={unFollowUser}
+                              onPress={fetchUnFollowUser}
                              >
                               <SimpleLineIcons name="user-following" size={18} color="white"style={{ fontWeight: 'bold' }} />
                               <Text style={{ fontWeight: '600', fontSize: 14, color: 'white',paddingHorizontal: 8  }}>Following</Text>
                             </TouchableOpacity> :
 
                             <TouchableOpacity style={styles.followBtnContainer}
-                              onPress={followUser}
+                              onPress={fetchFollowUser}
                               >
                               <SimpleLineIcons name="user-follow" size={18} color={GlobalStyles.themeColor.color} style={{ fontWeight: 'bold' }} />
                                 <Text style={{ fontWeight: '600', fontSize: 14, color: GlobalStyles.themeColor.color,paddingHorizontal: 8 }}>Follow</Text>
@@ -197,7 +200,7 @@ const refreshControl = <RefreshControl
                             }
                             
                             <TouchableOpacity style={styles.arrowDownContainer}>
-                              <AntDesign name="caretdown" size={10} color={GlobalStyles.themeColor.color}style={{ fontWeight: 'bold', textAlign: 'center' }} />
+                              <AntDesign name="caretright" size={18} color={GlobalStyles.themeColor.color} style={{ fontWeight: 'bold', textAlign: 'center'}} />
                             </TouchableOpacity>
                         </View>
 
@@ -206,41 +209,49 @@ const refreshControl = <RefreshControl
                     </View>
 
                     <View style={{ flex: 1, paddingHorizontal: 15 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
-                            <Entypo name="calendar" size={18} color="#FF5A09" /> 
-                        </View>
-                        <View style={{ paddingHorizontal: 5}}>
-                          <Text style={{...styles.mainText, fontWeight: '600'}}>{profileData.working_days}</Text> 
-                          <Text  style={{...styles.secondaryText, fontSize: 13}}>{profileData.working_hours}</Text> 
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
-                          <Entypo name="location-pin" size={18} color="#FF5A09" />
-                        </View>
-                        <View style={{   paddingHorizontal: 5 }}>
-                          <Text style={{...styles.mainText,fontWeight: '600'}}>{profileData.location}</Text> 
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
-                          <Entypo name="globe" size={18} color="#FF5A09" />
-                        </View >
-                          <Text style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{profileData.contact}</Text> 
-                      </View>
+                      {
+                        profileData.working_days !== null &&
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
+                                <Entypo name="calendar" size={18} color="#FF5A09" /> 
+                            </View>
+                            <View style={{ paddingHorizontal: 5}}>
+                              <Text style={{...styles.mainText, fontWeight: '600'}}>{profileData.working_days}</Text> 
+                              <Text  style={{...styles.secondaryText, fontSize: 13}}>{profileData.working_hours}</Text> 
+                            </View>
+                          </View>
+                      }
+                        
+                          {
+                            profileData.location !== null &&
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
+                              <Entypo name="location-pin" size={18} color="#FF5A09" />
+                            </View>
+                            
+                            <View style={{   paddingHorizontal: 5 }}>
+                              <Text style={{...styles.mainText,fontWeight: '600'}}>{profileData.location}</Text> 
+                            </View>
+                          </View> 
+                          }
+
+                          {
+                            profileData.contact !== null &&
+                          
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
+                              <Entypo name="globe" size={18} color="#FF5A09" />
+                            </View >
+                              <Text style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{profileData.contact}</Text> 
+                          </View> 
+                          }
                       
                         <View style={styles.section}>
                           <MaterialCommunityIcons name="account-group" size={18} color="#FF5A09" />
-                          <Paragraph style={[styles.paragraph,styles.caption]}>{followingData.data.count}</Paragraph>
-                          <Caption style={{...styles.caption, paddingLeft: 2}}>following</Caption>
-                          <Paragraph style={[styles.paragraph,styles.caption]}>{followingData.data.count}</Paragraph>
+                          <Paragraph style={[styles.paragraph,styles.caption]}>{followingData.data}</Paragraph>
                           <Caption style={{...styles.caption, paddingLeft: 2}}>followers</Caption>
                         </View>
                     </View>
-
-
- 
 
                 <Tabs 
                     tabBarUnderlineStyle={{borderBottomWidth:4, borderBottomColor: GlobalStyles.themeColor.color}}
@@ -258,49 +269,28 @@ const refreshControl = <RefreshControl
                  activeTabStyle={{backgroundColor: 'white'}} 
                  activeTextStyle={{color: GlobalStyles.themeColor.color,  fontWeight: '700'}}
                 >
-                    <Surface style={ styles.descriptionContainer }>
-                        
-                        <Image source={image1} style={{ flex: 1, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
-                        <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
-                          <Text style={styles.mainText}>Banana Barito </Text>
-                          <Text style={styles.secondaryText}>Lorem Ipsum si </Text>
-                          <Text style={{fontSize: 14, color: '#218F76', fontWeight: "700" }}>$35.00</Text>
 
-                          <View style={{ flexDirection: 'row' }}>
-                          <TouchableOpacity style={styles.cartBtnContainer}>
-                                <Text style={{ backgroundColor:'#75DA8B', paddingHorizontal: 10, fontSize: 9, fontWeight: 'bold', color: 'white', padding: 5, borderRadius: 12, textAlign: 'center' }}>Contact</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.cartBtnContainer} >
-                                <Text style={{  backgroundColor: GlobalStyles.themeColor.color, paddingHorizontal: 10,fontSize: 9, color: 'white', padding: 5, borderRadius: 12, textAlign: 'center', marginHorizontal: 12 }}>Message</Text>
-                              </TouchableOpacity>
-                          </View>
-                          
+
+                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                    
+                    {
+                      topPosts.data.map(topPost => (
+                        <View key={topPost.id} >
+                            <TopProduct 
+                              item={topPost}
+                              image={topPost.image} 
+                              onReload={() => topPosts.request()}
+                              token={token}
+                            />
                         </View>
-                        
-                    </Surface>
-
-                    <Surface style={{ ...styles.descriptionContainer, marginVertical: 8 }}>
-                        
-                        <Image source={image2} style={{ flex: 1, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
-                        <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
-                          <Text style={styles.mainText}>Super Pizza Granola </Text>
-                          <Text style={styles.secondaryText}>Lorem Ipsum si </Text>
-                          <Text style={{ fontSize: 14, color: '#218F76', fontWeight: "700" }}>$35.00</Text>
-                          
-
-                          <View style={{ flexDirection: 'row' }}>
-                            <TouchableOpacity style={styles.cartBtnContainer}>
-                                <Text style={{ backgroundColor:'#75DA8B', paddingHorizontal: 10, fontSize: 9, fontWeight: 'bold', color: 'white', padding: 5, borderRadius: 12, textAlign: 'center' }}>Contact</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.cartBtnContainer} >
-                                <Text style={{  backgroundColor: GlobalStyles.themeColor.color, paddingHorizontal: 10,fontSize: 9, color: 'white', padding: 5, borderRadius: 12, textAlign: 'center', marginHorizontal: 12 }}>Message</Text>
-                              </TouchableOpacity>
-                          </View>
-
-                        </View>
-
-
-                    </Surface>
+                      ))
+                    }
+                            
+                    <View style={{ marginVertical: 5 }}>
+                      <AppButton small text="View all" onPress={() => console.log("")} />
+                    </View>
+                    
+                  </View>
 
                   </Tab>
 
@@ -318,30 +308,39 @@ const refreshControl = <RefreshControl
                     </View>
                   </Tab>
 
-                  <Tab heading="Location"
+                  <Tab heading="Gallery"
                     tabStyle={{backgroundColor: 'white'}} 
                     textStyle={{color: '#777'}} 
                     activeTabStyle={{backgroundColor: 'white'}} 
                     activeTextStyle={{color: GlobalStyles.themeColor.color, fontWeight: '700'}}
                   >
-                    <View>
-                       
-                      </View>
+
+                    <View style={{ padding: 2, flexDirection: 'row', flexWrap: 'wrap' }}>
+                        <View style={{ backgroundColor: 'grey', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'brown', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+
+                    </View>
+
                   </Tab>
 
                 </Tabs>
+
                 </View>      
               </View>
           </>
         }
       data={postsData.data.results}
-      // onEndReached={fetchProducts}
       showsVerticalScrollIndicator={false}
       ListFooterComponent={renderFooter}
       refreshControl={refreshControl}
       renderItem={({ item }) => (
         <ProductCard
           item={item}
+          reloadPosts={() => postsData.request()}
         />
       )}
       keyExtractor={(item) => item.id.toString()}
@@ -354,6 +353,12 @@ const refreshControl = <RefreshControl
 }
 
 const styles = StyleSheet.create({
+  actionBtns: { 
+    flexDirection: 'row', 
+    position: 'absolute',
+    bottom: 30, 
+    right: 1
+  },
   container: {
    flex: 1,
   },
@@ -375,29 +380,37 @@ paragraph: {
   marginRight: 3
 },
 followBtnContainer: {
+  alignItems: 'center',
+  justifyContent: 'center',
   flex: 1,
   flexDirection: 'row', 
   borderWidth: 1,
   borderColor: GlobalStyles.themeColor.color,
-  paddingHorizontal: 12,
-  paddingVertical: 5, 
-  borderRadius: 5
+  paddingHorizontal: 15,
+  paddingVertical: 6, 
+  borderRadius: 15
 },
 followingBtnContainer:{
+  alignItems: 'center',
+  justifyContent: 'center',
   flex: 1,
   flexDirection: 'row',
   backgroundColor: GlobalStyles.themeColor.color, 
-  paddingHorizontal: 12,
-  paddingVertical: 5,
-  borderRadius: 8
+  paddingHorizontal: 15,
+  paddingVertical: 8,
+  borderRadius: 15
 },
 arrowDownContainer: {
+  alignItems: 'center',
+  backgroundColor: "#fff",
   borderWidth: 1,
-  borderColor: GlobalStyles.themeColor.color,
+  borderColor: GlobalStyles.themeColor.color, 
+  justifyContent: 'center',
+  width: 35,
   marginLeft: 5,
-  paddingHorizontal: 8,
-  paddingVertical: 8,
-  borderRadius: 5
+  borderRadius: 35/2,
+  padding: 8
+  
 },
 caption: {
   fontSize: 14,

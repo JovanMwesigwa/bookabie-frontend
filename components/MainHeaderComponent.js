@@ -1,5 +1,5 @@
 import React, {  useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native'
 import { connect } from 'react-redux';
 import { AntDesign } from '@expo/vector-icons';
 import { GlobalStyles } from '../styles/GlobalStyles'
@@ -8,23 +8,21 @@ import { Title } from 'react-native-paper';
 import { fetchCartData } from '../redux/cart/CartRedux';
 
 
-import useAuthUser from '../hooks/useAuthUser'
 import SearchComponent from '../components/searchComponent';
+import { fetchUserProfile } from '../redux/userProfile/userProfileRedux';
 
 
 
-const MainHeaderComponent = ({authToken,  cartData,  cartDataFetch, main }) => {
+const MainHeaderComponent = ({authToken, parentCartData, cartData,  cartDataFetch, main, userProfile, fetchUser }) => {
 
     const navigation = useNavigation();
 
     const token = authToken
-
-    const userInfo  = useAuthUser(token);
     
     useEffect(() => {
       cartDataFetch(token)
+      fetchUser(token)
     },[])
-
 
 
 const { container } = styles
@@ -34,7 +32,7 @@ const { container } = styles
       
        <View style={styles.headerContainer }>
           <TouchableOpacity onPress={() => navigation.openDrawer()}>
-            <Image source={{ uri: userInfo.profile_pic }} style={[GlobalStyles.smallRoundedPictContainer, { width: main ? 45 : 40, height:  main ? 45 : 40,}]} />
+            <Image source={{ uri: userProfile.profile.profile_pic }} style={[GlobalStyles.smallRoundedPictContainer, { width: main ? 45 : 40, height:  main ? 45 : 40,}]} />
           </TouchableOpacity>
           <SearchComponent />
           <TouchableOpacity onPress={() => navigation.navigate("Cart")} >
@@ -42,9 +40,15 @@ const { container } = styles
             style={{paddingHorizontal: 5}}
             color={GlobalStyles.darkFontColor.color}  />
           </TouchableOpacity>
-          <View style={styles.cartNumberContainer}>
-              <Text style={styles.cartNumber}>{cartData.length}</Text>
-          </View>
+          {
+            parentCartData.loading ? 
+            <View style={styles.cartNumberContainer}>
+                <Text style={styles.cartNumber}>..</Text>
+            </View> :
+             <View style={styles.cartNumberContainer}>
+                <Text style={styles.cartNumber}>{cartData.product.length}</Text>
+            </View>
+          }
        </View>
     </View>
   )
@@ -102,13 +106,16 @@ logoStyles: {
 const mapStateToProps = state => {
   return{
     cartData: state.cart.cartItems,
-    authToken: state.auth.token
+    parentCartData: state.cart,
+    authToken: state.auth.token,
+    userProfile: state.userProfile
   }
 }
 
 const mapDispatchToProps = dispatch => {
   return{
-    cartDataFetch: token => dispatch(fetchCartData(token))
+    cartDataFetch: token => dispatch(fetchCartData(token)),
+    fetchUser: token => dispatch(fetchUserProfile(token))
   }
 }
 

@@ -1,7 +1,6 @@
 import React, {  useEffect, useState } from 'react'
-import { View, StyleSheet,   Dimensions, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList, RefreshControl } from 'react-native'
+import { View, StyleSheet,Text,   Dimensions, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList, RefreshControl } from 'react-native'
 import {  Entypo, AntDesign} from '@expo/vector-icons';
-import { Surface, Text } from 'react-native-paper';
 import { connect } from 'react-redux';
 import * as Animatable from 'react-native-animatable';
 
@@ -13,54 +12,47 @@ import ProductCard from '../../components/productCard';
 import { Caption, Paragraph,  } from 'react-native-paper';
 import {  Tab, Tabs } from 'native-base';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MapModalComponent from '../../components/MapComponent';
 import SecondaryHeader from '../../components/SecondaryHeader';
 import useFetchData from '../../hooks/useFetchData'
+import { fetchUserProfile } from '../../redux/userProfile/userProfileRedux';
+import TopProduct from '../../components/TopProduct';
+import AppButton from '../../components/AppButton';
 
 
 
 
 const userUrl = "api/userprofile/user/detail/"
-const followersUrl = "api/followers/"
 const noConnectionImage = require('../../assets/images/noint.png');
-const mapImage = require('../../assets/images/m.jpg');
-const image1 = require('../../assets/images/nikisPizza.jpg');
-const image2 = require('../../assets/images/pizzaHut.jpg');
 
 
-
-
-const Profile = ({  navigation, authToken }) => {
-
-  const [ modalShown, setModalShown ] = useState(false);
+const Profile = ({  navigation, authToken, userProfile, fetchUserProfile }) => {
 
   const token = authToken
 
   const { data, loading, errors, request } = useFetchData(token, userUrl);
 
-  const followersData = useFetchData(token, followersUrl)
-
   const postsData = useFetchData(token, `api/profileposts/${data.user}`)
-
-
-  const showMap = () => {
-    setModalShown(true);
-  }
-
-  const closeMap = () => {
-    setModalShown(false)
-  }
+  
+  const topPosts = useFetchData(token, `api/topproducts/${data.id}/`)
 
   
   const fastRefresh = () => {
     request()
-    followersData.request()
+    topPosts.request()
+    fetchUserProfile(token)
+  }
+
+  const reload = () => {
+    request()
+    topPosts.request()
+    fetchUserProfile(token)
   }
 
 
   useEffect(() => {
     request()
-    followersData.request()
+    topPosts.request()
+    fetchUserProfile(token)
   },[])
 
 
@@ -103,13 +95,12 @@ const Profile = ({  navigation, authToken }) => {
   }
 
 
-  // fetchProducts()
 
 const { container } = styles
 
 const refreshControl = <RefreshControl
   refreshing={loading}
-  onRefresh={() => request()}
+  onRefresh={reload}
 />
  return(
 
@@ -152,7 +143,7 @@ const refreshControl = <RefreshControl
 
                 <View style={{ flexDirection: 'row', position: 'absolute',bottom: 30, right: 1}}>
                     <TouchableOpacity style={styles.cartBtnContainer} onPress={() => {
-                      navigation.navigate('Edit Profile', {Profile: data, RefreshFetchedUser: request})
+                      navigation.navigate('Edit Profile', {Profile: data, RefreshFetchedUser: request, token: token, fetchUserProfile: fastRefresh})
                     }}>
                       <Text style={{ color: '#1287A5', fontWeight: '600' }}>EDIT</Text>
                     </TouchableOpacity>
@@ -188,10 +179,8 @@ const refreshControl = <RefreshControl
               </View>
               <View style={styles.section}>
                   <MaterialCommunityIcons name="account-group" size={18} color="#FF5A09" />
-                  <Paragraph style={[styles.paragraph,styles.caption]}>{followersData.data.count}</Paragraph>
+                  <Paragraph style={[styles.paragraph,styles.caption]}>{userProfile.profile.followers.length}</Paragraph>
                   <Caption style={{...styles.caption, paddingLeft: 2}}>followers</Caption>
-                  <Paragraph style={[styles.paragraph,styles.caption]}>{data.following.length}</Paragraph>
-                  <Caption style={{...styles.caption, paddingLeft: 2}}>following</Caption>
               </View>
             </View>
 
@@ -216,24 +205,28 @@ const refreshControl = <RefreshControl
                  activeTabStyle={{backgroundColor: 'white'}} 
                  activeTextStyle={{color: GlobalStyles.themeColor.color, fontWeight: '700'}}
                 >
-                    <Surface style={ styles.descriptionContainer }>
-                      <Image source={image1} style={{ flex: 1, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
-                        <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
-                            <Text style={styles.mainText}>Banana Barito </Text>
-                            <Text style={styles.secondaryText}>Lorem Ipsum si </Text>
-                            <Text style={{ color: '#218F76', fontWeight: "700" }}>$35.00</Text>
-                        </View>  
-                    </Surface>
-
-                    <Surface style={{ ...styles.descriptionContainer, marginVertical: 8 }}>                       
-                      <Image source={image2} style={{ flex: 1, width: null, height:null, borderRadius: 12, resizeMode: "cover" }} />
-                        <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
-                          <Text style={styles.mainText}>Super Pizza Granola </Text>
-                          <Text style={styles.secondaryText}>Lorem Ipsum si </Text>
-                          <Text style={{ color: '#218F76', fontWeight: "700" }}>$35.00</Text>
+                  <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                  
+                    {
+                      topPosts.data.map(topPost => (
+                        <View key={topPost.id} >
+                            <TopProduct 
+                              item={topPost}
+                              image={topPost.image} 
+                              onReload={() => topPosts.request()}
+                              token={token}
+                              self
+                            />
                         </View>
-                    </Surface>
+                      ))
+                    }
 
+                    <View style={{ marginVertical: 5 }}>
+                      <AppButton small text="Add More" onPress={() => navigation.navigate("AddTopProducts", {token: token, item: data })} />
+                    </View>
+                     
+                    </View>
+  
                   </Tab>
 
                   <Tab heading="About Us" 
@@ -250,23 +243,21 @@ const refreshControl = <RefreshControl
                     </View>
                   </Tab>
 
-                  <Tab heading="Location"
+                  <Tab heading="Gallery"
                     tabStyle={{backgroundColor: 'white'}} 
                     textStyle={{color: '#777'}} 
                     activeTabStyle={{backgroundColor: 'white'}} 
                     activeTextStyle={{color: GlobalStyles.themeColor.color, fontWeight: '700'}}
                   >
-                  <ImageBackground source={mapImage} style={styles.imageBg}>
-                    <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15, }}>
-                      <TouchableOpacity style={styles.loadMoreBtn}
-                      onPress={showMap}
-                      >
-                        <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15 }}>View map</Text>
-                          
-                      </TouchableOpacity>
-                      <MapModalComponent visible={modalShown} close={closeMap} />
+                  <View style={{ padding: 2, flexDirection: 'row', flexWrap: 'wrap' }}>
+                        <View style={{ backgroundColor: 'grey', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'brown', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+                        <View style={{ backgroundColor: 'black', width: 113, height: 100, margin: 2 }} />
+
                     </View>
-                  </ImageBackground>
                   
                   </Tab>
 
@@ -282,7 +273,8 @@ const refreshControl = <RefreshControl
       renderItem={({ item }) => (
         <ProductCard
           item={item}
-          refreshPost={request}
+          refreshPost={fastRefresh}
+          reloadPosts={() => postsData.request()}
         />
       )}
       keyExtractor={(item) => item.id.toString()}
@@ -424,6 +416,7 @@ loadMoreBtn: {
     left: 20,
     width: 65,
     height: 65,
+    backgroundColor: 'brown',
     borderWidth: 1,
     borderColor: 'white',
     borderRadius: 35
@@ -468,7 +461,14 @@ loadMoreBtn: {
 
 const mapStateToProps = state => {
   return{
-    authToken: state.auth.token
+    authToken: state.auth.token,
+    userProfile: state.userProfile
   }
 }
-export default connect(mapStateToProps, null)(Profile);
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchUserProfile: token => dispatch(fetchUserProfile(token)),
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(Profile);
