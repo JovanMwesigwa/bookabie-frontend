@@ -92,21 +92,21 @@ export const signIn = (email, passwordText) => {
 
 export const signOut = (token) => {
     return dispatch => {
+        dispatch(logout())
+        const remove = async() => {
+            try {
+                await AsyncStorage.removeItem("Token")
+            } catch (error) {
+                console.log("An error occurred when logging you out")
+            }
+        }
+        remove();
         axios.post(`${APIROOTURL}/api/auth/token/logout/`,{
             headers: {
               'Authorization': `Token ${token}`
             }
-          })
+          }) 
         .then(response => {
-            const remove = async() => {
-                try {
-                    await AsyncStorage.removeItem("Token")
-                } catch (error) {
-                    console.log("An error occurred when logging you out")
-                }
-            }
-            remove();
-            dispatch(logout());
             })
             .catch (error => {
                 console.log(error);

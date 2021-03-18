@@ -23,7 +23,7 @@ const useCheck = (token, url) => {
         request()
       },[])
 
-      return { approved, setApproved}
+      return { request, approved, setApproved}
 }
 
 export default useCheck

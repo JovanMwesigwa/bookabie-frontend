@@ -7,8 +7,7 @@ import { connect } from 'react-redux'
 
 
 
-import MessagesItem from '../../components/MessageItem';
-import SentMessagesItem from '../../components/SentMessage'
+import {MessagesItem, SentMessagesItem} from '../../components/';
 import { GlobalStyles } from '../../styles/GlobalStyles';
 import useAuthUser from '../../hooks/useAuthUser'
 import useFetchData from '../../hooks/useFetchData'
@@ -17,6 +16,9 @@ import useFetchData from '../../hooks/useFetchData'
 
 
 const url = `api/rooms/`
+const inboxUrl = `api/inbox/`
+const outboxUrl = `api/outbox/`
+
 
 const Messages = ({ authToken }) => {
 
@@ -28,8 +30,14 @@ const Messages = ({ authToken }) => {
 
     const { data, request } = useFetchData(token, url)
 
+    const inboxData = useFetchData(token, inboxUrl)
+
+    const outboxData = useFetchData(token, outboxUrl)
+
 
     useEffect(() => {
+        inboxData.request()
+        outboxData.request()
         request()
     },[])
 
@@ -57,7 +65,7 @@ const { container } = styles
                         borderBottomColor: '#ddd',
                      }}
                     >
-                    <Tab heading="Chat"
+                    <Tab heading="Inbox"
                         tabStyle={{backgroundColor: 'white'}} 
                         textStyle={{color: '#777'}} 
                         activeTabStyle={{backgroundColor: 'white'}} 
@@ -65,10 +73,10 @@ const { container } = styles
                     >
 
                         <FlatList
-                            data={data}
+                            data={inboxData.data.results}
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item }) => (
-                                <TouchableOpacity onPress={() => navigation.navigate('Chat', {ID: item.id, chatWithID: item.room_to })}>
+                                <TouchableOpacity onPress={() => navigation.navigate('Chat', {item: item, ID: item.id, chatWithID: item.parent_owner })}>
                                     <MessagesItem item={item} authUser={user} />
                                 </TouchableOpacity>
                             )}
@@ -76,7 +84,7 @@ const { container } = styles
                         />
 
                     </Tab>
-                    <Tab heading="Rooms"
+                    <Tab heading="Sent"
                         tabStyle={{backgroundColor: 'white'}} 
                         textStyle={{color: '#777'}} 
                         activeTabStyle={{backgroundColor: 'white'}} 
@@ -84,10 +92,10 @@ const { container } = styles
                     >
 
                         <FlatList
-                                data={data}
+                                data={outboxData.data.results}
                                 showsVerticalScrollIndicator={false}
                                 renderItem={({ item }) => (
-                                    <TouchableOpacity onPress={() => navigation.navigate('Chat', {ID: item.id })}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('Chat', {item: item, ID: item.id })}>
                                         <SentMessagesItem item={item} />
                                     </TouchableOpacity>
                                 )}

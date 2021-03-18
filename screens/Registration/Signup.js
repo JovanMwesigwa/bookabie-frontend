@@ -1,24 +1,15 @@
 import React, { useContext, useState } from 'react'
-import { UserAuthentication } from '../../context/authentication/UserAuthenticationContextProvider'
-import { View, Text, StyleSheet, Button, TouchableOpacity, ActivityIndicator, TextInput, StatusBar, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, Image,  TouchableOpacity, ScrollView, } from 'react-native'
 import * as Yup from 'yup'
-
-
-
-import AppForm from '../../components/Forms/AppForm'
-import AppFormField from '../../components/Forms/AppFormField';
-import AppText from '../../components/AppText'
-import SubmitButton from '../../components/Forms/SubmitButton'
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import Feather from 'react-native-vector-icons/Feather'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import * as Animatable from 'react-native-animatable';
-import { AuthContext } from '../../context/authentication/Context'
-import { ScrollView } from 'react-native-gesture-handler'
-import { GlobalStyles } from '../../styles/GlobalStyles';
 import { connect } from 'react-redux'
-import { signUp } from '../../redux/auth/authRedux'
 
+
+
+
+import {AppCurtain, AppForm, AppFormField, AppText, SubmitButton } from '../../components/'
+import { AuthContext } from '../../context/authentication/Context'
+import { GlobalStyles } from '../../styles/GlobalStyles';
+import { signUp } from '../../redux/auth/authRedux'
 
 
 const validationSchema = Yup.object().shape({
@@ -28,6 +19,7 @@ const validationSchema = Yup.object().shape({
   rePassword: Yup.string().required().min(4).matches("password")
 })
 
+const logo  = require('../../assets/Logos/logo.png')
 
 const Signup = ({  navigation, authSignUp }) => {
 
@@ -54,9 +46,15 @@ const handleSignUpSubmit = (values) => {
 const { container } = styles
  return(
 
-   <ScrollView>
+   <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.info}>
-        <AppText {...styles.text}>Join!</AppText>
+          <View style={styles.logoStyles}>
+              <Image source={logo} style={styles.image} />
+          </View>
+          <View>
+            <AppText {...styles.text}>Welcome!</AppText>
+            <AppText {...styles.subText}>Join bookabie today and get the best deals..</AppText>
+          </View>
       </View>
 
     <View style={styles.form}>
@@ -99,6 +97,7 @@ const { container } = styles
         </AppForm>
 
     </View>
+    <AppCurtain loading={loading} />
     </ScrollView>
   )
 }
@@ -109,25 +108,43 @@ const styles = StyleSheet.create({
     flex: 1,
    },
    info: {
+    alignItems: 'center',
+    backgroundColor: "#fff",
+    height: 200,
     paddingHorizontal: 20,
     justifyContent: "flex-end",
-    height: 180,
     width: "100%"
    },
    form: {
-     backgroundColor: "#fff",
-     borderTopRightRadius: 30,
-     borderTopLeftRadius: 30,
+    backgroundColor: "#fff",
     paddingHorizontal: 15,
     paddingVertical: 30,
     width: "100%"
    },
    text: {
     color: GlobalStyles.themeColor.color,
-     fontSize: 30,
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 20
+    textAlign: 'center',
+  },
+   subText: {
+    color: "#777",
+    flexWrap: 'wrap',
+    fontSize: 14,
+    textAlign: 'center',
    },
+   logoStyles: { 
+    borderRadius: 75/2,
+    height: 75, 
+    marginBottom: 8,
+    overflow: 'hidden',
+    width: 75, 
+},
+image: {
+  width: "100%",
+  height: "100%",
+  resizeMode: 'contain',
+},
   getStartedTextTwo: {
     backgroundColor: 'white',
     alignSelf: 'flex-end',

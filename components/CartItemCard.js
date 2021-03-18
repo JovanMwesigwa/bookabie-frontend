@@ -1,13 +1,18 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import { GlobalStyles } from '../styles/GlobalStyles'
 import { useNavigation } from '@react-navigation/native';
-import { ActivityIndicator } from 'react-native';
-import { fetchCartItemRemove } from '../redux/cart/CartRedux';
 import { connect } from 'react-redux'
 
 
-const CartItemCard = ({ item, refreshItems, authToken, removeCartItemFunc }) => {
+
+import { GlobalStyles } from '../styles/GlobalStyles'
+import { ActivityIndicator } from 'react-native';
+import { fetchCartItemRemove } from '../redux/cart/CartRedux';
+import useFetchData from '../hooks/useFetchData';
+
+
+
+const CartItemCard = ({ item, authToken, removeCartItemFunc }) => {
 
   const navigation = useNavigation();
 
@@ -15,12 +20,19 @@ const CartItemCard = ({ item, refreshItems, authToken, removeCartItemFunc }) => 
 
   const token = authToken
 
+  // const { request,loading, data } = useFetchData(token, `api/profile/${item.author.user}/detail/`)
+
+  // useEffect(() => {
+  //   request()
+  // },[])
+
   const handleRemoveProduct = () => {
     setIsLoading(true);
     setTimeout(() => {
       removeCartItemFunc(token, item.id)
     },500)
-  }
+    
+  } 
 
 const { container } = styles
  return(
@@ -31,22 +43,25 @@ const { container } = styles
               :
               <View></View> 
             }
-            <View style={{ flex: 2, paddingLeft: 20, justifyContent: 'center' }}>
-                <TouchableOpacity style={{ flex: 1 }} 
+            <View style={{ flex: 2, marginLeft: 20, justifyContent: 'space-between' }}>
+              <View>
+                <TouchableOpacity 
                   onPress={() => navigation.navigate("Product Details", { post: item, ID: item.id,})}
                 >
                   <Text numberOfLines={1} style={{...GlobalStyles.darkHeaderText, fontSize: 15}}>{item.title}</Text>
                 </TouchableOpacity>
-                <Text numberOfLines={1} style={{...GlobalStyles.greyTextSmall, flex: 1, fontSize: 13}}>From - {item.author.user}</Text>
+                {/* {
+                  loading ? <Text style={{...GlobalStyles.greyTextSmall, fontSize: 13}}>...</Text> :
+                  <Text numberOfLines={1} style={{...GlobalStyles.greyTextSmall, fontSize: 13}}>From - {data.user}</Text>
+                } */}
+
                 {
-                  item.price ? <Text style={{ color: '#218F76', fontWeight: "700",  }}>$ {item.price}</Text> :
-                  <Text style={{  flex: 1, color: '#218F76', fontWeight: "700",  }}>OFFER</Text>
+                  item.price && <Text style={{ color: '#218F76', fontWeight: "700"  }}>Shs {item.price}</Text> 
                 } 
                 {
-                  item.offer ? <Text style={styles.offerStyles}>{item.offer} Off</Text> :
-                  null
-                
+                  item.offer && <Text style={styles.offerStyles}>{item.offer} Off</Text>                 
                 }
+              </View>
                 <TouchableOpacity onPress={handleRemoveProduct}>
                   {
                     isLoading ? <ActivityIndicator size={18} color="#B83227" /> :
@@ -82,7 +97,9 @@ cardContainer: {
     color: '#B83227', 
     fontSize: 12, 
     padding: 5, 
-    borderRadius: 5, textAlign: 'center' },
+    borderRadius: 15, 
+    textAlign: 'center'
+   },
     mainText: {
       fontSize: 15,
       fontWeight: '600'
@@ -90,7 +107,14 @@ cardContainer: {
   secondaryText: {
     color: '#777E8B'
   },
-  offerStyles: { flex: 1, fontSize: 13,color: '#2C3335', fontWeight: "bold", color: "gold", fontWeight: 'bold'},
+  offerStyles: { 
+    flex: 1, 
+    fontSize: 13,
+    color: '#2C3335', 
+    fontWeight: "bold", 
+    color: "gold", 
+    fontWeight: 'bold'
+  },
   cartBtnContainer: {
       flex: 1,
       padding: 5,

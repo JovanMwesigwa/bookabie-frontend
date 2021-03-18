@@ -2,20 +2,8 @@ import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
 
-import Find from '../screens/Feed/Find'
+import {AddComment, Cart, ChatRoom, Checkout, CompanyList, companyProfile, Find, PostProduct, Messages, ProductDetails, ProductEdit, SearchResults, Stories, SettingsComponent} from '../screens/'
 import HeaderComponent from '../components/header'
-import Cart from '../screens/Cart/Cart'
-import ProductDetails from '../screens/ProductDetails/ProductDetails'
-import companyProfile from '../screens/CompanyProfile/companyProfile'
-import CompanyList from '../screens/CompanyList/CompanyList'
-import CompanyDetails from '../screens/CompanyDetails/CompanyDetails'
-import PostProduct from '../screens/PostProduct/PostProduct'
-import SearchResults from '../screens/SearchResults/SearchResults'
-import AddComment from '../screens/AddComment/AddComment'
-import ProductEdit from '../screens/ProductEdit/ProductEdit'
-import Messages from '../screens/Messages/Messages'
-import SettingsComponent from '../screens/Settings/SettingsComponent'
-import ChatRoom from '../screens/Chat/ChatRoom'
 
 const Stack = createStackNavigator()
 
@@ -52,14 +40,6 @@ const HomeStackNavigator = () => {
                     component={CompanyList}
                     options={{ 
                     headerShown: false,
-                    headerTitle: () => <HeaderComponent Cart={Cart} />
-                    }}
-                    />
-            <Stack.Screen 
-                    name="Company Details" 
-                    component={CompanyDetails}
-                    options={{ 
-                    // headerShown: false,
                     headerTitle: () => <HeaderComponent Cart={Cart} />
                     }}
                     />
@@ -120,6 +100,22 @@ const HomeStackNavigator = () => {
         <Stack.Screen 
                 name="Settings" 
                 component={SettingsComponent}
+                options={{ 
+                headerShown: false,
+                headerTitle: () => <HeaderComponent Cart={Cart} />
+                }}
+          /> 
+        <Stack.Screen 
+                name="Stories" 
+                component={Stories}
+                options={{ 
+                headerShown: false,
+                headerTitle: () => <HeaderComponent Cart={Cart} />
+                }}
+          /> 
+        <Stack.Screen 
+                name="Checkout" 
+                component={Checkout}
                 options={{ 
                 headerShown: false,
                 headerTitle: () => <HeaderComponent Cart={Cart} />

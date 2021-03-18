@@ -1,23 +1,24 @@
 import React, {useEffect } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View,  FlatList,TouchableOpacity } from 'react-native'
+import { StyleSheet, View,  FlatList,TouchableOpacity } from 'react-native'
 
 
 
-import useFetchData from '../../hooks/useFetchData'
 import { GlobalStyles } from '../../styles/GlobalStyles';
-import TopProductTwoCard from '../../components/TopProductTwoCard';
-import AppText from '../../components/AppText';
+import { ApploadingComponent, AppText, ErrorView, TopProductTwoCard} from '../../components/';
+import useFetchData from '../../hooks/useFetchData'
+
 
 
 
 
 const AddTopProducts = ({ route, navigation }) => {
 
-    const { token, item } = route.params;
+    const { token, item, reload } = route.params;
     
     const { data, loading, errors, request } = useFetchData(token, `api/profileposts/${item.user}/`)
 
     const submit = () => {
+        reload()
         navigation.goBack()
     }
 
@@ -25,9 +26,9 @@ const AddTopProducts = ({ route, navigation }) => {
         request()
     },[])
 
-    if(loading) return <ActivityIndicator color={GlobalStyles.themeColor.color} size={18} />
+    if(loading) return <ApploadingComponent />
 
-    if(errors) return <Text>error occured</Text>
+    if(errors) return <ErrorView onPress={reload} error="OOPs!, Something went wrong.." />
 
     return (
         <View style={styles.container}>

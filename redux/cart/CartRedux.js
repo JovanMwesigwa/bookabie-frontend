@@ -32,7 +32,6 @@ export const fetchCartSuccess = cartData => {
     }
 }
 
-
 export const addItemToCart = id => {
     return{
         type: ADD_ITEM_TO_CART,
@@ -104,6 +103,7 @@ export const fetchCartData = token =>  {
             })
     }
 }
+
 
 export const fetchCartItemRemove = (token, id) => {
     return dispatch => {

@@ -1,7 +1,6 @@
 import React from 'react'
-import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs'; 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { connect } from 'react-redux'
 import {  Entypo } from '@expo/vector-icons';
 
 
@@ -21,7 +20,7 @@ const MainTabsNavigation = ({ navigation, authToken }) => {
       <Tab.Navigator
         initialRouteName="Find"
         activeColor={GlobalStyles.themeColor.color}
-        inactiveColor={GlobalStyles.greyColor.color}
+        inactiveColor={GlobalStyles.darkFontColor.color}
         labeled={false}
         barStyle={{ 
           backgroundColor: '#fff', 
@@ -38,7 +37,6 @@ const MainTabsNavigation = ({ navigation, authToken }) => {
             options={{
                 tabBarLabel: "Home",
                 tabBarIcon: ({ color }) => (
-                // <MaterialCommunityIcons name="newspaper" color={color} size={size} />
                 <Entypo name="shop" size={25} color={color} />
                 )
             }}

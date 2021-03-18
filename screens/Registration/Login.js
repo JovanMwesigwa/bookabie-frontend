@@ -1,18 +1,14 @@
 import React, { useContext, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
 import { connect } from 'react-redux'
 import * as Yup from 'yup'
 
 
 
+import {AppCurtain, AppText, AppForm, AppFormField, SubmitButton } from '../../components/'
 import { AuthContext } from '../../context/authentication/Context'
 import { GlobalStyles  } from '../../styles/GlobalStyles'
 import { signIn } from '../../redux/auth/authRedux'
-import AppForm from '../../components/Forms/AppForm'
-import AppFormField from '../../components/Forms/AppFormField';
-import AppText from '../../components/AppText'
-import SubmitButton from '../../components/Forms/SubmitButton'
-
 
 
 
@@ -22,6 +18,8 @@ const validationSchema = Yup.object().shape({
   password: Yup.string().required().min(4).label("Password")
 })
 
+
+const logo  = require('../../assets/Logos/logo.png')
 
 
 const Login = ({ navigation, authLogin }) => {
@@ -42,10 +40,17 @@ const handleSubmit = (values) => {
 
 const { container } = styles
  return(
-  <ScrollView style={container}>
-    <View style={styles.info}>
-      <AppText {...styles.text}>Login!</AppText>
-    </View>
+  <ScrollView style={container} showsVerticalScrollIndicator={false}>
+
+     <View style={styles.info}>
+          <View style={styles.logoStyles}>
+              <Image source={logo} style={styles.image} />
+          </View>
+          <View>
+            <AppText {...styles.text}>Welcome Back!</AppText>
+            <AppText {...styles.subText}>We're glad your back, lets get you going..</AppText>
+          </View>
+      </View>
 
     <View style={styles.form}>
 
@@ -67,7 +72,7 @@ const { container } = styles
                 secureTextEntry
               />
 
-             <SubmitButton title="Login" loading={loading} />
+             <SubmitButton title="Login"  />
 
             <TouchableOpacity onPress={() => navigation.navigate('Signup')}
                >
@@ -77,6 +82,8 @@ const { container } = styles
   </AppForm>
 
     </View>
+
+    <AppCurtain loading={loading} />
 
   </ScrollView>
   )
@@ -88,25 +95,43 @@ const styles = StyleSheet.create({
     flex: 1,
    },
    info: {
+    alignItems: 'center',
+    backgroundColor: "#fff",
+    height: 200,
     paddingHorizontal: 20,
     justifyContent: "flex-end",
-    height: 180,
     width: "100%"
    },
    form: {
-     backgroundColor: "#fff",
-     borderTopRightRadius: 30,
-     borderTopLeftRadius: 30,
+    backgroundColor: "#fff",
     paddingHorizontal: 15,
     paddingVertical: 30,
     width: "100%"
    },
    text: {
     color: GlobalStyles.themeColor.color,
-     fontSize: 30,
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 20
+    textAlign: 'center',
+  },
+   subText: {
+    color: "#777",
+    flexWrap: 'wrap',
+    fontSize: 14,
+    textAlign: 'center',
    },
+   logoStyles: { 
+    borderRadius: 75/2,
+    height: 75, 
+    marginBottom: 8,
+    overflow: 'hidden',
+    width: 75, 
+},
+image: {
+  width: "100%",
+  height: "100%",
+  resizeMode: 'contain',
+},
   getStartedTextTwo: {
     backgroundColor: 'white',
     alignSelf: 'flex-end',

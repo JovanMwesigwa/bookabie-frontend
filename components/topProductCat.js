@@ -4,11 +4,14 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
 import { GlobalStyles } from '../styles/GlobalStyles'
 import GalleryModal from './Modals/GalleryModal'
 
+import { useNavigation } from '@react-navigation/native'
 
 
-const TopProductCat = ({ topBrand }) => {
+const TopProductCat = ({ topBrand, token }) => {
 
   const [ showing, setShowing ] = useState(false);
+
+  const navigation = useNavigation()
 
   const open = () => {
     setShowing(true)
@@ -18,10 +21,13 @@ const TopProductCat = ({ topBrand }) => {
     setShowing(false)
   }
 
+  // () => navigation.navigate('Stories', { item: topBrand, token: token})
+
+
 const { container } = styles
  return(
    <>
-    <GalleryModal modalOpen={showing} closeModal={close} item={topBrand} />
+    <GalleryModal modalOpen={showing} closeModal={close} user={topBrand} token={token} />
     <TouchableWithoutFeedback onPress={open}>
         <View style={styles.outer}>
           <View style={container}>
@@ -43,6 +49,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   outer: {
+  
     alignItems: 'center',
     borderWidth: 2,
     borderRadius: 85/2,

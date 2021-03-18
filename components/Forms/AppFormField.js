@@ -24,7 +24,7 @@ const AppFormField = ({ name, placeholder, placeholderColor="#777", icon ,isInli
                 <FontAwesome name={icon} color="#05375a" size={18} style={styles.iconStyles} />
         </View>
         {
-            !errors ? 
+            errors ? 
             <View style={isInline && styles.inline}>
                 {touched[name] && <Text style={{ color: "red" }}>{errors[name]}</Text>}
             </View> : 
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         padding: 10,
         paddingLeft: 30,
-        borderRadius: 12,
+        borderRadius: 25,
         borderWidth: 0.3,
         borderColor: '#7B8788',
         marginBottom: 18,

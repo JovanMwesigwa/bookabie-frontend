@@ -1,20 +1,20 @@
- 1 - Fix the following and followers number view on the profiles ****DONE***
-    - fix the like and liked post button.. *** DONE ***
+ 1 - Fix the following and followers number view on the profiles **** DONE ****
+    - fix the like and liked post button.. **** DONE ****
     
- - finish the add and edit profile functionality *** DONE ****
+ - finish the add and edit profile functionality **** DONE ****
    - finish the set profile on registration
-    - add loading curtain screen 
+    - add loading curtain screen  **** DONE ****
    
  - add location field to the post 
     - add offline bar
    
  - add a user short video profile 
-   - add gallery feature
- - fix the logout bug with redux
+   - add gallery feature **** 50% ****
+ - fix the logout bug with redux **** DONE ****
 
   - Add search functionality and screens
-    - restyle the promoted profiles (Shows the profile gallery)
+    - restyle the promoted profiles (Shows the profile gallery) **** DONE ****
 
- 2 - Add payments and swipe to the cart(checkout)
+ 2 - Add payments and swipe to the cart(checkout) **** 50% ****
     - add MTN mobile money payments and paypal swipe 
     - show the user location to the seller and buyer using google maps API...

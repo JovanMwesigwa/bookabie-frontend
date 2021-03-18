@@ -1,30 +1,26 @@
 import React, {  useEffect, useState } from 'react'
+import { View, StyleSheet, RefreshControl, Image, ImageBackground, TouchableOpacity, StatusBar, FlatList } from 'react-native'
 import axios from 'axios';
 import { connect } from 'react-redux'
-import { View, RefreshControl, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList } from 'react-native'
 import {   Entypo, AntDesign,  SimpleLineIcons } from '@expo/vector-icons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import * as Animatable from 'react-native-animatable';
 import { Caption,  } from 'react-native-paper';
 import {  Tab, Tabs} from 'native-base';
 import {  Text, Paragraph } from 'react-native-paper';
 
 
 
-import OtherHeaderComponent from '../../components/OtherHeaderComponent';
+import {ApploadingComponent, AppButton, OtherHeaderComponent, ProductCard, TopProduct, ErrorView, LoadMoreComponent } from '../../components/';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import { GlobalStyles } from '../../styles/GlobalStyles'
-import ProductCard from '../../components/productCard';
-import { StyleSheet } from 'react-native';
 import useFetchData from '../../hooks/useFetchData'
-import TopProduct from '../../components/TopProduct';
-import AppButton from '../../components/AppButton';
+import { fetchOtherUserProfile } from '../../redux/otherUserProfile/otherUserprofilerRedux';
 
 
 
 
 
-const CompanyProfile = ({ route, authToken }) => {
+const CompanyProfile = ({authToken, route, fetchUserProfile, userProfile }) => {
 
   const { ID, } = route.params;
 
@@ -32,16 +28,14 @@ const CompanyProfile = ({ route, authToken }) => {
   
   const token = authToken;
 
-  const { data: profileData, loading, errors, request } = useFetchData(token, `api/profile/${ID}/detail/`)
-
-  const postsData = useFetchData(token, `api/profileposts/${profileData.user}`)
+  const postsData = useFetchData(token, `api/profileposts/${userProfile.profile.user}`)
 
   const topPosts = useFetchData(token, `api/topproducts/${ID}/`)
 
   const followingData = useFetchData(token, `api/followers/${ID}/`)
 
   useEffect(() => {
-      request()
+    fetchUserProfile(token, ID)
      followingData.request()
      topPosts.request()
      fetchFollowData()
@@ -90,74 +84,36 @@ const CompanyProfile = ({ route, authToken }) => {
 
 
   const fastRefresh = () => {
-    request()
+    fetchUserProfile(token, ID)
     followingData.request()
     topPosts.request()
     fetchFollowData()
   }
 
 
-  if (errors) {
-    return (
-      <>
-        <>
-        <SecondaryHeader />
-        <View style={{ flex: 1, margin: 25 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-            <Image source={noConnectionImage} style={{ width: 30, height: 30}} />
-            <Text style={{ textAlign: 'center', color: '#292E2E', letterSpacing:1, paddingHorizontal: 5 }}>{errors}</Text> 
-          </View> 
-                
-            <TouchableOpacity style={styles.refreshBtn}
-                onPress={fastRefresh}
-                >
-                  <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15}}>Refresh</Text>
-            </TouchableOpacity>
-        </View>
-      </>
-      </>
-    )
-  }
+    if(userProfile.loading) return <ApploadingComponent />
 
-  const renderFooter = () => {
-    return(
-      <Animatable.View style={{ flex: 1, justifyContent: 'center', elevation: 5, paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15 }}
-        animation='fadeInUp'
-        delay={900}
-        duration = {200}  
-      >
-        <TouchableOpacity style={styles.loadMoreBtn}
-          onPress={() => postsData.request()}
-        >
-          <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15 }}>View all {profileData.user}'s posts</Text>
-        </TouchableOpacity>
-      </Animatable.View>
-    )
-  }
+    if(userProfile.errors) return <ErrorView onPress={fastRefresh} error={userProfile.errors} />
+
+  const renderFooter = () => <LoadMoreComponent title="my" onPress={() => postsData.request()} />
 
 const { container } = styles
 const refreshControl = <RefreshControl
-        refreshing={loading}
+        refreshing={userProfile.loading}
         onRefresh={fastRefresh}
       />
  return(
     
   <>
     <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-    <OtherHeaderComponent name={profileData.user} />
-      {loading ? 
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-              <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
-        </View>
-    :
-
+    <OtherHeaderComponent name={userProfile.profile.user} />
     
     <FlatList
     
         ListHeaderComponent={
           <>
             <View style={container}>                 
-                  <ImageBackground style={styles.coverImageHeader} source={{ uri: profileData.cover_photo }}>
+                  <ImageBackground style={styles.coverImageHeader} source={{ uri: userProfile.profile.cover_photo }}>
                     <View style={styles.child}>
                     </View>
                   </ImageBackground>
@@ -166,18 +122,18 @@ const refreshControl = <RefreshControl
 
                     <View style={{ flex: 1, marginBottom: 6, paddingHorizontal: 20 }} >
 
-                      <Image source={{ uri: profileData.profile_pic }} style={styles.profilephoto} />
+                      <Image source={{ uri: userProfile.profile.profile_pic }} style={styles.profilephoto} />
                     
                     <View style={{ flexDirection: 'row', marginTop: 15,  justifyContent: 'space-between' }}>
                         <View >
                           <View style={{ flexDirection: 'row'}}>
-                            <Text style={{...styles.mainText, fontSize: 15}}>{profileData.user}</Text>
+                            <Text style={{...styles.mainText, fontSize: 15}}>{userProfile.profile.user}</Text>
                             {
-                              profileData.verified ? <AntDesign name="star" size={10} color="black" /> : null
+                              userProfile.profile.verified ? <AntDesign name="star" size={10} color="black" /> : null
                             }
                             
                           </View>
-                          <Text style={styles.secondaryText}>{profileData.profile_type.name}</Text>
+                          <Text style={styles.secondaryText}>{userProfile.profile.profile_type.name}</Text>
                         </View>
 
                         <View style={styles.actionBtns}>
@@ -210,39 +166,39 @@ const refreshControl = <RefreshControl
 
                     <View style={{ flex: 1, paddingHorizontal: 15 }}>
                       {
-                        profileData.working_days !== null &&
+                        userProfile.profile.working_days !== null &&
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
                                 <Entypo name="calendar" size={18} color="#FF5A09" /> 
                             </View>
                             <View style={{ paddingHorizontal: 5}}>
-                              <Text style={{...styles.mainText, fontWeight: '600'}}>{profileData.working_days}</Text> 
-                              <Text  style={{...styles.secondaryText, fontSize: 13}}>{profileData.working_hours}</Text> 
+                              <Text style={{...styles.mainText, fontWeight: '600'}}>{userProfile.profile.working_days}</Text> 
+                              <Text  style={{...styles.secondaryText, fontSize: 13}}>{userProfile.profile.working_hours}</Text> 
                             </View>
                           </View>
                       }
                         
                           {
-                            profileData.location !== null &&
+                            userProfile.profile.location !== null &&
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
                               <Entypo name="location-pin" size={18} color="#FF5A09" />
                             </View>
                             
                             <View style={{   paddingHorizontal: 5 }}>
-                              <Text style={{...styles.mainText,fontWeight: '600'}}>{profileData.location}</Text> 
+                              <Text style={{...styles.mainText,fontWeight: '600'}}>{userProfile.profile.location}</Text> 
                             </View>
                           </View> 
                           }
 
                           {
-                            profileData.contact !== null &&
+                            userProfile.profile.contact !== null &&
                           
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
                               <Entypo name="globe" size={18} color="#FF5A09" />
                             </View >
-                              <Text style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{profileData.contact}</Text> 
+                              <Text style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{userProfile.profile.contact}</Text> 
                           </View> 
                           }
                       
@@ -303,7 +259,7 @@ const refreshControl = <RefreshControl
                   >
                       <View style={{ marginVertical: 8, paddingHorizontal: 20 }}>
                         <View >
-                            <Text style={{...styles.mainText, fontSize: 14.5, letterSpacing: 0.5, lineHeight: 18,  fontWeight: 'normal'}}>{profileData.description}</Text>
+                            <Text style={{...styles.mainText, fontSize: 14.5, letterSpacing: 0.5, lineHeight: 18,  fontWeight: 'normal'}}>{userProfile.profile.description}</Text>
                         </View>
                     </View>
                   </Tab>
@@ -345,9 +301,6 @@ const refreshControl = <RefreshControl
       )}
       keyExtractor={(item) => item.id.toString()}
     />
-  
-
-}
 </>
  )
 }
@@ -399,6 +352,14 @@ followingBtnContainer:{
   paddingHorizontal: 15,
   paddingVertical: 8,
   borderRadius: 15
+},
+footerStyles: { 
+  alignItems: 'center',  
+  elevation: 5, 
+  flex: 1, 
+  paddingHorizontal: 15, 
+  marginVertical: 15,
+  justifyContent: 'center', 
 },
 arrowDownContainer: {
   alignItems: 'center',
@@ -552,7 +513,14 @@ loadMoreBtn: {
 
 const mapStateToProps = state => {
   return{
-    authToken: state.auth.token
+    authToken: state.auth.token,
+    userProfile: state.otherUserProfile
   }
 }
-export default connect(mapStateToProps, null)(CompanyProfile);
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchUserProfile: (token, ID) => dispatch(fetchOtherUserProfile(token, ID))
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(CompanyProfile);

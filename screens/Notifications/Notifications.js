@@ -1,23 +1,20 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { StatusBar, StyleSheet, Text, View } from 'react-native'
 
+import {MainHeaderComponent} from '../../components'
 
-const Notifications = (props) => {
-
-const { container } = styles
- return(
-  <View style={container}>
-    <Text>Notifications</Text>
-  </View>
+const NotificationsScreen = () => {
+  return (
+    <View>
+        <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
+        <MainHeaderComponent />
+      <Text></Text>
+    </View>
   )
 }
-
-
 const styles = StyleSheet.create({
-  container: {
-   flex: 1,
-   justifyContent: 'center',
-   alignItems: 'center',
-  }
+
 })
-export default Notifications
+
+export default NotificationsScreen
+

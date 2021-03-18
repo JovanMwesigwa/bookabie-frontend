@@ -1,10 +1,14 @@
 import React, { useContext } from 'react'
 import { UserAuthentication } from '../../context/authentication/UserAuthenticationContextProvider'
-import { View, Text, StyleSheet, Button, Dimensions, Image, TouchableOpacity, StatusBar } from 'react-native'
+import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity, StatusBar } from 'react-native'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import * as Animatable from 'react-native-animatable';
+
+
 import { GlobalStyles } from '../../styles/GlobalStyles'
 
+
+  
 const SplashScreen = ({ navigation }) => {
 
 const { LogoutHandler } = useContext(UserAuthentication);
@@ -14,33 +18,37 @@ const { container } = styles
   <View style={container}>
     <StatusBar backgroundColor={GlobalStyles.themeColor.color} barStyle='light-content' />
       <View style={styles.header}>
-        <Animatable.Image 
-            source={require('../../assets/Logos/White.png')}
-            animation="bounceIn"
-            delay={500}
-            duration = {2000}
-            style={styles.logo}
-         />
+        <Animatable.View 
+          animation="bounceIn"
+          delay={500}
+          duration = {2000}
+          style={styles.logo}
+        >
+          <Image 
+              source={require('../../assets/Logos/logo.png')}
+              style={{ width: "100%", height: "100%", resizeMode: 'contain', }}
+          />
+        </Animatable.View>
         <Animatable.View 
           animation="bounceIn"
           delay={500}
           duration = {2000}
           style={styles.logoName}>
-          <Text style={{ fontSize: 30, color: '#fff',  }}>Bookabie</Text>
+          <Text style={{ fontSize: 30, color: '#fff', marginTop: 8  }}>Bookabie</Text>
         </Animatable.View>
       </View>
       <Animatable.View 
         style={styles.footer}
         animation="fadeInUpBig"
         delay={500}>
-        <Text style={styles.title}>Connect with all your customers!</Text>
+        <Text style={styles.title}>Get to sell and buy beyond!</Text>
  
         <View style={styles.signIn}>
-            <TouchableOpacity>
-                <Text style={styles.text}></Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.text}>Login into your account</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Signup')} >
-                <Text style={styles.getStartedText}>Get Started</Text>
+                <Text style={styles.getStartedText}>Join Today!</Text>
                 <MaterialIcons
                     name='navigate-next'
                     color='#fff'
@@ -51,7 +59,6 @@ const { container } = styles
         </View>
 
       </Animatable.View>
-    {/* <Button title='Login now' onPress={() => navigation.navigate('Login')} /> */}
   </View>
   )
 }
@@ -71,11 +78,13 @@ const styles = StyleSheet.create({
       alignItems: 'center'
   },
   logo: {
+    padding: 8,
+    borderWidth: 2,
+    borderColor: "#fff",
     width: height_logo,
     height: height_logo,
-    // borderRadius: 85,
-    borderRadius: 12,
-    resizeMode: 'contain',
+    borderRadius: height_logo/2,
+    overflow: 'hidden'
   },
   logoName: {
     

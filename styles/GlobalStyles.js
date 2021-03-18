@@ -12,7 +12,7 @@ export const GlobalStyles = StyleSheet.create({
     color: "#777"
   },
   blue: {
-    color: "#1287A5",
+    color: "#1287A5", 
   },
   greenColor:{
     color: '#218F76'

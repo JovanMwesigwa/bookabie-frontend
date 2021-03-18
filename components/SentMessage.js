@@ -1,41 +1,28 @@
-import React, { useEffect, useContext, useState }  from 'react'
+import React, { useEffect, useState }  from 'react'
 import { View,  StatusBar, Image } from 'react-native'
-import { Divider, Surface, Text } from 'react-native-paper';
-import { AuthContext } from '../context/authentication/Context'
-import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
+import { Surface, Text } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import axios from 'axios';
-import moment from 'moment';
 import { connect } from 'react-redux'
+import moment from 'moment';
+
+
+
+
 import { GlobalStyles } from '../styles/GlobalStyles';
+import useFetchData from '../hooks/useFetchData'
  
 
 
 const SentMessagesItem = ({authToken, item}) => {
 
-    
-    const { authState } = useContext(AuthContext);
     const token = authToken;
 
-    const [ userData, setUserData ] = useState({});
+    const { data,  request } = useFetchData(token, `api/profile/${item.reciever}/detail/`)
 
-    const fetchUser = async() => {
-        try{
-            const resData = await axios.get(`${APIROOTURL}/api/profile/${item.room_to}/detail/`,{
-                headers: {
-                    'Authorization': `Token ${token}`
-                }
-            })
-            setUserData(resData.data);
-            // console.log(userData.data)
-        }catch(err){
-            console.log(err);
-        }
-    }
 
     useEffect(() => {
-        fetchUser();
+        request();
     },[])
 
 const { container } = styles
@@ -44,13 +31,13 @@ const { container } = styles
     <Surface style={styles.surface}>
         
         <View style={styles.senderProfile}>
-            <Image source={{ uri: userData.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
+            <Image source={{ uri: data.profile_pic }} style={GlobalStyles.smallRoundedPictContainer} />
         </View>
             
         <View style={styles.messageContent}>
             <View style={{ flexDirection: 'row' }}>
                 <Text style={styles.greyHeader}>Chat with</Text>
-                <Text style={{ paddingHorizontal: 5, fontSize: 13, fontWeight: '700' }}>{userData.user}</Text>
+                <Text style={{ paddingHorizontal: 5, fontSize: 13, fontWeight: '700' }}>{data.user}</Text>
             </View>
             <View>
                 <Text numberOfLines={2}>{item.msg_content}</Text>

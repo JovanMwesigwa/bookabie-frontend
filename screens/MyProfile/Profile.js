@@ -1,126 +1,78 @@
-import React, {  useEffect, useState } from 'react'
-import { View, StyleSheet,Text,   Dimensions, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList, RefreshControl } from 'react-native'
+import React, {  useEffect } from 'react'
+import { View, StyleSheet, Text, Dimensions, Image, ImageBackground, TouchableOpacity, ActivityIndicator, StatusBar, FlatList, RefreshControl } from 'react-native'
 import {  Entypo, AntDesign} from '@expo/vector-icons';
 import { connect } from 'react-redux';
-import * as Animatable from 'react-native-animatable';
-
-
-
-import ProfileHeader from '../../components/ProfileHeader';
-import { GlobalStyles } from '../../styles/GlobalStyles'
-import ProductCard from '../../components/productCard';
 import { Caption, Paragraph,  } from 'react-native-paper';
 import {  Tab, Tabs } from 'native-base';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import SecondaryHeader from '../../components/SecondaryHeader';
+
+
+
+
+import {AppButton, ApploadingComponent, ErrorView, ProductCard, ProfileHeader, LoadMoreComponent, TopProduct, } from '../../components/';
+import { GlobalStyles } from '../../styles/GlobalStyles'
 import useFetchData from '../../hooks/useFetchData'
 import { fetchUserProfile } from '../../redux/userProfile/userProfileRedux';
-import TopProduct from '../../components/TopProduct';
-import AppButton from '../../components/AppButton';
 
 
 
 
 const userUrl = "api/userprofile/user/detail/"
-const noConnectionImage = require('../../assets/images/noint.png');
 
 
 const Profile = ({  navigation, authToken, userProfile, fetchUserProfile }) => {
 
   const token = authToken
 
-  const { data, loading, errors, request } = useFetchData(token, userUrl);
-
-  const postsData = useFetchData(token, `api/profileposts/${data.user}`)
+  const postsData = useFetchData(token, `api/profileposts/${userProfile.profile.user}`)
   
-  const topPosts = useFetchData(token, `api/topproducts/${data.id}/`)
+  const topPosts = useFetchData(token, `api/topproducts/${userProfile.profile.id}/`)
+
+  useEffect(() => {
+    fetchUserProfile(token)
+    topPosts.request()
+  },[])
 
   
   const fastRefresh = () => {
-    request()
-    topPosts.request()
     fetchUserProfile(token)
+    topPosts.request()
   }
 
   const reload = () => {
-    request()
-    topPosts.request()
     fetchUserProfile(token)
-  }
-
-
-  useEffect(() => {
-    request()
     topPosts.request()
-    fetchUserProfile(token)
-  },[])
-
-
-
-  if (errors) {
-    return (
-      <>
-        <SecondaryHeader />
-        <View style={{ flex: 1, margin: 25 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-            <Image source={noConnectionImage} style={{ width: 30, height: 30}} />
-            <Text style={{ textAlign: 'center', color: '#292E2E', letterSpacing:1, paddingHorizontal: 5 }}>{errors}</Text> 
-          </View> 
-                
-            <TouchableOpacity style={styles.refreshBtn}
-                onPress={fastRefresh}
-                >
-                  <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15}}>Refresh</Text>
-            </TouchableOpacity>
-        </View>
-      </>
-    )
   }
 
 
-  const renderFooter = () => {
-    return(
-      <Animatable.View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 15, alignItems: 'center',  marginVertical: 15 }}
-        animation='fadeInUp'
-        delay={900}
-        duration = {200}  
-      >
-        <TouchableOpacity style={styles.loadMoreBtn}
-          onPress={() => postsData.request()}
-        >
-          <Text style={{ fontSize: 12, color: 'white', paddingHorizontal: 15 }}>View all my posts</Text>
-        </TouchableOpacity>
-      </Animatable.View>
-    )
-  }
+  if (userProfile.loading) return <ApploadingComponent />
 
+  if (userProfile.error) return <ErrorView onPress={reload} error={userProfile.error} />
+
+
+
+  const renderFooter = () => <LoadMoreComponent title="my" onPress={() => postsData.request()} />
 
 
 const { container } = styles
 
 const refreshControl = <RefreshControl
-  refreshing={loading}
+  refreshing={userProfile.loading}
   onRefresh={reload}
 />
  return(
 
   <>
       <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-    <ProfileHeader profileName={data.user} />
-      {loading ? 
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-              <ActivityIndicator size='small' collapsable color={GlobalStyles.themeColor.color} />
-        </View>
-    :
+    <ProfileHeader profileName={userProfile.profile.user} />
     <FlatList
-    
-    
-    ListHeaderComponent={
+  
+      ListHeaderComponent={
         <>
           <View style={styles.container}>
 
          
-          <ImageBackground style={styles.coverImageHeader} source={{uri: data.cover_photo}}>
+          <ImageBackground style={styles.coverImageHeader} source={{uri: userProfile.profile.cover_photo}}>
             <View style={styles.child}>
 
             </View>
@@ -128,39 +80,37 @@ const refreshControl = <RefreshControl
 
           <View style={styles.footer}>
 
-            <View style={{ flex: 1, marginBottom: 3, paddingHorizontal: 20 }} >
+            <View style={styles.accountContainer} >
 
-              <Image source={{ uri: data.profile_pic }} style={styles.profilephoto} />
+              <Image source={{ uri: userProfile.profile.profile_pic }} style={styles.profilephoto} />
             
-            <View style={{ flexDirection: 'row', marginTop: 15,  justifyContent: 'space-between' }}>
-                <View >
+            <View style={styles.info}>
+                <View style={styles.accountInfo}>
                   <View style={{ flexDirection: 'row'}}>
-                    <Text style={{...styles.mainText, fontSize: 15}}>{data.user}</Text>
+                    <Text style={{...styles.mainText, fontSize: 15}}>{userProfile.profile.user}</Text>
                     <AntDesign name="star" size={10} color={GlobalStyles.darkFontColor.color} />
                   </View>
-                  <Text style={styles.secondaryText}>{data.profile_type.name}</Text>
+                  <Text style={styles.secondaryText}>{userProfile.profile.profile_type.name}</Text>
                 </View>
 
-                <View style={{ flexDirection: 'row', position: 'absolute',bottom: 30, right: 1}}>
-                    <TouchableOpacity style={styles.cartBtnContainer} onPress={() => {
-                      navigation.navigate('Edit Profile', {Profile: data, RefreshFetchedUser: request, token: token, fetchUserProfile: fastRefresh})
+                <TouchableOpacity style={styles.cartBtnContainer} onPress={() => {
+                      navigation.navigate('Edit Profile', {Profile: userProfile.profile, RefreshFetchedUser: reload, token: token, fetchUserProfile: fastRefresh})
                     }}>
-                      <Text style={{ color: '#1287A5', fontWeight: '600' }}>EDIT</Text>
-                    </TouchableOpacity>
-                </View>
+                  <Text style={{ color: '#1287A5', fontWeight: '600' }}>EDIT</Text>
+                </TouchableOpacity>
 
             </View>
 
             </View>
 
-            <View style={{ flex: 1, paddingHorizontal: 15 }}>
+            <View style={{ flex: 1, paddingHorizontal: 15}}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
                     <Entypo name="calendar" size={18} color="#FF5A09" /> 
                 </View>
                 <View style={{ paddingHorizontal: 5}}>
-                  <Paragraph style={{...styles.mainText, fontWeight: '600'}}>{data.working_days}</Paragraph>
-                  <Caption  style={{...styles.secondaryText, fontSize: 13}}>{data.working_hours}</Caption> 
+                  <Paragraph style={{...styles.mainText, fontWeight: '600'}}>{userProfile.profile.working_days}</Paragraph>
+                  <Caption  style={{...styles.secondaryText, fontSize: 13}}>{userProfile.profile.working_hours}</Caption> 
                 </View>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -168,14 +118,14 @@ const refreshControl = <RefreshControl
                   <Entypo name="location-pin" size={18} color="#FF5A09" />
                 </View>
                 <View style={{   paddingHorizontal: 5 }}>
-                  <Paragraph style={{...styles.mainText,fontWeight: '600'}}>{data.location}</Paragraph> 
+                  <Paragraph style={{...styles.mainText,fontWeight: '600'}}>{userProfile.profile.location}</Paragraph> 
                 </View>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', }}>
                 <View style={{ padding: 3, borderRadius: 8, opacity: 0.8 }}>
                   <Entypo name="globe" size={18} color="#FF5A09" />
                 </View >
-                  <Caption style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{data.contact}</Caption> 
+                  <Caption style={{...styles.mainText,fontWeight: '600', color: '#777',  paddingHorizontal: 5}}>{userProfile.profile.contact}</Caption> 
               </View>
               <View style={styles.section}>
                   <MaterialCommunityIcons name="account-group" size={18} color="#FF5A09" />
@@ -222,7 +172,7 @@ const refreshControl = <RefreshControl
                     }
 
                     <View style={{ marginVertical: 5 }}>
-                      <AppButton small text="Add More" onPress={() => navigation.navigate("AddTopProducts", {token: token, item: data })} />
+                      <AppButton small text="Add More" onPress={() => navigation.navigate("AddTopProducts", {token: token, item: userProfile.profile, reload: reload })} />
                     </View>
                      
                     </View>
@@ -238,7 +188,7 @@ const refreshControl = <RefreshControl
                     
                       <View style={{ flex: 1, marginVertical: 8, paddingHorizontal: 20 }}>
                         <View style={{ flex: 1, }}>
-                            <Paragraph muted style={{...styles.mainText,  letterSpacing: 0.5, lineHeight: 18, fontSize: 14.5, fontWeight: '600'}}>{data.description}</Paragraph>
+                            <Paragraph muted style={{...styles.mainText,  letterSpacing: 0.5, lineHeight: 18, fontSize: 14.5, fontWeight: '600'}}>{userProfile.profile.description}</Paragraph>
                         </View>
                     </View>
                   </Tab>
@@ -279,12 +229,19 @@ const refreshControl = <RefreshControl
       )}
       keyExtractor={(item) => item.id.toString()}
     />
-}
 </>
  )
 }
 
 const styles = StyleSheet.create({
+  accountContainer: { 
+    height: 80,
+    paddingHorizontal: 20,
+    width: "100%"
+   },
+  accountInfo: {
+    marginTop: 35
+  },
   container: {
    flex: 1,
   },
@@ -328,8 +285,6 @@ mapStyle: {
     backgroundColor: 'white', 
     elevation: 0,
     shadowOpacity: 0, 
-    // paddingBottom: 10, 
-    // paddingVertical: 20,
 },
 section: {
   flexDirection: 'row',
@@ -348,6 +303,10 @@ caption: {
   fontSize: 14,
   lineHeight: 14, 
   paddingLeft: 8
+},
+info: { 
+  flexDirection: 'row',   
+  justifyContent: 'space-between',
 },
 loadMoreBtn: {
   flexDirection: 'row', 
@@ -413,7 +372,7 @@ loadMoreBtn: {
   profilephoto: {
     position: 'absolute',
     bottom: 45,
-    left: 20,
+    left: 15,
     width: 65,
     height: 65,
     backgroundColor: 'brown',
@@ -462,7 +421,7 @@ loadMoreBtn: {
 const mapStateToProps = state => {
   return{
     authToken: state.auth.token,
-    userProfile: state.userProfile
+    userProfile: state.userProfile,
   }
 }
 

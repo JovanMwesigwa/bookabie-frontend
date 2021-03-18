@@ -34,6 +34,8 @@ const ProductCard = ({authToken, authUserID, addToCartFunc, removeCartItemFunc, 
   const [ fullImageModal, setFullImageModal ] = useState(false);
   
   const { userInfo } = useContext(UserInfoContext);
+
+  // console.log("ID===========>",authUserID)
   
   const token = authToken
 
@@ -113,7 +115,7 @@ const { container } = styles
     <View style={styles.cardContainer}>
       <View>
         <View style={{ flex: 1, flexDirection: 'row'}}>
-
+  
           {
             authUserID !== item.author.id ?
               <TouchableOpacity onPress = {() => navigation.navigate("CompanyProfile", {ID: item.author.id})}>
@@ -142,24 +144,29 @@ const { container } = styles
                 }
                 
                 <View style={styles.ratingsContainer}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ flexDirection: 'row'}}>
                     <MaterialIcons name="location-on" size={15} color={GlobalStyles.greenColor.color} />
-                    <Text style={{ color: GlobalStyles.greenColor.color, fontSize: 12 }}>Nankulabye</Text>
+                    <Text style={{ color: GlobalStyles.greenColor.color, fontSize: 12 }}>{item.category.name}</Text>
                   </View>
                       <Text style={[GlobalStyles.greyTextSmall, {fontSize: 12}]}>/ Posted about { moment(item.created).startOf('hour').fromNow()}</Text>
                 </View>
             </View>
           </View>
         <View style={styles.actionContainer}>
-            {
-              addedToCart ? 
-              <TouchableOpacity style={[styles.bookmarkIcon, {backgroundColor: "#B83227", flexDirection: 'row'}]} onPress={removeFromCart}>
-                <Text style={[GlobalStyles.greyTextSmall, {fontSize: 12, color: "white", fontWeight: 'bold', alignItems: 'center'}]}>ADDED TO CART</Text>
-              </TouchableOpacity> :
-              <TouchableOpacity style={styles.bookmarkIcon} onPress={addToCartHandler}>
-                <Feather name="plus" size={20} color="white" />
-              </TouchableOpacity>
-            }
+          {
+            item.price &&
+            <>
+              {
+                addedToCart ? 
+                <TouchableOpacity style={[styles.bookmarkIcon, {backgroundColor: "#B83227", flexDirection: 'row'}]} onPress={removeFromCart}>
+                  <Text style={[GlobalStyles.greyTextSmall, {fontSize: 12, color: "white", fontWeight: 'bold', alignItems: 'center'}]}>ADDED TO CART</Text>
+                </TouchableOpacity> :
+                <TouchableOpacity style={styles.bookmarkIcon} onPress={addToCartHandler}>
+                  <Feather name="plus" size={20} color="white" />
+                </TouchableOpacity>
+              }
+            </>
+          }
               <TouchableOpacity style={styles.threeDots} onPress={() => setShowShowShareDialog()}>
                 <Entypo name="dots-three-vertical" size={16} color="black"  />
               </TouchableOpacity>

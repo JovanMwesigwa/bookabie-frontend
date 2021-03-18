@@ -5,6 +5,14 @@ import AuthNavigation from './navigation/authNavigation'
 import { GlobalStyles } from './styles/GlobalStyles'
 import { connect } from 'react-redux'
 import { load } from './redux/auth/authRedux';
+import NetInfo, { useNetInfo } from '@react-native-community/netinfo';
+
+
+
+console.disableYellowBox = true;
+
+
+
 
 const logo = require('./assets/Logos/logo.png');
 
@@ -13,6 +21,10 @@ const MainApp = ({ authToken,  loadToken}) => {
 const [ loading, setLoading ] = useState(true);
 
 const token = authToken;
+
+const netInfo = useNetInfo()
+
+console.log()
 
 useEffect(() => {
   loadToken()
@@ -33,12 +45,27 @@ useEffect(() => {
    )
  }
 
+ if (!netInfo.isInternetReachable) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: GlobalStyles.themeColor.color }}>
+      <StatusBar barStyle="light-content" backgroundColor={GlobalStyles.themeColor.color} />
+      <View style={{ flex: 1 }} />
+      <View style={{ flex: 1 }}>
+        <View style={styles.logoStyles}>
+          <Image source={logo} style={styles.image} />
+        </View>
+        <Text style={{ color: '#fff', fontSize: 16, letterSpacing: 0.5 }}>Bookabie</Text>
+      </View>
+      <Text style={{ color: '#777', fontSize: 16, marginVertical: 15}}>Looks like your Internet is off...</Text>
+    </View>
+  )
+}
  
 const { container } = styles
 
  return(
       <View style={container}>
-          <StatusBar barStyle="light-content" />
+              <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
             {
               token == null ? 
                 <AuthNavigation /> :

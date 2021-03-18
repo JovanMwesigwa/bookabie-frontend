@@ -2,6 +2,8 @@ import React from 'react'
 import { StyleSheet, View, Text } from 'react-native';
 import { AntDesign,} from '@expo/vector-icons';
 import moment from 'moment';
+
+
 import { GlobalStyles } from '../../styles/GlobalStyles';
 
 
@@ -10,11 +12,11 @@ const ChatMessageComponent = ({ item, bgColor }) => {
         <>
             <View style={{...styles.container, backgroundColor: bgColor,}}>
             <View  >
-                <Text style={styles.textStyle}>{item.description}</Text>
+                <Text style={styles.textStyle}>{item.msg_content}</Text>
                 <AntDesign name="check" size={8} color="grey" style={styles.tickStyle} />
             </View>
             </View>
-          <Text style={styles.SentMsgTime}>{ moment(item.created).startOf('hour').fromNow()}</Text>
+          <Text style={styles.SentMsgTime}>{ moment(item.date_sent).startOf('hour').fromNow()}</Text>
         </>
     )
 }

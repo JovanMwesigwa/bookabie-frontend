@@ -3,15 +3,8 @@ import { createStackNavigator } from '@react-navigation/stack'
 
 
 
-import Category from '../screens/Category/Category'
+import {AddComment, ChatRoom, Category, Categories, companyProfile, ProductEdit,  ProductDetails,  } from '../screens/'
 import HeaderComponent from '../components/header'
-import Categories from '../screens/Categories/Categories'
-import ProductDetails from '../screens/ProductDetails/ProductDetails'
-import companyProfile from '../screens/CompanyProfile/companyProfile'
-import ProductEdit from '../screens/ProductEdit/ProductEdit'
-import AddComment from '../screens/AddComment/AddComment'
-import ChatRoom from '../screens/Chat/ChatRoom'
-
 
 
 const Stack = createStackNavigator()

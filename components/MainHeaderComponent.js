@@ -35,19 +35,23 @@ const { container } = styles
             <Image source={{ uri: userProfile.profile.profile_pic }} style={[GlobalStyles.smallRoundedPictContainer, { width: main ? 45 : 40, height:  main ? 45 : 40,}]} />
           </TouchableOpacity>
           <SearchComponent />
-          <TouchableOpacity onPress={() => navigation.navigate("Cart")} >
-            <AntDesign name='shoppingcart' size={30} 
-            style={{paddingHorizontal: 5}}
+          <TouchableOpacity onPress={() => navigation.navigate("Cart", {ID: userProfile.profile.id})} style={styles.cartContainer}>
+            <AntDesign name='shoppingcart' size={33} 
             color={GlobalStyles.darkFontColor.color}  />
           </TouchableOpacity>
           {
-            parentCartData.loading ? 
-            <View style={styles.cartNumberContainer}>
-                <Text style={styles.cartNumber}>..</Text>
-            </View> :
-             <View style={styles.cartNumberContainer}>
-                <Text style={styles.cartNumber}>{cartData.product.length}</Text>
-            </View>
+            parentCartData.errors ? null :
+            <>
+              {
+                parentCartData.loading ? 
+                <View style={styles.cartNumberContainer}>
+                    <Text style={styles.cartNumber}>..</Text>
+                </View> :
+                <View style={styles.cartNumberContainer}>
+                    <Text style={styles.cartNumber}>{cartData.product.length}</Text>
+                </View>
+              }
+            </>
           }
        </View>
     </View>
@@ -56,6 +60,12 @@ const { container } = styles
 
 
 const styles = StyleSheet.create({
+  cartContainer: {
+    alignItems: 'center',
+    height: 40,
+    justifyContent: 'center',
+    width: 45,
+  },
   container: {
     backgroundColor: 'white', 
     elevation: 2,  

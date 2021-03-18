@@ -16,10 +16,6 @@ const { container } = styles
         <TouchableOpacity onPress={onPress} >
           <AntDesign name="close" size={25} color="black" />
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={submitHandler}>
-            <Text style={{...GlobalStyles.headerText, color: '#B83227', fontWeight: 'bold', fontSize: 16}}>Post</Text>
-        </TouchableOpacity>
         </View>
     </View>
   )

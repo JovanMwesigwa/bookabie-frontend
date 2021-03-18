@@ -4,7 +4,6 @@ import { FontAwesome} from '@expo/vector-icons';
 import { Surface} from 'react-native-paper';
 
 
-import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
 import useFetchData from '../hooks/useFetchData'
 import { GlobalStyles } from '../styles/GlobalStyles';
 
@@ -38,7 +37,10 @@ const TopProductTwoCard = ({ image, token, item, onReload, self}) => {
             <View style={{ flex: 2, }}>
                 <Text style={styles.mainText} numberOfLines={1}>{item.title}</Text>
                 <Text style={styles.secondaryText} numberOfLines={1}>{item.description}</Text>
-                <Text style={{ color: '#218F76', fontWeight: "700" }}>${item.price}</Text>
+                {
+                    item.price &&
+                    <Text style={{ color: '#218F76', fontWeight: "700" }}>${item.price}</Text>
+                }
             </View>
             {
                 added ? 

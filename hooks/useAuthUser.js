@@ -27,6 +27,9 @@ export default useAuthUser = (token) => {
         fetchUser()
     },[])
 
-    return user
+    return {
+      user,
+      fetchUser
+    }
     
 }

@@ -1,7 +1,6 @@
 import React from 'react'
 import { StyleSheet,TouchableOpacity } from 'react-native'
 
-import {GlobalStyles} from '../styles/GlobalStyles'
 import AppText from './AppText'
 
 const AppButton = ({text, onPress, small }) => {

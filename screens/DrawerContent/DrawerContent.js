@@ -1,28 +1,25 @@
-import React,{ useContext, useEffect, useState } from 'react';
-import { View, StyleSheet, Image, ActivityIndicator } from 'react-native'
+import React,{ useEffect, useState } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
 import axios from 'axios';
 import { Ionicons, MaterialCommunityIcons,Feather, FontAwesome, AntDesign } from '@expo/vector-icons'
 import { Title, Caption, Paragraph, Drawer, Text, TouchableRipple, Switch } from 'react-native-paper'
-import {  DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer'
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import {  DrawerContentScrollView  } from '@react-navigation/drawer'
 import { connect } from 'react-redux';
-import { signOut, logoutHandler } from '../../redux/auth/authRedux'
-import { useNavigation } from '@react-navigation/native';
-import { Button } from 'react-native';
+import { signOut } from '../../redux/auth/authRedux'
 
+
+
+import {ErrorView, } from '../../components/';
+import { fetchUserProfile } from '../../redux/userProfile/userProfileRedux';
+import SplashLoadingScreen from '../SplashLoadingScreen.js/SplashLoadingScreen';
 
 
 const logo = require('../../assets/Logos/logo.png')
 const logo2 = require('../../assets/Logos/myLogo.png')
-import useFetchData from '../../hooks/useFetchData'
-import { fetchUserProfile } from '../../redux/userProfile/userProfileRedux';
-import SplashLoadingScreen from '../SplashLoadingScreen.js/SplashLoadingScreen';
-import ErrorView from '../../components/ErrorView';
 
 
-
-const DrawerContent = ({navigation, authToken, authLogout, userProfile, fetchUser}) => {
+const DrawerContent = ({navigation, authToken, signOut, userProfile, fetchUser}) => {
 
     const [ inboxMessagesLength, setInboxMessagesLength ] = useState([]);
 
@@ -41,15 +38,12 @@ const DrawerContent = ({navigation, authToken, authLogout, userProfile, fetchUse
         } 
     }
 
-    const signOutHandler = () => {
-        authLogout(token)
-        // navigation.navigate("Splash")
-    }
-
     const reloadPosts = () => {
         fetchUser(token)
         getInboxMessageList();
     }
+
+    const logOutUser = () => signOut(token)
 
     useEffect(() => {
         fetchUser(token)
@@ -69,7 +63,7 @@ const DrawerContent = ({navigation, authToken, authLogout, userProfile, fetchUse
                                 <Image source={{ uri: userProfile.profile.profile_pic }} style={{ width: 50, height: 50, borderRadius: 50, borderWidth: 0.5, borderColor: '#777'}} />
                             <View style={{ marginLeft: 12 }}>
                                 <Title style={styles.title}>{userProfile.profile.user}</Title>
-                                <Caption style={styles.caption}>@{userProfile.profile.location}</Caption>
+                                <Caption style={styles.caption}>{userProfile.profile.location}</Caption>
                             </View>
                         </View>
                         <View style={styles.row}>
@@ -106,7 +100,7 @@ const DrawerContent = ({navigation, authToken, authLogout, userProfile, fetchUse
                     <TouchableOpacity style={{ flexDirection: 'row', 
                         alignItems: 'center', paddingHorizontal: 12, 
                         paddingVertical: 12 }}
-                        onPress={() => navigation.navigate('Cart')}
+                        onPress={() => navigation.navigate('Cart', {ID: userProfile.profile.id})}
                         >
                     {/* <FontAwesome name="cart"  /> */}
                         <AntDesign name='shoppingcart' size={28} color="#777" />
@@ -160,7 +154,7 @@ const DrawerContent = ({navigation, authToken, authLogout, userProfile, fetchUse
                  <TouchableOpacity style={{ flexDirection: 'row', 
                     alignItems: 'center', paddingHorizontal: 12, 
                     paddingVertical: 12 }}
-                    // onPress={() => logoutHandler()}
+                    onPress={logOutUser}
                     >
                     <Ionicons name="md-exit" size={28} color="#777" />
                     <Text style={{ paddingLeft: 15, fontSize: 15, color: '#777' }}>Sign Out</Text>
@@ -249,8 +243,8 @@ const DrawerContent = ({navigation, authToken, authLogout, userProfile, fetchUse
 
  const mapDispatchToProps = dispatch => {
      return{
-         authLogout: (token) => dispatch(signOut(token)),
-         fetchUser: token => dispatch(fetchUserProfile(token))
+        signOut: (token) => dispatch(signOut(token)),
+        fetchUser: token => dispatch(fetchUserProfile(token))
      }
  }
 

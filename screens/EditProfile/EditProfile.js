@@ -1,20 +1,13 @@
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
+import { View, StyleSheet, ScrollView, StatusBar } from 'react-native'
 import axios from 'axios';
 import * as Yup from 'yup';
-import { View, Text, StyleSheet, ScrollView, StatusBar, TextInput } from 'react-native'
-import { Entypo,  MaterialIcons } from '@expo/vector-icons';
+
+
+
+
+import { AppCurtain, AppImagePickerTwo, AppImagePickerThree,  AppTextInput, AppForm, EditProfileHeader, SubmitButton, } from '../../components/'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
-import { GlobalStyles } from '../../styles/GlobalStyles'
-import { AuthContext } from '../../context/authentication/Context'
-import { Textarea } from 'native-base';
-import EditProfileHeader from '../../components/EditProfileHeader';
-
-
-import AppForm from '../../components/Forms/AppForm'
-import AppTextInput from '../../components/Forms/AppTextInput';
-import AppImagePickerTwo from '../../components/Forms/AppImagePickerTwo';
-import AppImagePickerThree from '../../components/Forms/AppImagePickerThree';
-import SubmitButton from '../../components/Forms/SubmitButton';
 
 
 const validationSchema = Yup.object().shape({
@@ -94,7 +87,7 @@ const { container } = styles
  return(
    <>
       <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
-     <EditProfileHeader submitHandler={submitHandler} />
+     <EditProfileHeader  />
 
       <ScrollView style={container}>
         <AppForm
@@ -105,44 +98,53 @@ const { container } = styles
 
         <AppImagePickerTwo name="coverPhoto"  placeHolder="Change cover pic" pic={Profile.cover_photo}/>
 
+      <View style={{ paddingHorizontal: 15 }}>
+        
         <AppImagePickerThree name="profilephoto" placeHolder="Change profile pic" pic={Profile.profile_pic} />
 
           <AppTextInput 
             name="location"
             placeholder={Profile.location}
-            icon="globe" 
+            icon="location-arrow"
+            title="Location" 
           />
 
           <AppTextInput 
             name="description"
             multiline
             placeholder={Profile.description}
-            icon="user-o" 
+            icon="sticky-note" 
+            title="Description" 
           />
 
           <AppTextInput 
             name="contact"
             placeholder={Profile.contact}
             icon="phone" 
+            title="Contact"
           />
 
           <AppTextInput 
             name="workingHours"
             placeholder={Profile.working_hours}
-            icon="phone" 
+            icon="clock-o" 
+            title="Opening Time"
           />
 
           <AppTextInput 
             name="workingDays"
             placeholder={Profile.working_days}
-            icon="phone" 
+            icon="clock-o"
+            title="Closing Time" 
           />
 
 
-          <SubmitButton title="Edit" loading={load} />
+          <SubmitButton title="Edit" />
+        </View>
         </AppForm>
 
       </ScrollView>
+      <AppCurtain loading={load} />
    </>
  )
 }
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#fff",
    flex: 1,
-   paddingHorizontal: 10
+  //  paddingHorizontal: 15
   },
   cardText: {
     padding: 24

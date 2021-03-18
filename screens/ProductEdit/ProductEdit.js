@@ -1,20 +1,15 @@
-import React, {useState, useContext } from 'react'
-import { View, Text, StyleSheet, ActivityIndicator, TextInput, ScrollView, TouchableOpacity, Button, Image, KeyboardType, StatusBar } from 'react-native'
-import { ListItem,  Textarea, Radio, Right, Left } from 'native-base';
-import { MaterialIcons } from '@expo/vector-icons';
+import React, {useState } from 'react'
+import { View, Text, StyleSheet, ScrollView, StatusBar } from 'react-native'
+import { ListItem,  Radio, Right, Left } from 'native-base';
 import { connect } from 'react-redux'
 import axios from 'axios';
 import * as Yup from 'yup';
 
 
 
-import AppImagePickerFour from '../../components/Forms/AppImagePickerFour'
-import PostProductHeader from '../../components/PostProductHeader';
+import {AppTextInput, AppForm, AppCurtain,  AppImagePickerFour, PostProductHeader, SubmitButton } from '../../components/'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
 import { hotReloadPosts } from '../../redux/posts/postsRedux';
-import AppTextInput from '../../components/Forms/AppTextInput';
-import AppForm from '../../components/Forms/AppForm'
-import SubmitButton from '../../components/Forms/SubmitButton';
 
 
 
@@ -80,7 +75,6 @@ const ProductEdit = ({authToken, navigation, route,   }) => {
           }
         })
         .then(res => {
-            // console.log(res.data);
         })
         .catch(err => {
             console.log(err);
@@ -88,7 +82,6 @@ const ProductEdit = ({authToken, navigation, route,   }) => {
         loadPost()
   }
 
-// console.log(selectedImage);
 const { container } = styles
 
  return(
@@ -160,11 +153,12 @@ const { container } = styles
             </Right>
           </ListItem>
           
-          <SubmitButton title="Post" loading={load} />
+          <SubmitButton title="Post"  />
           
         </AppForm>
           
     </ScrollView>
+    <AppCurtain loading={load} />
   </View>
   )
 }

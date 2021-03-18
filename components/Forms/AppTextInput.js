@@ -3,15 +3,20 @@ import { StyleSheet, Text, View, TextInput } from 'react-native'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 
 import { useFormikContext } from 'formik'
+import AppText from '../AppText'
+import { GlobalStyles } from '../../styles/GlobalStyles'
 
 
-
-const AppTextInput = ({ name, placeholder, value=null, placeholderColor="#777" ,isInline, icon, ...otherProps}) => {
+const AppTextInput = ({ name, placeholder, value=null, placeholderColor="#777" ,isInline, title, icon, ...otherProps}) => {
     const {handleChange, setFieldTouched, touched, errors } = useFormikContext()
     if(!errors) return null
     return (
         <>
             <View>
+                {
+                    title &&
+                    <AppText fontSize={16} color={GlobalStyles.blue.color}>{title}</AppText>
+                }
                 <TextInput style={styles.inputContainer} 
                     name={name}
                     value={value}
@@ -21,7 +26,10 @@ const AppTextInput = ({ name, placeholder, value=null, placeholderColor="#777" ,
                     onBlur={() => setFieldTouched(name)}
                     onChangeText={handleChange(name)}
                 />
-                <FontAwesome name={icon} color="#05375a" size={18} style={styles.iconStyles} />
+                {
+                    icon &&
+                    <FontAwesome name={icon} color="#05375a" size={18} style={styles.iconStyles} />
+                }
             </View>
             {
                 !errors ? 

@@ -1,5 +1,5 @@
-import React, {useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView,  Image, StatusBar } from 'react-native'
+import React, {useState} from 'react'
+import { View, Text, StyleSheet, ScrollView,StatusBar} from 'react-native'
 import { ListItem,  Radio, Right, Left } from 'native-base';
 import axios from 'axios';
 import { connect } from 'react-redux'
@@ -7,20 +7,17 @@ import * as Yup from 'yup'
 
 
 
-import AppImagePicker from '../../components/Forms/AppImagePicker'
-import PostProductHeader from '../../components/PostProductHeader';
+import {AppCategoryPicker, AppCurtain, AppImagePicker, AppTextInput, AppForm, PostProductHeader, SubmitButton,} from '../../components/';
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
 import { hotReloadPosts } from '../../redux/posts/postsRedux';
-import AppTextInput from '../../components/Forms/AppTextInput';
-import AppForm from '../../components/Forms/AppForm'
-import SubmitButton from '../../components/Forms/SubmitButton';
 
 
 const validationSchema = Yup.object().shape({
   title: Yup.string().required().max(255).label("Title"),
   description: Yup.string().label("Description"),
   price: Yup.number().label("Price"),
+  category: Yup.string().label('Category'),
   offer: Yup.string().label("Offer"),
   image: Yup.string().label("Image")
 })
@@ -55,6 +52,7 @@ const PostProduct = ({reloadPosts, navigation, authToken }) => {
         name: 'photo.jpg',
       };
 
+    data.append("category", values.category);
     data.append("title", values.title);
     data.append("description", values.description);
     data.append("price", values.price);
@@ -77,6 +75,9 @@ const PostProduct = ({reloadPosts, navigation, authToken }) => {
 
   }
 
+  // if(load) return <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+
+  
 const { container } = styles
 
  return(
@@ -84,18 +85,21 @@ const { container } = styles
         <StatusBar backgroundColor="#ddd" barStyle='dark-content' />
         <PostProductHeader submitHandler={submitHandler} onPress={() => navigation.goBack()} />
     <ScrollView showsVerticalScrollIndicator={false} style={{ paddingHorizontal: 10 }}>
+
  
       <View style={{ padding: 15, justifyContent: 'center', alignItems: 'center' }}>
       </View>
             <AppForm  
-              initialValues={{ title: "", description: "", catergory: "Gadgets and Electronics", price: "", offer: "", available: true, image: "" }}
+              initialValues={{ title: "", description: "", category: null, price: "", offer: "", available: true, image: "" }}
               validationSchema={validationSchema}
               onSubmit={submitHandler}
             >
+              <AppImagePicker name="image" />
+              
               <AppTextInput 
                 name="title"
                 placeholder='Add an Interesting Title'
-                icon="user-o" 
+                icon="pencil" 
                 multiline
                />
 
@@ -106,23 +110,24 @@ const { container } = styles
                 multiline 
               /> 
 
+              <AppCategoryPicker
+                name="category"
+              
+              />
+
               <AppTextInput 
                 placeholder='price' 
                 name="price"
-                icon="user-o"
+                icon="dollar"
                 keyboardType="number-pad"
               />
 
               <AppTextInput 
                 placeholder='Any Offer (Optional) '
                 name="offer"
-                icon="user-o"
+                icon="money"
                 keyboardType="number-pad"
               />
-
-         
-
-          <AppImagePicker name="image" />
 
           <ListItem selected={true}>
 
@@ -145,6 +150,7 @@ const { container } = styles
         </AppForm>
           
     </ScrollView>
+      <AppCurtain loading={load} />
   </View>
   )
 }
@@ -156,7 +162,6 @@ const styles = StyleSheet.create({
   //  paddingHorizontal: 15,
    backgroundColor: '#fff'
   },
-
   thumbnail: {
     flex: 1,
     width: null,

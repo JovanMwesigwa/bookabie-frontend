@@ -2,15 +2,41 @@ import React from 'react'
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
 import { FontAwesome} from '@expo/vector-icons';
 import { Surface} from 'react-native-paper';
+import { connect } from 'react-redux'
+
+
 
 
 import { APIROOTURL } from '../ApiRootURL/ApiRootUrl'
+import { fetchaddItemToCart, fetchCartItemRemoveNoRefresh } from '../redux/cart/CartRedux';
 import useFetchData from '../hooks/useFetchData'
+import useActionButton from '../hooks/useButtonAction'
+import useCheck from '../hooks/useCheck'
 
 
-const TopProduct = ({ image, token, item, onReload, self}) => {
+
+const TopProduct = ({authUserID, addToCartFunc, removeCartItemFunc, image, token, item, onReload, self}) => {
 
     const { request } = useFetchData(token, `api/remove_topproduct/${item.id}/`)
+
+    const { 
+        approved: addedToCart, 
+        setApproved: setAddedToCart 
+      } = useCheck(token, `api/check_in_cart/${item.id}`)
+
+    const addToCart = () => {
+        setAddedToCart(true);
+      }
+    
+      const addToCartHandler = () => {
+        addToCart();
+        addToCartFunc(token, item.id);
+      }
+    
+      const removeFromCart = () => {
+        setAddedToCart(false);
+        removeCartItemFunc(token, item.id)
+      }
 
     const remove = () => {
         onReload()
@@ -27,7 +53,10 @@ const TopProduct = ({ image, token, item, onReload, self}) => {
             <View style={{ flex: 2 }}>
                 <Text style={styles.mainText} numberOfLines={2}>{item.title}</Text>
                 <Text style={styles.secondaryText} numberOfLines={1}>{item.description}</Text>
-                <Text style={{ color: '#218F76', fontWeight: "700" }}>${item.price}</Text>
+                {
+                  item.price &&
+                  <Text style={{ color: '#218F76', fontWeight: "700" }}>${item.price}</Text>
+                }
             </View>
             {
                 self ?
@@ -36,11 +65,21 @@ const TopProduct = ({ image, token, item, onReload, self}) => {
                         <FontAwesome name="trash" color="red" size={22} style={styles.icon} />
                     </View>
                 </TouchableOpacity>  :
-                <TouchableOpacity onPress={() => console.log("add to cart")}>
-                <View style={styles.actionBtns}>
-                    <FontAwesome name="plus" color="#1287A5" size={22} style={styles.icon} />
-                </View>
-            </TouchableOpacity>
+                <>
+                {
+                    !addedToCart ? 
+                    <TouchableOpacity onPress={addToCartHandler}>
+                        <View style={styles.actionBtns}>
+                            <FontAwesome name="plus" color="#1287A5" size={22} style={styles.icon} />
+                        </View>
+                    </TouchableOpacity> :
+                    <>
+                        <View style={styles.actionBtns}>
+                            <FontAwesome name="check" color="#1287A5" size={22} style={styles.icon} />
+                        </View>
+                    </>
+                }
+                </>
             }
         </Surface>
     )
@@ -84,4 +123,18 @@ const styles = StyleSheet.create({
       },
 })
 
-export default TopProduct
+const mapStateToProps = state => {
+    return{
+      cartData: state.cart.cartItems
+    }
+  }
+  
+  const mapDispatchToProps = dispatch => {
+    return{
+      addToCartFunc: (token, id) => dispatch(fetchaddItemToCart(token, id)),
+      removeCartItemFunc: (token, id) => dispatch(fetchCartItemRemoveNoRefresh(token, id)),
+      cartItemDetailsFunc: (token, id) => dispatch(fetchCartItemDetails(token, id)),
+    }
+  }
+
+export default connect(mapStateToProps, mapDispatchToProps)(TopProduct)

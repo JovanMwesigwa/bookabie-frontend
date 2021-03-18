@@ -5,15 +5,15 @@ import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl';
 const FETCH_POSTS_REQUEST = 'FETCH_POSTS_REQUEST';
 const FETCH_POSTS_SUCCESS = 'FETCH_POSTS_SUCCESS';
 const FETCH_POSTS_FAILURE = 'FETCH_POSTS_FAILURE';
-const FETCH_MORE_POSTS = 'FETCH_MORE_POSTS';
+const FETCH_MORE_POSTS = 'FETCH_MORE_POSTS';   
 const FETCH_HOTRELOAD_POSTS = 'FETCH_HOTRELOAD_POSTS';
+         
        
-  
 const initialState = {
     loading: true,
-    postsItems: [],
-    errors: ""
-}
+    postsItems: [], 
+    errors: "" 
+} 
 
 export const fetchPostsRequest = () => {   
     return {
@@ -26,7 +26,7 @@ export const fetchPostsSuccess = postsData => {
         type: FETCH_POSTS_SUCCESS,     
         payload: postsData 
     }  
-}   
+}     
 
 export const fetchMorePosts = postsData => {
     return {
@@ -48,15 +48,15 @@ export const fetchPostsFailure = errors => {
         payload: errors
     }
 }
- 
+      
 export  const fetchPosts = (token) => {
     return dispatch => {
         dispatch(fetchPostsRequest())
         axios.get(`${APIROOTURL}/api/posts/?page=1`, {
         headers: {
             'Authorization': `Token ${token}`
-        }
-        })
+        }  
+        })  
         .then(resData => {
             const postsData = resData.data.results;
             dispatch(fetchPostsSuccess(postsData))

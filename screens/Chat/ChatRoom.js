@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, Keyboard, Image, StatusBar, TouchableOpacity, TouchableWithoutFeedback, FlatList } from 'react-native'
+import React, { useEffect } from 'react'
+import { View, ActivityIndicator, Text, StyleSheet, Keyboard, Image, StatusBar, TouchableOpacity, TouchableWithoutFeedback, FlatList } from 'react-native'
 import axios from 'axios';
 import { connect } from 'react-redux'
 import { useRoute } from '@react-navigation/native'
 import { AntDesign } from '@expo/vector-icons';
-import {  Input,} from 'native-base';
 import * as Yup from 'yup'
 
 
 
-import { GlobalStyles } from '../../styles/GlobalStyles'
+import {AppForm,AppTextInput, ChatMessageComponent, IconButton, SubmitButton  } from '../../components/';
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import ChatMessageComponent from '../../components/ChatMessageComponent/ChatMessageComponent';
+import { GlobalStyles } from '../../styles/GlobalStyles'
 import useAuthUser from '../../hooks/useAuthUser'
 import useFetchData from '../../hooks/useFetchData'
-import { ActivityIndicator } from 'react-native';
-import AppForm from '../../components/Forms/AppForm';
-import AppTextInput from '../../components/Forms/AppTextInput';
-import SubmitButton from '../../components/Forms/SubmitButton';
-import IconButton from '../../components/IconButton';
+
+
+
 
 
 const validationSchema = Yup.object().shape({
@@ -26,19 +23,23 @@ const validationSchema = Yup.object().shape({
 })
 
 
+
+// 
 const ChatRoom = ({ navigation,  authToken }) => {
 
     const route = useRoute()
 
     const token = authToken;
 
-    const { ID, chatWithID } = route.params
+    const { item, ID, chatWithID } = route.params
 
     const user = useAuthUser(token)
 
+    const chatRoom = useFetchData(token, `api/chat_room/${item.reciever}/`)
+
     const { data: roomData, loading, errors, request } = useFetchData(token, `api/room_messages/${ID}/`)
 
-    const userToData = useFetchData(token, `api/profile/${chatWithID}/detail/`)
+    const userToData = useFetchData(token, `api/profile/${item.reciever}/detail/`)
 
     const sendMessage = async(data) => {
       Keyboard.dismiss()
@@ -64,7 +65,10 @@ const ChatRoom = ({ navigation,  authToken }) => {
         return false
     }
 
+    
+
     useEffect(() => {
+      chatRoom.request()
       userToData.request()
       request();
     },[])
@@ -89,7 +93,7 @@ const { container } = styles
             </View>
         </View>
           <FlatList 
-            data={roomData}
+            data={chatRoom.data.results}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
 
@@ -109,7 +113,7 @@ const { container } = styles
           />
           
           <AppForm
-            initialValues={{ room: ID, description: "", message_to: chatWithID,}}
+            initialValues={{ room: ID, description: "", message_to: item.reciever,}}
             validationSchema={validationSchema}
             onSubmit={(values) => sendMessage(values)}
           >

@@ -50,7 +50,7 @@ const AppImagePickerThree = ({name, placeHolder="Upload Photo", pic}) => {
         <>
         {
             imageUri ? 
-            <TouchableOpacity onPress={pickImage} >
+            <TouchableOpacity onPress={pickImage}>
                 <Image style={styles.coverImageHeader} source={{uri: imageUri }} /> 
             </TouchableOpacity>
             :
@@ -91,12 +91,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
       },
     coverImageHeader: {
+        backgroundColor: 'brown',
         flex: 1,
         width: 65,
         height: 65,
+        marginBottom: 20,
         borderRadius: 65/2       
       },
-
+    picContainer: {
+      backgroundColor: 'brown'
+    }
 })
 
 export default AppImagePickerThree

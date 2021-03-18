@@ -1,33 +1,27 @@
-import React, {  useEffect} from 'react'
-import { View, Text, StyleSheet, ScrollView,FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, TouchableWithoutFeedback } from 'react-native'
+import React, { useEffect} from 'react'
+import { View, Text, StyleSheet, ScrollView,FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, TouchableWithoutFeedback, Button } from 'react-native'
 import { connect } from 'react-redux'
 import { MaterialCommunityIcons} from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 
- 
 
 
+
+import { AppButton, ErrorView, GreyTopBar, TopProductCat, ProductCard, MainHeaderComponent} from '../../components/';
+import { fetchLoadMorePosts, fetchPosts, hotReloadPosts } from '../../redux/posts/postsRedux';
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { signOut } from '../../redux/auth/authRedux'
-import { fetchLoadMorePosts, fetchPosts, hotReloadPosts } from '../../redux/posts/postsRedux';
-import GreyTopBar from '../../components/GreyTopBar';
-import ErrorView from '../../components/ErrorView';
 import SplashLoadingScreen from '../SplashLoadingScreen.js/SplashLoadingScreen';
-import TopProductCat from '../../components/topProductCat'
-import ProductCard from '../../components/productCard'
-import MainHeaderComponent from '../../components/MainHeaderComponent'
 import useAuthUser from '../../hooks/useAuthUser';
 import useFetchMorePosts from '../../hooks/useFetchMorePosts'
 import useFetchTopProfilesApi from '../../hooks/useFetchTopProfilesApi'
-import AppButton from '../../components/AppButton';
+import { fetchUserProfile } from '../../redux/userProfile/userProfileRedux';
 
 
 
 
-const url = 'api/promoted_profiles/'
-const initialCount = 2;
 
-const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoading, postsErrors, fetchPostsFunc}) => {
+const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoading, postsErrors, fetchUserProfile, fetchPostsFunc, userProfile}) => {
 
   const [ count, setCount ] = React.useState(2)
 
@@ -35,9 +29,12 @@ const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoad
 
   const topProfiles = useFetchTopProfilesApi(token)
 
-  const authUser = useAuthUser(token);
-
   const nextPosts = useFetchMorePosts(token)
+
+  useEffect(() => {
+    fetchPostsFunc(token); 
+    fetchUserProfile(token);
+},[])
 
   const getMorePosts = () => {
     setCount(count + 1)
@@ -62,17 +59,12 @@ const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoad
     fetchHotReload(token)
   }
 
- 
-  useEffect(() => {
-      fetchPostsFunc(token);
-  },[])
-
 
   if (postsLoading) return <SplashLoadingScreen />
 
   if (postsErrors) return <ErrorView onPress={reloadPosts} error={postsErrors} />
 
-
+ 
   const renderFooter = () => {
     return(
       <>
@@ -115,7 +107,6 @@ const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoad
         <FlatList 
             ListHeaderComponent ={
               <>  
-                
                 <View style={container}>
                                    
                     <GreyTopBar signOut={signOut} onPress={() => fetchPostsData(token)} />
@@ -123,14 +114,14 @@ const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoad
                   <View style={styles.feedContainerTwo}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, }}>
                     <MaterialCommunityIcons name="trending-up" size={20} color="green" />
-                      <Text style={{...GlobalStyles.headerText, fontSize: 16}}>GALLERIES</Text>
+                      <Text style={{...GlobalStyles.headerText, fontSize: 16}}>STORIES</Text>
                     </View>
                     <AppButton small text="View All" onPress={() => {
-                      navigation.navigate('Company List', { authUser: authUser })
+                      navigation.navigate('Company List', { authUser: userProfile.profile })
                     }} />
   
-
-                  </View>
+ 
+                  </View> 
 
                     <View style={styles.topProduct}>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -138,7 +129,7 @@ const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoad
                         {topProfiles.map(acc => (
                           <TouchableWithoutFeedback key={acc.id} >
                             <View  style={{ paddingHorizontal: 8, paddingVertical: 15}}>
-                              <TopProductCat topBrand={acc}  />
+                              <TopProductCat topBrand={acc} token={token} />
                             </View>
                           </TouchableWithoutFeedback>
                         ))}
@@ -156,7 +147,7 @@ const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoad
             ListFooterComponent={renderFooter}
             onEndReachedThreshold={1.5}
             renderItem={({ item }) => (
-              <ProductCard item={item} reloadPosts={reloadPosts} authUserID={authUser.id} />
+              <ProductCard item={item} reloadPosts={reloadPosts} authUserID={userProfile.profile.id} />
             )}
               keyExtractor={(item) => item.id.toString()}
           />
@@ -164,7 +155,7 @@ const Find = ({ navigation, signOut, authToken, posts, fetchHotReload, postsLoad
       }
         <TouchableWithoutFeedback  onPress={() => navigation.navigate('Post Product')}>
           <View style={styles.UploadBtn}>
-            <MaterialCommunityIcons name="feather" size={20} color="#fff" />
+            <MaterialCommunityIcons name="feather" size={25} color="#fff" />
           </View>
         </TouchableWithoutFeedback>
   </>
@@ -224,19 +215,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center' ,
 },
-
-  
-  
-  topBtnContainer: {
+topBtnContainer: {
     padding: 5, 
     backgroundColor: '#fff', 
     borderRadius: 8,
     width: 36,
     marginHorizontal: 5,
     marginVertical: 12 
-  },
-  
-
+},
 topStories: { 
   alignSelf: 'center',
   width: 73, 
@@ -286,13 +272,16 @@ logoStyles: {
   borderRadius: 10 
 },
 UploadBtn: {
-  padding: 15,
+  alignItems: 'center',
   backgroundColor: GlobalStyles.themeColor.color, 
-  borderRadius: 24, 
-  position: 'absolute',
   bottom: 20,
+  borderRadius: 65/2, 
+  elevation: 5,
+  height: 65,
+  position: 'absolute',
+  justifyContent: 'center',
   right: 20,
-  elevation: 5
+  width: 65
 },
 })
 
@@ -301,7 +290,8 @@ const mapStateToProps = state => {
     authToken: state.auth.token,
     posts: state.posts.postsItems,
     postsLoading: state.posts.loading,
-    postsErrors: state.posts.errors
+    postsErrors: state.posts.errors,
+    userProfile: state.userProfile,
   }
 }
 
@@ -310,7 +300,8 @@ const mapDispatchToProps = dispatch => {
     signOut: () => dispatch(signOut()),
     fetchPostsFunc: (token) => dispatch(fetchPosts(token)),
     fetchMorePostsFunc: (token, nextUrl) => dispatch(fetchLoadMorePosts(token, nextUrl)),
-    fetchHotReload: (token) => dispatch(hotReloadPosts(token))
+    fetchHotReload: (token) => dispatch(hotReloadPosts(token)),
+    fetchUserProfile: token => dispatch(fetchUserProfile(token)),
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Find)

@@ -1,26 +1,16 @@
 import React, {useState, useEffect, useContext, useReducer } from 'react'
-import axios from 'axios'
+import { View,  StyleSheet, Image, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList, TouchableWithoutFeedback } from 'react-native'
 import { connect } from 'react-redux'
 import { AntDesign, Feather, FontAwesome5 } from '@expo/vector-icons';
-import { View,  StyleSheet, Image, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList, TouchableWithoutFeedback } from 'react-native'
-import * as Animatable from 'react-native-animatable';
+import {  Paragraph, Button, Dialog, Portal, Text } from 'react-native-paper';
+import axios from 'axios'
 
 
 
+import {AppHeaderText, ApploadingComponent, AppText, CommentComponent, ErrorView, OtherHeaderComponent, FullImageModal } from '../../components/';
 import { GlobalStyles } from '../../styles/GlobalStyles'
 import { APIROOTURL } from '../../ApiRootURL/ApiRootUrl'
-import FullImageModal from '../../components/Modals/FullImageModal';
-import OtherHeaderComponent from '../../components/OtherHeaderComponent';
-import CommentComponent from '../../components/CommentComponent';
-import {  Paragraph, Subheading, Button, Dialog, Portal, Text } from 'react-native-paper';
-import LikedBy from '../../components/LikedBy';
-import { fetchaddItemToCart, } from '../../redux/cart/CartRedux';
 import { CompanyContext } from '../../context/profiles/CompanyContextProvider'
-import useFetchData from '../../hooks/useFetchData'
-import useAuthUser from '../../hooks/useAuthUser'
-import ErrorView from '../../components/ErrorView';
-import AppText from '../../components/AppText';
-import AppHeaderText from '../../components/AppHeaderText';
 import { fetchPosts } from '../../redux/posts/postsRedux';
 
 
@@ -190,11 +180,7 @@ const ProductDetails = ({ route, navigation, authToken, reloadPosts, reloadAllPo
     }
 
 
-  if(state.loading) return( 
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', }}>
-      <ActivityIndicator size='small' collapsable color='#B83227' />
-    </View>
-  )
+  if(state.loading) return <ApploadingComponent /> 
 
   if(state.error) return <ErrorView onPress={reloadPosts} error={state.error} />
 

@@ -13,11 +13,11 @@ const { container } = styles
  return(
     <View>
     <View style={{...styles.headerContainer }}>
+      <View>
+        <Text style={{...GlobalStyles.headerText, color: '#B83227', fontWeight: '500', fontSize: 15, paddingHorizontal: 10}}>Edit Profile</Text>
+      </View>
       <TouchableOpacity onPress={() => navigation.goBack()} >
       <Text style={{...GlobalStyles.headerText, color: '#333945', fontWeight: '500', fontSize: 15, paddingHorizontal: 10}}>Cancel</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={submitHandler}>
-        <Text style={{...GlobalStyles.headerText, color: '#B83227', fontWeight: '500', fontSize: 15, paddingHorizontal: 10}}>Edit Profile</Text>
       </TouchableOpacity>
     </View>
     </View>

@@ -1,11 +1,9 @@
 import React from 'react'
-import { StyleSheet, Text, View, StatusBar, Image } from 'react-native'
-import LottieView from 'lottie-react-native';
+import { StyleSheet, View, StatusBar, Image } from 'react-native'
 
 
 
 const logo  = require('../../assets/Logos/logo.png')
-import { GlobalStyles } from '../../styles/GlobalStyles'
 
 
 const SplashLoadingScreen = () => {
@@ -16,20 +14,19 @@ const SplashLoadingScreen = () => {
             <View style={styles.logoStyles}>
                 <Image source={logo} style={styles.image} />
             </View>
-          {/* <Text style={{color: GlobalStyles.themeColor.color}}>Bookabie</Text> */}
         </View>
     )
 }
 
 const styles = StyleSheet.create({
     isLoadingStyles: { 
-        flex: 1, 
-        justifyContent: 'center', 
         alignItems: 'center', 
         backgroundColor: '#fff',
+        bottom: 0,
+        flex: 1, 
+        justifyContent: 'center', 
         position: 'absolute',
         top: 0,
-        bottom: 0,
         right: 0,
         left: 0,
         zIndex: 1
@@ -40,11 +37,11 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
       },
       logoStyles: { 
-        borderRadius: 10,
-        height: 70, 
+        borderRadius: 75/2,
+        height: 75, 
+        marginBottom: 5,
         overflow: 'hidden',
-        width: 70, 
-        marginBottom: 5
+        width: 75, 
     },
 })
 

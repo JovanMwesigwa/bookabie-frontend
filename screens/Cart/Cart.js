@@ -1,27 +1,43 @@
 import React, { useEffect } from 'react'
-import { View, StyleSheet, RefreshControl, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native'
-import OtherHeaderComponent from '../../components/OtherHeaderComponent'
-import { GlobalStyles } from '../../styles/GlobalStyles'
+import { View, StyleSheet, RefreshControl, FlatList, TouchableOpacity } from 'react-native'
 import { AntDesign } from '@expo/vector-icons';
 import { Text } from 'react-native-paper'
-import CartItemCard from '../../components/CartItemCard';
 import { connect } from 'react-redux'
-import { fetchCartData, removeCartItem } from '../../redux/cart/CartRedux';
+import { useRoute } from '@react-navigation/native'
 
 
-const Cart = ({authToken,cartDataLoading, cartData,cartDataErrors,  navigation}) => {
+import {AppText, CartItemCard, OtherHeaderComponent} from '../../components/'
+import { GlobalStyles } from '../../styles/GlobalStyles'
+import { fetchCartData } from '../../redux/cart/CartRedux';
+import useFetchData from '../../hooks/useFetchData'
 
+
+
+
+
+
+const Cart = ({authToken, cartDataLoading, cartData,cartDataErrors, navigation}) => {
+  
   const token = authToken;
+  
+  const route = useRoute()
+  
+  const { ID } = route.params
+  
+  const cartPrice = useFetchData(token, `api/cart_cost/${ID}/`)
 
   const fastRefresh = () => {
     fetchCartData(token)
+    cartPrice.request()
   }
 
   const navigateBack = () => navigation.goBack()
 
   useEffect(() => {
     fetchCartData(token)
+    cartPrice.request()
   },[])
+
 
 const refreshControl = <RefreshControl
     color="#B83227"
@@ -59,10 +75,32 @@ const refreshControl = <RefreshControl
               refreshControl={refreshControl}
               renderItem={({item}) => (
                 <View style={{ flex: 2 }}>
-                  <CartItemCard item={item} refreshItems={fastRefresh} />
+                  <CartItemCard item={item} refreshItems={fastRefresh}  cartPrice={fastRefresh}/>
                 </View>
               )}
               keyExtractor={(item) => item.id.toString()}
+              ListFooterComponent={
+                <>
+                <View style={styles.pricing}>
+                  <View style={styles.pricingInfo}>
+                      <AppText paddingHorizontal={8} fontSize={18} fontWeight='bold' alignSelf="flex-end">Items : {cartData.product.length}</AppText>
+                    {
+                      cartData.loading ? 
+                      <Text style={styles.infoText}>...</Text> :
+                      <AppText paddingHorizontal={8} fontSize={18} fontWeight='bold' alignSelf="flex-end"> Shs - {cartPrice.data.cost}</AppText>
+                    }
+                  </View>
+                </View>
+                <View style={styles.pricingBtns}>
+                  <TouchableOpacity style={styles.checkoutBtn} onPress={() => navigation.navigate('Checkout',{token: token, ID: ID})}>
+                    <Text style={styles.checkoutText}> Place Your Order</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.cancelBtn} onPress={navigateBack}>
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+              </View>
+              </>
+              }
             />
         
         {
@@ -72,20 +110,6 @@ const refreshControl = <RefreshControl
           </View> :
           null
         }
-          <View style={styles.pricing}>
-            <View style={styles.pricingInfo}>
-              <Text style={styles.infoText}>Items - {cartData.product.length}</Text>
-              <Text style={styles.infoText}>Price - </Text>
-            </View>
-          </View>
-          <View style={{ borderTopLeftRadius: 15, borderTopRightRadius: 15 }}>
-            <TouchableOpacity style={styles.checkoutBtn}>
-              <Text style={styles.checkoutText}> Place Your Order</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelBtn} onPress={navigateBack}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </>
       )
@@ -129,18 +153,18 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   checkoutBtn: {
-    padding: 12,
+    padding: 8,
     backgroundColor: GlobalStyles.themeColor.color,
     margin: 8,
-    borderRadius: 8,
+    borderRadius: 25,
   },
   cancelBtn: {
-    padding: 12,
+    padding: 8,
     backgroundColor:"#fff",
     borderWidth: 1,
     borderColor:  GlobalStyles.themeColor.color,
     margin: 8,
-    borderRadius: 8
+    borderRadius: 25
   },
   checkoutText: {
     color: "#fff",
@@ -151,7 +175,11 @@ const styles = StyleSheet.create({
     color:  GlobalStyles.themeColor.color,
     textAlign: "center",
     fontSize: 17
-  }
+  },
+  pricingBtns: { 
+    paddingVertical: 20,
+    paddingHorizontal: 10
+  },
 })
 
 const mapStateToProps = state => {
@@ -164,8 +192,7 @@ const mapStateToProps = state => {
 }
 const mapDispatchToProps = dispatch => {
   return{
-    fetchCartData: (token) => dispatch(fetchCartData(token)),
-    
+    fetchCartData: (token) => dispatch(fetchCartData(token)),    
   }
 }
 export default connect(mapStateToProps,mapDispatchToProps)(Cart)

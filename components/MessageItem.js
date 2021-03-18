@@ -16,9 +16,7 @@ const MessagesItem = ({authToken, item}) => {
 
     const token = authToken;
 
-    const userID = item.room_to;
-
-    const { data,  request } = useFetchData(token, `api/profile/${userID}/detail/`)
+    const { data,  request } = useFetchData(token, `api/profile/${item.sender}/detail/`)
 
 
     useEffect(() => {
